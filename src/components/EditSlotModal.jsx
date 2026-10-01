@@ -91,9 +91,10 @@ export default function EditSlotModal({
     const currentMin = timeToMinutes(startTime);
     const startLimit = timeToMinutes(settings.startHour || '11:00');
     const endLimit = timeToMinutes(settings.endHour || '14:00');
+    const interval = Number(settings?.slotInterval) || 5;
 
     const newMin = Math.max(startLimit, Math.min(endLimit - duration, currentMin + deltaMinutes));
-    setStartTime(minutesToTime(snapToInterval(newMin, 5)));
+    setStartTime(minutesToTime(snapToInterval(newMin, interval)));
   };
 
   const handleSuggestSlot = () => {
@@ -118,6 +119,8 @@ export default function EditSlotModal({
     onClose();
   };
 
+  const currentInterval = Number(settings?.slotInterval) || 5;
+
   return (
     <div className="modal-backdrop animate-fade-in" onClick={onClose}>
       <div className="modal-card animate-scale-up" onClick={(e) => e.stopPropagation()}>
@@ -127,7 +130,7 @@ export default function EditSlotModal({
             <Clock size={19} className="text-scada-cyan" />
             <div>
               <h3 className="modal-title">{slot ? 'Editar Almoço' : 'Definir Almoço'}</h3>
-              <span className="modal-subtitle">Ajuste o horário com passos de 5 minutos</span>
+              <span className="modal-subtitle">Ajuste o horário com precisão configurada ({currentInterval} min)</span>
             </div>
           </div>
           <button type="button" className="btn-modal-close" onClick={onClose}>
@@ -191,7 +194,7 @@ export default function EditSlotModal({
                 <div className="time-input-wrap">
                   <input
                     type="time"
-                    step="300" // 5 minutos
+                    step={currentInterval * 60}
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
                     className="time-picker-input"
@@ -199,10 +202,10 @@ export default function EditSlotModal({
                   />
                 </div>
                 <div className="time-stepper-buttons" style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(-15)} title="-15 min">-15m</button>
-                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(-5)} title="-5 min">-5m</button>
-                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(5)} title="+5 min">+5m</button>
-                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(15)} title="+15 min">+15m</button>
+                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(-currentInterval * 2)} title={`-${currentInterval * 2} min`}>-{currentInterval * 2}m</button>
+                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(-currentInterval)} title={`-${currentInterval} min`}>-{currentInterval}m</button>
+                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(currentInterval)} title={`+${currentInterval} min`}>+{currentInterval}m</button>
+                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(currentInterval * 2)} title={`+${currentInterval * 2} min`}>+{currentInterval * 2}m</button>
                 </div>
               </div>
 

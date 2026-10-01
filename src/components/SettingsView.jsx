@@ -226,7 +226,7 @@ export default function SettingsView({
                 <label className="form-label">Abertura da Janela do Almoço:</label>
                 <input
                   type="time"
-                  step="300"
+                  step={(Number(formData.slotInterval) || 5) * 60}
                   className="form-input"
                   value={formData.startHour}
                   onChange={(e) => handleChange('startHour', e.target.value)}
@@ -238,7 +238,7 @@ export default function SettingsView({
                 <label className="form-label">Fechamento da Janela:</label>
                 <input
                   type="time"
-                  step="300"
+                  step={(Number(formData.slotInterval) || 5) * 60}
                   className="form-input"
                   value={formData.endHour}
                   onChange={(e) => handleChange('endHour', e.target.value)}
@@ -269,12 +269,12 @@ export default function SettingsView({
                 <label className="form-label">Intervalo Mínimo (Precisão):</label>
                 <select
                   className="form-input"
-                  value={formData.slotInterval}
+                  value={formData.slotInterval || 5}
                   onChange={(e) => handleChange('slotInterval', Number(e.target.value))}
                 >
-                  <option value={5}>5 minutos (Precisão padrão da planilha)</option>
+                  <option value={1}>1 minuto</option>
+                  <option value={5}>5 minutos (Padrão)</option>
                   <option value={10}>10 minutos</option>
-                  <option value={15}>15 minutos</option>
                 </select>
               </div>
 

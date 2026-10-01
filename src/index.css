@@ -80,17 +80,23 @@ button {
   appearance: none;
 }
 
+html,
+body,
+#root,
+.app-container {
+  min-height: 100vh;
+  background-color: var(--bg-app) !important;
+  color: var(--text-main);
+}
+
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-app);
-  color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
 /* Layout Geral */
 .app-container {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -405,24 +411,30 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--scada-purple-dark);
+  background: linear-gradient(135deg, #2d0c5e 0%, #7c3aed 100%) !important;
   color: #ffffff !important;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   padding: 9px 22px;
   border-radius: var(--radius-full) !important;
   font-family: var(--font-sans);
   font-size: 0.88rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(36, 10, 66, 0.25);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(45, 12, 94, 0.35);
   text-decoration: none;
 }
 
 .btn-primary:hover {
-  background: #17052e;
+  background: linear-gradient(135deg, #240a42 0%, #6d28d9 100%) !important;
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(36, 10, 66, 0.35);
+  box-shadow: 0 6px 18px rgba(45, 12, 94, 0.45);
+  color: #ffffff !important;
+}
+
+.btn-primary svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .btn-secondary {
@@ -930,7 +942,7 @@ body {
 
 .card-coverage-alert {
   border-left: 4px solid #e11d48;
-  background: #fffbfa;
+  background: #fff1f2;
 }
 
 .stat-coverage-badge {
@@ -3461,5 +3473,136 @@ body {
 [data-theme="dark"] .critical-gap-banner strong {
   color: #fecaca;
 }
+
+/* ========================================================================= */
+/* CORREÇÕES CRÍTICAS DE CONTRASTE E DARK MODE (PONTOS 1, 2, 3, 5) */
+/* ========================================================================= */
+
+/* 1. Card de Janela Descoberta / Cobertura em Dark Mode */
+[data-theme="dark"] .card-coverage-alert {
+  background: #231026 !important;
+  border-left: 4px solid #f43f5e !important;
+}
+
+[data-theme="dark"] .card-coverage-alert .card-section-title,
+[data-theme="dark"] .card-coverage-alert .stat-coverage-badge.badge-coverage-gap,
+[data-theme="dark"] .card-coverage-alert h4 {
+  color: #fb7185 !important;
+}
+
+[data-theme="dark"] .card-coverage-alert p,
+[data-theme="dark"] .card-coverage-alert .idle-subtitle,
+[data-theme="dark"] .card-coverage-alert .stat-live-workers {
+  color: #cbd5e1 !important;
+}
+
+/* 2. Blocos de Almoço em Conflito na Timeline */
+.lunch-slot-block.is-conflict {
+  background: #ffe4e6 !important;
+  border-color: #e11d48 !important;
+  border-style: dashed !important;
+  border-left-style: solid !important;
+}
+
+.lunch-slot-block.is-conflict .slot-badge-label {
+  color: #be123c !important;
+}
+
+.lunch-slot-block.is-conflict .slot-time-range {
+  color: #881337 !important;
+}
+
+[data-theme="dark"] .lunch-slot-block.is-conflict {
+  background: #2d1024 !important;
+  border-color: #f43f5e !important;
+  border-style: dashed !important;
+  border-left-style: solid !important;
+}
+
+[data-theme="dark"] .lunch-slot-block.is-conflict .slot-badge-label {
+  color: #fda4af !important;
+}
+
+[data-theme="dark"] .lunch-slot-block.is-conflict .slot-time-range {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="dark"] .lunch-slot-block.is-conflict .drag-handle {
+  color: #fda4af !important;
+}
+
+/* 3. Seletores de Hora e Data Nativos com Contraste Total */
+input[type="time"],
+input[type="date"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="date"] {
+  color-scheme: dark !important;
+  color: #f8fafc !important;
+  background-color: #1a1130 !important;
+}
+
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+}
+
+/* 4. Botões Primários e Secundários em Dark Mode */
+[data-theme="dark"] .btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #0284c7 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.45) !important;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #0ea5e9 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(124, 58, 237, 0.6) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-primary svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: #1c1333 !important;
+  color: #f8fafc !important;
+  border: 1.5px solid #432b68 !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #291a4a !important;
+  color: #ffffff !important;
+  border-color: #7c3aed !important;
+}
+
+[data-theme="dark"] .btn-secondary svg {
+  color: #cbd5e1 !important;
+}
+
+/* Botões do Time Simulator */
+[data-theme="dark"] .btn-simulator-toggle {
+  background: #1c1333 !important;
+  color: #38bdf8 !important;
+  border-color: #0284c7 !important;
+}
+
+/* Botões de Ação de Membros e Modais */
+[data-theme="dark"] .btn-modal-close {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .btn-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
 
 

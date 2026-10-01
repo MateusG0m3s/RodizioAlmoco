@@ -1,5 +1,12 @@
 import { timeToMinutes, minutesToTime, addMinutesToTime } from './timeUtils.js';
 
+export function ensureArray(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'object') return Object.values(val);
+  return [];
+}
+
 /**
  * Verifica a cobertura de atendimento aos clientes durante a Janela Crítica.
  *
@@ -12,7 +19,10 @@ import { timeToMinutes, minutesToTime, addMinutesToTime } from './timeUtils.js';
  * endTime ele já retornou e está ativo no posto de atendimento.
  */
 export function checkAttendanceCoverage(employees, slots, settings = {}) {
-  const activeEmployees = (employees || []).filter((e) => e.active);
+  const safeEmployees = ensureArray(employees);
+  const safeSlots = ensureArray(slots);
+
+  const activeEmployees = safeEmployees.filter((e) => e && e.active);
   const totalActiveWorkers = activeEmployees.length;
 
   const critStartMin = timeToMinutes(settings.criticalStart || '11:30');
@@ -37,7 +47,7 @@ export function checkAttendanceCoverage(employees, slots, settings = {}) {
   }
 
   // Prepara os intervalos de almoço dos colaboradores ativos
-  const activeSlots = (slots || []).filter((s) => activeEmpIds.has(s.employeeId)).map((s) => ({
+  const activeSlots = safeSlots.filter((s) => s && activeEmpIds.has(s.employeeId)).map((s) => ({
     id: s.id,
     employeeId: s.employeeId,
     start: timeToMinutes(s.startTime),
@@ -117,7 +127,10 @@ export function checkAttendanceCoverage(employees, slots, settings = {}) {
  * ou colaboradores com sobreposição de escalas no mesmo dia.
  */
 export function detectConflicts(slots = [], settings = {}, employees = []) {
-  const coverage = checkAttendanceCoverage(employees, slots, settings);
+  const safeSlots = ensureArray(slots);
+  const safeEmployees = ensureArray(employees);
+
+  const coverage = checkAttendanceCoverage(safeEmployees, safeSlots, settings);
   const conflictSlots = new Set();
   const conflictDetails = [];
 
@@ -127,7 +140,7 @@ export function detectConflicts(slots = [], settings = {}, employees = []) {
       const gStart = timeToMinutes(gap.startTime);
       const gEnd = timeToMinutes(gap.endTime);
 
-      slots.forEach((s) => {
+      safeSlots.forEach((s) => {
         const sStart = timeToMinutes(s.startTime);
         const sEnd = timeToMinutes(s.endTime);
         // Colaboradores que estão em almoço durante o gap contribuem para a falta de atendimento
@@ -144,10 +157,10 @@ export function detectConflicts(slots = [], settings = {}, employees = []) {
   }
 
   // 2. Conflito por sobreposição de múltiplos slots do mesmo colaborador
-  for (let i = 0; i < slots.length; i++) {
-    for (let j = i + 1; j < slots.length; j++) {
-      const s1 = slots[i];
-      const s2 = slots[j];
+  for (let i = 0; i < safeSlots.length; i++) {
+    for (let j = i + 1; j < safeSlots.length; j++) {
+      const s1 = safeSlots[i];
+      const s2 = safeSlots[j];
       if (s1.employeeId === s2.employeeId) {
         const start1 = timeToMinutes(s1.startTime);
         const end1 = timeToMinutes(s1.endTime);
@@ -177,12 +190,15 @@ export function detectConflicts(slots = [], settings = {}, employees = []) {
  * Encontra o próximo horário disponível sem deixar o atendimento da janela crítica vazio.
  */
 export function findNextAvailableSlot(existingSlots = [], durationMinutes, settings = {}, employees = [], excludeSlotId = null) {
+  const safeSlots = ensureArray(existingSlots);
+  const safeEmployees = ensureArray(employees);
+
   const startLimit = timeToMinutes(settings.startHour || '11:00');
   const endLimit = timeToMinutes(settings.endHour || '14:00');
-  const interval = Number(settings.slotInterval || 5);
-  const dur = Number(durationMinutes || settings.defaultDuration || 30);
+  const interval = Number(settings.slotInterval) || 5;
+  const dur = Number(durationMinutes || settings.defaultDuration || settings.lunchDuration || 30);
 
-  const otherSlots = existingSlots.filter((s) => s.id !== excludeSlotId);
+  const otherSlots = safeSlots.filter((s) => s.id !== excludeSlotId);
 
   let bestSlot = null;
   let bestCoverage = -1;
@@ -197,7 +213,7 @@ export function findNextAvailableSlot(existingSlots = [], durationMinutes, setti
     };
 
     const simulatedSlots = [...otherSlots, testSlot];
-    const coverage = checkAttendanceCoverage(employees, simulatedSlots, settings);
+    const coverage = checkAttendanceCoverage(safeEmployees, simulatedSlots, settings);
 
     if (coverage.isFullyCovered) {
       return {
@@ -240,7 +256,8 @@ export function generateAutoSchedule({
   dayOffset = 0,
   rotationIndex = 0
 }) {
-  const activeEmployees = employees.filter((e) => e.active);
+  const safeEmployees = ensureArray(employees);
+  const activeEmployees = safeEmployees.filter((e) => e && e.active);
   const N = activeEmployees.length;
 
   const resultSlots = [];
@@ -253,7 +270,8 @@ export function generateAutoSchedule({
     return resultSlots;
   }
 
-  const duration = Number(settings.defaultDuration || 30);
+  const duration = Number(settings.defaultDuration || settings.lunchDuration || 30);
+  const interval = Number(settings.slotInterval) || 5;
   const minRequired = Number(settings.minWorkingDuringCritical !== undefined ? settings.minWorkingDuringCritical : 1);
   const critStartMin = timeToMinutes(settings.criticalStart || '11:30');
   const critEndMin = timeToMinutes(settings.criticalEnd || '13:30');
@@ -283,13 +301,13 @@ export function generateAutoSchedule({
   // CASO ESPECIAL: maxSimultaneousLunch === 0 (ex: N = 1 e minRequired = 1, ou N = 2 e minRequired = 2)
   // Durante a janela crítica NINGUÉM pode almoçar! O almoço DEVE ser alocado antes ou depois da janela crítica.
   if (maxSimultaneousLunch === 0) {
-    // Procura turnos antes de critStartMin ou depois de critEndMin
+    // Procura turnos antes de critStartMin ou depois de critEndMin respeitando o intervalo configurado
     const validPreTimes = [];
-    for (let t = lunchStartMin; t + duration <= critStartMin; t += 5) {
+    for (let t = lunchStartMin; t + duration <= critStartMin; t += interval) {
       validPreTimes.push(t);
     }
     const validPostTimes = [];
-    for (let t = critEndMin; t + duration <= lunchEndMin; t += 5) {
+    for (let t = critEndMin; t + duration <= lunchEndMin; t += interval) {
       validPostTimes.push(t);
     }
     const availableSlots = [...validPreTimes, ...validPostTimes];
@@ -315,7 +333,7 @@ export function generateAutoSchedule({
       });
     }
 
-    const coverage = checkAttendanceCoverage(employees, resultSlots, settings);
+    const coverage = checkAttendanceCoverage(safeEmployees, resultSlots, settings);
     if (!coverage.isFullyCovered) {
       resultSlots.success = false;
       resultSlots.error = 'Não foi possível encontrar uma escala que garanta 100% de cobertura da janela crítica.';
@@ -339,16 +357,12 @@ export function generateAutoSchedule({
   }
 
   // Determina os horários dos grupos para cobrir a janela crítica ou distribuí-los uniformemente
-  // Busca a melhor combinação de horários de início que garanta cobertura total
-  const critDuration = Math.max(duration, critEndMin - critStartMin);
-  const possibleStartMin = Math.max(lunchStartMin, Math.min(critStartMin, lunchEndMin - duration));
   const possibleEndMin = Math.min(lunchEndMin - duration, Math.max(critEndMin - duration, lunchStartMin));
 
   let bestSchedule = null;
 
-  // Testa diferentes espaçamentos dos turnos
-  const stepTry = duration >= 45 ? 15 : 10;
-  const offsetsToTry = [0, 5, 10, 15, -5, -10, 20, 25, 30];
+  // Testa diferentes espaçamentos dos turnos baseados no slotInterval configurado
+  const offsetsToTry = [0, interval, interval * 2, -interval, -interval * 2, interval * 3, 5, 10, 15, -5, -10, 20, 25, 30];
 
   for (let o = 0; o < offsetsToTry.length; o++) {
     const baseOffset = offsetsToTry[o];
@@ -374,7 +388,7 @@ export function generateAutoSchedule({
       }
     }
 
-    const testCov = checkAttendanceCoverage(employees, candidateSlots, settings);
+    const testCov = checkAttendanceCoverage(safeEmployees, candidateSlots, settings);
     if (testCov.isFullyCovered) {
       bestSchedule = candidateSlots;
       break;
@@ -388,7 +402,7 @@ export function generateAutoSchedule({
     for (let g = 0; g < groups.length; g++) {
       const fraction = groups.length > 1 ? g / (groups.length - 1) : 0;
       const t = Math.max(lunchStartMin, Math.min(lunchEndMin - duration, Math.round(critStartMin + fraction * span)));
-      shiftPositions.push(Math.round(t / 5) * 5);
+      shiftPositions.push(Math.round(t / interval) * interval);
     }
 
     const candidateSlots = [];
@@ -408,7 +422,7 @@ export function generateAutoSchedule({
       }
     }
 
-    const testCov = checkAttendanceCoverage(employees, candidateSlots, settings);
+    const testCov = checkAttendanceCoverage(safeEmployees, candidateSlots, settings);
     if (testCov.isFullyCovered) {
       bestSchedule = candidateSlots;
     }
@@ -433,8 +447,9 @@ export function generateAutoSchedule({
 export function calculateBalanceMetrics(employees = [], allSchedules = {}, initialHistory = {}) {
   const bands = ['11h-12h', '12h-13h', '13h-14h'];
   const employeeStats = {};
+  const safeEmployees = ensureArray(employees);
 
-  employees.forEach((emp) => {
+  safeEmployees.forEach((emp) => {
     employeeStats[emp.id] = {
       employee: emp,
       counts: {
@@ -446,10 +461,10 @@ export function calculateBalanceMetrics(employees = [], allSchedules = {}, initi
     };
   });
 
-  Object.values(allSchedules).forEach((daySlots) => {
-    if (!Array.isArray(daySlots)) return;
-    daySlots.forEach((slot) => {
-      if (!employeeStats[slot.employeeId]) return;
+  Object.values(allSchedules || {}).forEach((daySlots) => {
+    const safeDaySlots = ensureArray(daySlots);
+    safeDaySlots.forEach((slot) => {
+      if (!slot || !employeeStats[slot.employeeId]) return;
 
       const startMinutes = timeToMinutes(slot.startTime);
       if (startMinutes < 720) {
@@ -467,7 +482,7 @@ export function calculateBalanceMetrics(employees = [], allSchedules = {}, initi
 
   Object.values(employeeStats).forEach((stat) => {
     stat.total = stat.counts['11h-12h'] + stat.counts['12h-13h'] + stat.counts['13h-14h'];
-    if (stat.total > 0 && stat.employee.active) {
+    if (stat.total > 0 && stat.employee && stat.employee.active) {
       activeCount++;
       const avg = stat.total / 3;
       const dev =

@@ -101,8 +101,13 @@ class FirebaseService {
       const unsubSchedules = onValue(schedulesRef, (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          if (data && onSchedules) {
-            onSchedules(data);
+          if (data && typeof data === 'object' && onSchedules) {
+            const normalized = {};
+            Object.keys(data).forEach((dateKey) => {
+              const val = data[dateKey];
+              normalized[dateKey] = Array.isArray(val) ? val : (val && typeof val === 'object' ? Object.values(val) : []);
+            });
+            onSchedules(normalized);
           }
         }
       });
@@ -112,8 +117,11 @@ class FirebaseService {
       const unsubEmployees = onValue(employeesRef, (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          if (Array.isArray(data) && onEmployees) {
-            onEmployees(data);
+          if (data && onEmployees) {
+            const arr = Array.isArray(data) ? data : Object.values(data);
+            if (arr.length > 0) {
+              onEmployees(arr);
+            }
           }
         }
       });

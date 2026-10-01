@@ -13,7 +13,7 @@ import GenerateModal from './components/GenerateModal';
 import { storageService } from './services/storageService';
 import { firebaseService } from './services/firebaseService';
 import { toISODateString, timeToMinutes, getWorkDaysOfWeek } from './utils/timeUtils';
-import { detectConflicts, calculateBalanceMetrics, checkAttendanceCoverage, generateAutoSchedule } from './utils/scheduler';
+import { detectConflicts, calculateBalanceMetrics, checkAttendanceCoverage, generateAutoSchedule, ensureArray } from './utils/scheduler';
 
 export default function App() {
   const [currentDate, setCurrentDate] = useState(() => {
@@ -22,8 +22,15 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  const [employees, setEmployees] = useState(() => storageService.getEmployees());
-  const [allSchedules, setAllSchedules] = useState(() => storageService.getAllSchedules());
+  const [employees, setEmployees] = useState(() => ensureArray(storageService.getEmployees()));
+  const [allSchedules, setAllSchedules] = useState(() => {
+    const raw = storageService.getAllSchedules() || {};
+    const normalized = {};
+    Object.keys(raw).forEach((k) => {
+      normalized[k] = ensureArray(raw[k]);
+    });
+    return normalized;
+  });
   const [settings, setSettings] = useState(() => storageService.getSettings());
   const [historyData, setHistoryData] = useState(() => storageService.getHistory());
   const [isCloudConnected, setIsCloudConnected] = useState(false);
@@ -74,14 +81,19 @@ export default function App() {
     const unsubscribe = firebaseService.subscribe({
       onSchedules: (cloudSchedules) => {
         if (cloudSchedules && typeof cloudSchedules === 'object') {
-          setAllSchedules(cloudSchedules);
-          storageService.saveAllSchedules(cloudSchedules);
+          const normalized = {};
+          Object.keys(cloudSchedules).forEach((key) => {
+            normalized[key] = ensureArray(cloudSchedules[key]);
+          });
+          setAllSchedules(normalized);
+          storageService.saveAllSchedules(normalized);
         }
       },
       onEmployees: (cloudEmployees) => {
-        if (Array.isArray(cloudEmployees) && cloudEmployees.length > 0) {
-          setEmployees(cloudEmployees);
-          storageService.saveEmployees(cloudEmployees);
+        const arr = ensureArray(cloudEmployees);
+        if (arr.length > 0) {
+          setEmployees(arr);
+          storageService.saveEmployees(arr);
         }
       },
       onSettings: (cloudSettings) => {
@@ -197,7 +209,7 @@ export default function App() {
     );
   };
 
-  const currentDaySlots = allSchedules[currentDate] || [];
+  const currentDaySlots = ensureArray(allSchedules[currentDate]);
 
   // Validação de Cobertura de Atendimento (11:30 - 13:30)
   const coverageReport = checkAttendanceCoverage(employees, currentDaySlots, settings);
@@ -208,7 +220,7 @@ export default function App() {
 
   const handleSaveSlot = (slotData) => {
     const targetDate = slotData.date || currentDate;
-    const dayList = allSchedules[targetDate] || [];
+    const dayList = ensureArray(allSchedules[targetDate]);
     const index = dayList.findIndex(
       (s) => s.id === slotData.id || s.employeeId === slotData.employeeId
     );
@@ -229,7 +241,7 @@ export default function App() {
 
   const handleDeleteSlot = (slotId) => {
     const targetDate = editingTargetDate || currentDate;
-    const dayList = allSchedules[targetDate] || [];
+    const dayList = ensureArray(allSchedules[targetDate]);
     const updatedDayList = dayList.filter((s) => s.id !== slotId);
 
     const updatedAll = { ...allSchedules, [targetDate]: updatedDayList };
@@ -239,7 +251,7 @@ export default function App() {
   };
 
   const handleUpdateSlotTimes = (slotId, newStartTime, newEndTime) => {
-    const dayList = allSchedules[currentDate] || [];
+    const dayList = ensureArray(allSchedules[currentDate]);
     const updatedDayList = dayList.map((slot) => {
       if (slot.id === slotId) {
         return {
@@ -259,14 +271,19 @@ export default function App() {
   };
 
   const handleApplyGeneratedSchedule = (dateStr, slots) => {
-    const updatedAll = { ...allSchedules, [dateStr]: slots };
+    const safeList = ensureArray(slots);
+    const updatedAll = { ...allSchedules, [dateStr]: safeList };
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
-    firebaseService.pushDaySchedule(dateStr, slots);
+    firebaseService.pushDaySchedule(dateStr, safeList);
   };
 
   const handleApplyWeekSchedule = (weekSchedulesMap) => {
-    const updatedAll = { ...allSchedules, ...weekSchedulesMap };
+    const normalizedWeek = {};
+    Object.keys(weekSchedulesMap || {}).forEach((k) => {
+      normalizedWeek[k] = ensureArray(weekSchedulesMap[k]);
+    });
+    const updatedAll = { ...allSchedules, ...normalizedWeek };
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
     firebaseService.pushAllSchedules(updatedAll);

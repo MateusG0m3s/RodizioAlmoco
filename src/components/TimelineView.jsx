@@ -81,7 +81,8 @@ export default function TimelineView({
 
       const rawNewStart = timeToMinutes(slot.startTime) + deltaMinutes;
       const duration = slot.duration || (timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime));
-      const snappedStart = Math.max(startHourMin, Math.min(endHourMin - duration, snapToInterval(rawNewStart, 5)));
+      const interval = Number(settings?.slotInterval) || 5;
+      const snappedStart = Math.max(startHourMin, Math.min(endHourMin - duration, snapToInterval(rawNewStart, interval)));
 
       setDragPreviewStartMin(snappedStart);
     };
