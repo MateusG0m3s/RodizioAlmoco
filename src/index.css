@@ -1,0 +1,2650 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Design Tokens scadahub */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', var(--font-sans);
+
+  /* Paleta Oficial scadahub */
+  --scada-purple-dark: #240a42;  /* Fundo do botão "Discutir meu Projeto" */
+  --scada-purple-deep: #2d0c5e;  /* Títulos institucionais */
+  --scada-purple: #381267;       /* Roxo clássico scadahub */
+  --scada-purple-mid: #7c3aed;   /* Lilás/Púrpura vibrante dos slides */
+  --scada-purple-light: #8b5cf6; /* Linha divisória da apresentação */
+  --scada-purple-subtle: #fbf9ff;/* Fundo sutil */
+  --scada-purple-tint: #ede9fe;  /* Badges e tags */
+
+  /* Azul Ciano scadahub ("hub" e títulos secundários) */
+  --scada-cyan: #0284c7;         /* Ciano Hub */
+  --scada-cyan-vibrant: #0ea5e9; /* Destaque */
+  --scada-cyan-light: #e0f2fe;   /* Fundos ciano */
+  --scada-cyan-border: #bae6fd;
+
+  /* Neutros & Superfícies */
+  --bg-app: #fcfcfd;
+  --bg-card: #ffffff;
+  --bg-subtle: #f8fafc;
+  --border-color: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  --text-main: #1e1b4b;          /* Roxo quase preto para leitura confortável */
+  --text-body: #334155;          /* Texto corrido */
+  --text-muted: #64748b;         /* Apoio */
+  --text-light: #94a3b8;
+
+  /* Estados Operacionais */
+  --working-bg: #ecfdf5;
+  --working-text: #059669;
+  --working-border: #a7f3d0;
+
+  --lunch-bg: #f5f3ff;
+  --lunch-text: #6d28d9;
+  --lunch-border: #ddd6fe;
+
+  --warning-bg: #fefce8;
+  --warning-text: #b45309;
+  --warning-border: #fef08a;
+
+  --conflict-bg: #fef2f2;
+  --conflict-text: #dc2626;
+  --conflict-border: #fca5a5;
+
+  /* Sombras */
+  --shadow-xs: 0 1px 2px 0 rgba(36, 10, 66, 0.04);
+  --shadow-sm: 0 2px 4px 0 rgba(36, 10, 66, 0.06);
+  --shadow-md: 0 6px 12px -2px rgba(36, 10, 66, 0.08), 0 3px 6px -3px rgba(36, 10, 66, 0.04);
+  --shadow-lg: 0 12px 20px -4px rgba(36, 10, 66, 0.1), 0 6px 8px -4px rgba(36, 10, 66, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(36, 10, 66, 0.12), 0 8px 10px -6px rgba(36, 10, 66, 0.06);
+
+  /* Raios de Borda */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+}
+
+/* Reset Global */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border-style: solid;
+  border-width: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Layout Geral */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+
+/* Navbar scadahub */
+.navbar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: var(--shadow-xs);
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.scadahub-logo-wrap {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  display: flex;
+  align-items: baseline;
+  line-height: 1;
+}
+
+.scada-part {
+  color: var(--scada-purple-dark);
+}
+
+.hub-part {
+  color: var(--scada-cyan);
+  position: relative;
+}
+
+.brand-divider-vertical {
+  width: 2px;
+  height: 26px;
+  background: var(--scada-purple-light);
+  border-radius: var(--radius-full);
+}
+
+.brand-sub-badge {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-dept-tag {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+  line-height: 1.1;
+}
+
+.brand-sub-company {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Navegação de Abas */
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-subtle);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+}
+
+.nav-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-tab-btn:hover {
+  color: var(--scada-purple-deep);
+  background: rgba(45, 12, 94, 0.04);
+}
+
+.nav-tab-btn.active {
+  color: #ffffff;
+  background: var(--scada-purple-deep);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(45, 12, 94, 0.25);
+}
+
+/* Time Pill */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.time-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-xs);
+}
+
+.time-pill.simulating {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.time-pill-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1.1;
+  color: var(--scada-purple-dark);
+}
+
+.time-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pulse-cyan {
+  color: var(--scada-cyan);
+}
+
+.pulse-amber {
+  color: #f59e0b;
+}
+
+.btn-pill-simulate,
+.btn-pill-reset {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.74rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-pill-simulate {
+  background: var(--scada-cyan-light);
+  color: var(--scada-cyan);
+  border-color: var(--scada-cyan-border);
+}
+
+.btn-pill-simulate:hover {
+  background: #bae6fd;
+}
+
+.btn-pill-reset {
+  background: #d97706;
+  color: #ffffff;
+}
+
+/* Simulador de Horário Banner */
+.simulator-banner {
+  background: linear-gradient(90deg, var(--scada-purple-dark), #17052e);
+  color: #ffffff;
+  padding: 10px 24px;
+  border-bottom: 2px solid var(--scada-cyan);
+}
+
+.simulator-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.simulator-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.simulator-slider-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 380px;
+}
+
+.simulator-slider {
+  flex: 1;
+  accent-color: #38bdf8;
+  cursor: pointer;
+}
+
+.simulator-clock {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  min-width: 55px;
+}
+
+.simulator-quick-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-time-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-time-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.quick-time-btn.active {
+  background: #38bdf8;
+  color: #0f172a;
+  border-color: #38bdf8;
+  font-weight: 700;
+}
+
+.simulator-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-simulator-reset {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.btn-simulator-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+/* BOTÕES PADRÃO PÍLULA SCADAHUB (PARA TODAS AS PÁGINAS) */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--scada-purple-dark);
+  color: #ffffff !important;
+  border: none;
+  padding: 9px 22px;
+  border-radius: var(--radius-full) !important;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(36, 10, 66, 0.25);
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background: #17052e;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(36, 10, 66, 0.35);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #ffffff;
+  color: var(--scada-purple-deep) !important;
+  border: 1.5px solid var(--border-color);
+  padding: 8px 18px;
+  border-radius: var(--radius-full) !important;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background: var(--scada-purple-tint);
+  border-color: var(--scada-purple-light);
+}
+
+.btn-danger-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #fff1f2;
+  color: #dc2626 !important;
+  border: 1.5px solid #fecdd3;
+  padding: 8px 18px;
+  border-radius: var(--radius-full) !important;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-danger-outline:hover {
+  background: #fee2e2;
+  border-color: #fda4af;
+}
+
+.btn-upload-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--scada-purple-tint);
+  border: 1.5px solid var(--scada-purple-light);
+  padding: 8px 20px;
+  border-radius: var(--radius-full) !important;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--scada-purple-deep);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 8px;
+}
+
+.btn-upload-file:hover {
+  background: #ddd6fe;
+}
+
+.hidden-file-input {
+  display: none !important;
+}
+
+.btn-shuffle-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--scada-cyan-light);
+  border: 1.5px solid var(--scada-cyan-border);
+  color: var(--scada-cyan);
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-shuffle-pills:hover {
+  background: #bae6fd;
+}
+
+/* Dashboard Top Bar */
+.dashboard-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.date-navigation-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.date-badge-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-xs);
+}
+
+.date-text-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-weekday {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.15;
+  color: var(--scada-purple-deep);
+}
+
+.date-full-str {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.today-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--scada-cyan-light);
+  color: var(--scada-cyan);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.date-buttons-cluster {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  padding: 4px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-date-step {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.btn-date-step:hover {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+.btn-today-step {
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.btn-today-step.is-current {
+  background: var(--scada-purple-tint);
+  color: var(--scada-purple-deep);
+}
+
+.date-picker-inline {
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  padding: 4px 10px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  border-radius: var(--radius-full);
+  color: var(--text-main);
+  outline: none;
+  cursor: pointer;
+}
+
+.dashboard-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-mode-toggle {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+}
+
+.btn-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.btn-view-toggle.active {
+  background: var(--scada-purple-tint);
+  color: var(--scada-purple-deep);
+  font-weight: 600;
+}
+
+.btn-icon-export {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+/* Banner de Brecha Crítica */
+.critical-gap-banner {
+  background: #fff1f2;
+  border: 1.5px solid #fecdd3;
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.1);
+}
+
+.critical-gap-icon {
+  width: 40px;
+  height: 40px;
+  background: #ffe4e6;
+  color: #e11d48;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.critical-gap-text strong {
+  color: #9f1239;
+  font-size: 0.95rem;
+}
+
+.critical-gap-text p {
+  color: #be123c;
+  font-size: 0.84rem;
+  margin-top: 2px;
+}
+
+/* Live Alert */
+.live-alert-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-lg);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.alert-pulse-icon {
+  font-size: 1.25rem;
+}
+
+.alert-content {
+  flex: 1;
+  font-size: 0.88rem;
+  color: #92400e;
+}
+
+.alert-badge {
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+/* CARDS DO DASHBOARD */
+.summary-cards-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1.2fr 1fr 1fr;
+  gap: 18px;
+}
+
+.summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #cbd5e1;
+}
+
+.card-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.hero-card.is-active-lunch {
+  border-color: var(--scada-purple-light);
+  background: linear-gradient(180deg, #faf7ff, #ffffff);
+}
+
+.live-pulsing-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+  background: var(--scada-purple-tint);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--scada-purple-mid);
+  border-radius: 50%;
+  animation: pulse-glow 1.5s infinite;
+}
+
+.hero-lunch-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.active-lunch-people-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hero-emp-info-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hero-emp-names {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-emp-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+  line-height: 1.2;
+}
+
+.hero-time-range {
+  font-size: 0.8rem;
+  color: var(--scada-purple-mid);
+  font-weight: 600;
+}
+
+.hero-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--scada-purple-tint);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--scada-cyan), var(--scada-purple-mid));
+  border-radius: var(--radius-full);
+}
+
+.progress-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.progress-remaining {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--scada-purple-deep);
+  font-weight: 600;
+}
+
+.hero-idle-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+}
+
+.idle-icon-wrap {
+  width: 44px;
+  height: 44px;
+  background: var(--bg-subtle);
+  color: var(--text-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.idle-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.idle-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.card-coverage-ok {
+  border-left: 4px solid #10b981;
+}
+
+.card-coverage-alert {
+  border-left: 4px solid #e11d48;
+  background: #fffbfa;
+}
+
+.stat-coverage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.badge-coverage-ok {
+  color: #059669;
+}
+
+.badge-coverage-gap {
+  color: #dc2626;
+}
+
+.stat-live-workers {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-subtle);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.workers-counter-pill {
+  color: #059669;
+  font-weight: 700;
+}
+
+.workers-counter-pill.warning {
+  color: #dc2626;
+}
+
+/* CARD PRÓXIMO ALMOÇO */
+.stat-main-number {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--scada-purple-deep);
+}
+
+.stat-subtext-emp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.stat-avatar-mini {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  max-width: 24px !important;
+  max-height: 24px !important;
+  border-radius: 50% !important;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-xs);
+}
+
+.stat-next-emp-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-badge-in {
+  display: inline-block;
+  font-size: 0.72rem;
+  color: var(--scada-cyan);
+  background: var(--scada-cyan-light);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  margin-top: 6px;
+  align-self: flex-start;
+  font-weight: 600;
+}
+
+/* CARD EQUIPE HOJE */
+.stat-total-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+  background: var(--scada-purple-tint);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.team-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+
+.team-stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-body);
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.stat-dot.dot-finished { background-color: #10b981; }
+.stat-dot.dot-lunching { background-color: var(--scada-purple-mid); }
+.stat-dot.dot-upcoming { background-color: var(--scada-cyan); }
+
+.stat-item-label {
+  flex: 1;
+  color: var(--text-muted);
+}
+
+.stat-item-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.team-segmented-progress {
+  display: flex;
+  width: 100%;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  gap: 2px;
+}
+
+.seg-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.seg-finished { background-color: #10b981; }
+.seg-lunching { background-color: var(--scada-purple-mid); }
+.seg-upcoming { background-color: #cbd5e1; }
+
+/* ========================================================================= */
+/* ABA 1: TIMELINE DO DASHBOARD */
+/* ========================================================================= */
+.timeline-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-top: 24px;
+}
+
+.timeline-header-bar {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #fafafa;
+}
+
+.timeline-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timeline-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.timeline-caption {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.timeline-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.dot-critical-zone {
+  background: rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(2, 132, 199, 0.4);
+}
+
+.dot-work {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.dot-lunch {
+  background: var(--scada-purple-tint);
+  border: 1px solid var(--scada-purple-light);
+}
+
+.timeline-scroll-container {
+  overflow-x: auto;
+  position: relative;
+}
+
+.timeline-inner {
+  min-width: 900px;
+  position: relative;
+}
+
+.timeline-time-ruler {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  background: #f8fafc;
+  height: 42px;
+  position: relative;
+}
+
+.employee-column-header {
+  width: 250px;
+  flex-shrink: 0;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-right: 1px solid var(--border-color);
+}
+
+.ruler-track {
+  flex: 1;
+  position: relative;
+}
+
+.critical-zone-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(2, 132, 199, 0.08);
+  border-left: 2px dashed rgba(2, 132, 199, 0.4);
+  border-right: 2px dashed rgba(2, 132, 199, 0.4);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.critical-zone-background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(2, 132, 199, 0.025);
+  pointer-events: none;
+}
+
+.ruler-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 5;
+}
+
+.ruler-label {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.ruler-tick {
+  width: 1px;
+  height: 6px;
+  background: #cbd5e1;
+}
+
+.timeline-rows-container {
+  position: relative;
+}
+
+.timeline-grid-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 250px;
+  right: 0;
+  pointer-events: none;
+}
+
+.grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #f1f5f9;
+}
+
+.grid-line.grid-hour {
+  background: #e2e8f0;
+}
+
+.current-time-marker {
+  position: absolute;
+  top: -42px;
+  bottom: 0;
+  z-index: 30;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.time-marker-badge {
+  background: #e11d48;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.45);
+}
+
+.time-marker-line {
+  width: 2px;
+  flex: 1;
+  background: #e11d48;
+  box-shadow: 0 0 8px rgba(225, 29, 72, 0.6);
+}
+
+.timeline-employee-row {
+  display: flex;
+  height: 68px;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  background: #ffffff;
+  transition: background 0.15s ease;
+}
+
+.timeline-employee-row:hover {
+  background: #fdfcff;
+}
+
+.employee-info-cell {
+  width: 250px;
+  flex-shrink: 0;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-right: 1px solid var(--border-color);
+  background: #ffffff;
+  z-index: 10;
+}
+
+.emp-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.emp-text-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.emp-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emp-role {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.employee-timeline-track {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.working-background-bar {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 0;
+  right: 0;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px dashed rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  pointer-events: none;
+}
+
+.working-label-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(5, 150, 105, 0.7);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.lunch-slot-block {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  background: #ffffff;
+  border: 1.5px solid var(--emp-accent, var(--scada-purple-deep));
+  border-left-width: 5px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  cursor: pointer;
+  z-index: 15;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.lunch-slot-block:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.lunch-slot-block.is-active-pulse {
+  background: var(--scada-purple-subtle);
+  border-color: var(--scada-purple-mid);
+}
+
+.lunch-slot-block.is-conflict {
+  background: #fff1f2 !important;
+  border-color: #e11d48 !important;
+  border-style: dashed !important;
+  border-left-style: solid !important;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--text-light);
+  margin-right: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.slot-block-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-right: 6px;
+}
+
+.slot-badge-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--scada-purple-mid);
+}
+
+.slot-time-range {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.btn-quick-edit {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(45, 12, 94, 0.06);
+  color: var(--scada-purple-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.lunch-slot-block:hover .btn-quick-edit {
+  opacity: 1;
+}
+
+.btn-add-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #ffffff;
+  border: 1px dashed var(--scada-cyan);
+  color: var(--scada-cyan);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+/* ========================================================================= */
+/* ABA 2: RODÍZIO SEMANAL (WEEK VIEW) */
+/* ========================================================================= */
+.week-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.week-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.week-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.week-main-title {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.week-sub-title {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.week-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-week-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  padding: 8px 18px;
+  border-radius: var(--radius-full) !important;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--scada-purple-deep);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-week-nav:hover {
+  background: var(--scada-purple-tint);
+  border-color: var(--scada-purple-light);
+}
+
+.btn-week-today {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--scada-purple-tint);
+  border: 1.5px solid var(--scada-purple-light);
+  color: var(--scada-purple-deep);
+  padding: 8px 18px;
+  border-radius: var(--radius-full) !important;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-week-today:hover {
+  background: #ddd6fe;
+}
+
+/* Grade de Cards dos Dias da Semana */
+.weekdays-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.weekday-card {
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow-xs);
+}
+
+.weekday-card:hover {
+  border-color: var(--scada-purple-mid);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.weekday-card.selected {
+  border-color: var(--scada-purple-deep);
+  background: var(--scada-purple-subtle);
+  box-shadow: 0 0 0 3px rgba(45, 12, 94, 0.12);
+}
+
+.weekday-card.is-today {
+  border-top-width: 4px;
+  border-top-color: var(--scada-cyan);
+}
+
+.weekday-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weekday-short-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.weekday-number {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--scada-purple-deep);
+  line-height: 1;
+}
+
+.weekday-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.weekday-slots-count {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Tabela da Semana */
+.week-matrix-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.matrix-card-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.matrix-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.week-matrix-table-wrap {
+  overflow-x: auto;
+}
+
+.week-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+.week-matrix-table th {
+  background: #f8fafc;
+  padding: 14px 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.th-day {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.th-day:hover,
+.th-day.current-selected-col {
+  background: var(--scada-purple-tint);
+  color: var(--scada-purple-deep);
+}
+
+.th-day-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.th-day-name {
+  font-weight: 700;
+}
+
+.th-day-date {
+  font-size: 0.72rem;
+  color: var(--text-light);
+}
+
+.week-matrix-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.td-slot-cell.current-selected-col {
+  background: #fcfbfe;
+}
+
+.matrix-emp-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* AVATAR FIXO CIRCULAR NA TABELA */
+.matrix-avatar {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  border-radius: 50% !important;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.matrix-emp-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.week-slot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-left-width: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.week-slot-pill:hover {
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.btn-matrix-add {
+  width: 30px;
+  height: 30px;
+  border: 1.5px dashed var(--scada-cyan);
+  background: #ffffff;
+  color: var(--scada-cyan);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-matrix-add:hover {
+  background: var(--scada-cyan-light);
+}
+
+/* ========================================================================= */
+/* ABA 3: EQUIPE (TEAM VIEW) */
+/* ========================================================================= */
+.team-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.team-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.team-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.team-main-title {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.team-sub-title {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.team-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.team-member-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.team-member-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #cbd5e1;
+}
+
+.team-member-card.is-inactive-card {
+  opacity: 0.6;
+  background: #f8fafc;
+}
+
+.member-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* AVATAR FIXO CIRCULAR NA EQUIPE */
+.member-avatar {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  border-radius: 50% !important;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-xs);
+}
+
+.status-badge-active {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.dot-active {
+  width: 6px;
+  height: 6px;
+  background: #15803d;
+  border-radius: 50%;
+}
+
+.status-badge-inactive {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.dot-inactive {
+  width: 6px;
+  height: 6px;
+  background: #94a3b8;
+  border-radius: 50%;
+}
+
+.member-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.member-role {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.member-details-list {
+  background: var(--bg-subtle);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.member-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.member-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+}
+
+/* BOTÕES REDONDOS PÍLULA DE AÇÃO DA EQUIPE (EDITAR / EXCLUIR) */
+.btn-member-action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-full) !important;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.btn-member-action.edit {
+  background: var(--scada-purple-tint);
+  color: var(--scada-purple-deep);
+  border-color: #ddd6fe;
+}
+
+.btn-member-action.edit:hover {
+  background: #ddd6fe;
+  color: #17052e;
+}
+
+.btn-member-action.delete {
+  background: #fff1f2;
+  color: #dc2626;
+  border-color: #fecdd3;
+}
+
+.btn-member-action.delete:hover {
+  background: #fee2e2;
+}
+
+/* ========================================================================= */
+/* ABA 4: HISTÓRICO & EQUILÍBRIO (HISTORY VIEW) */
+/* ========================================================================= */
+.history-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.history-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.history-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.history-main-title {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.history-sub-title {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.balance-score-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 14px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--shadow-xs);
+}
+
+.balance-score-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.balance-score-number {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #059669;
+}
+
+.balance-status-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.badge-emerald {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-blue {
+  background: var(--scada-cyan-light);
+  color: var(--scada-cyan);
+}
+
+.badge-amber {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.bands-info-banner {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.band-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  color: var(--text-main);
+  box-shadow: var(--shadow-xs);
+}
+
+.dot-band {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot-early { background: #3b82f6; }
+.dot-mid   { background: #10b981; }
+.dot-late  { background: #f59e0b; }
+
+.history-table-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.history-card-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.history-table-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.history-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.history-data-table th {
+  background: #f8fafc;
+  padding: 14px 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.history-data-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.history-emp-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* AVATAR FIXO CIRCULAR NO HISTÓRICO */
+.history-avatar {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+  border-radius: 50% !important;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.history-emp-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.count-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.count-badge.early { background: #eff6ff; color: #1d4ed8; }
+.count-badge.mid   { background: #ecfdf5; color: #047857; }
+.count-badge.late  { background: #fffbeb; color: #b45309; }
+
+.proportion-bar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.prop-segment {
+  height: 100%;
+}
+
+.seg-early { background: #3b82f6; }
+.seg-mid   { background: #10b981; }
+.seg-late  { background: #f59e0b; }
+
+.balance-insight-card {
+  display: flex;
+  gap: 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+}
+
+.balance-insight-card h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 2px;
+}
+
+.balance-insight-card p {
+  font-size: 0.84rem;
+  color: #14532d;
+}
+
+/* ========================================================================= */
+/* ABA 5: CONFIGURAÇÕES (SETTINGS VIEW) */
+/* ========================================================================= */
+.settings-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.settings-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-main-title {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.settings-sub-title {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+
+.settings-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-card-header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 14px;
+}
+
+.card-section-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.card-section-caption {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.critical-settings-highlight-box {
+  background: #f0f9ff;
+  border: 1.5px solid #bae6fd;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 6px;
+}
+
+.critical-box-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--scada-cyan);
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.duration-buttons-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-duration-choice {
+  flex: 1;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border-color);
+  background: #ffffff;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--radius-full) !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-duration-choice.active {
+  background: var(--scada-purple-tint);
+  border-color: var(--scada-purple-mid);
+  color: var(--scada-purple-deep);
+  font-weight: 700;
+}
+
+.settings-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.save-success-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #15803d;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.backup-actions-box {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.backup-action-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.backup-separator {
+  height: 1px;
+  background: var(--border-color);
+}
+
+.import-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  outline: none;
+  resize: vertical;
+}
+
+.reset-data-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+/* Modais scadahub */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 10, 66, 0.45);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.modal-card.modal-md {
+  max-width: 600px;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--scada-purple-deep);
+}
+
+.form-input {
+  border: 1.5px solid var(--border-color);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: var(--text-main);
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.form-input:focus {
+  border-color: var(--scada-cyan);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.generator-rules-pill.scadahub-pill {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+}
+
+.generate-mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1.5px solid var(--border-color);
+  background: #ffffff;
+  border-radius: var(--radius-full);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-btn.active {
+  border-color: var(--scada-purple-deep);
+  background: var(--scada-purple-tint);
+  color: var(--scada-purple-deep);
+  font-weight: 700;
+}
+
+.preview-schedule-box {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.preview-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.preview-slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-slot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+}
+
+.preview-emp-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.preview-emp-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  flex: 1;
+}
+
+.preview-slot-time {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  color: var(--scada-purple-deep);
+}
+
+.preview-duration-tag {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: #ffffff;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* Rodapé Corporativo scadahub */
+.scadahub-footer {
+  border-top: 1px solid var(--border-color);
+  background: #ffffff;
+  padding: 16px 24px;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-tag {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .summary-cards-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .weekdays-nav-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    height: auto;
+    padding: 14px 16px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .summary-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .weekdays-nav-grid {
+    grid-template-columns: repeat(5, 1fr);
+    overflow-x: auto;
+  }
+  .dashboard-top-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dashboard-action-buttons {
+    justify-content: space-between;
+  }
+}
