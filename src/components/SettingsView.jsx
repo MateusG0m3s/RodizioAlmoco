@@ -180,7 +180,7 @@ export default function SettingsView({
                 <Headset size={16} className="text-scada-cyan" />
                 <strong>Período Crítico de Atendimento aos Clientes</strong>
               </div>
-              <p className="text-xs text-slate-600 mb-3">
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
                 Durante este intervalo, a aplicação bloqueia horários vazios e exige sempre funcionários trabalhando.
               </p>
 
@@ -317,7 +317,7 @@ export default function SettingsView({
             <div className="backup-action-item">
               <div>
                 <strong>Exportar Backup Completo</strong>
-                <p className="text-xs text-slate-500">Salva funcionários, regras e escalas em formato .JSON</p>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Salva funcionários, regras e escalas em formato .JSON</p>
               </div>
               <button className="btn-secondary" onClick={handleExportJSON}>
                 <Download size={14} />
@@ -386,7 +386,7 @@ export default function SettingsView({
             <div className="reset-data-area">
               <div className="reset-text">
                 <strong className="text-rose-600">Restaurar Dados Iniciais</strong>
-                <p className="text-xs text-slate-500">
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                   Restaura os 4 funcionários da planilha com a escala de atendimento contínuo (11:30 às 13:30).
                 </p>
               </div>
@@ -429,9 +429,9 @@ export default function SettingsView({
                 borderRadius: '9999px',
                 fontSize: '0.8rem',
                 fontWeight: 700,
-                background: isFirebaseConnected ? '#ecfdf5' : '#fefce8',
-                color: isFirebaseConnected ? '#059669' : '#b45309',
-                border: `1.5px solid ${isFirebaseConnected ? '#a7f3d0' : '#fef08a'}`
+                background: isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.15)' : '#fefce8'),
+                color: isFirebaseConnected ? (theme === 'dark' ? '#34d399' : '#059669') : (theme === 'dark' ? '#fbbf24' : '#b45309'),
+                border: `1.5px solid ${isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.3)' : '#fef08a')}`
               }}
             >
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isFirebaseConnected ? '#10b981' : '#f59e0b' }} />
@@ -440,7 +440,7 @@ export default function SettingsView({
           </div>
 
           <form onSubmit={handleSaveFirebaseConfig} className="settings-form">
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-body)', lineHeight: 1.5 }}>
                 💡 <strong>Como funciona:</strong> Ao conectar o site com o Firebase Realtime Database (Google), qualquer pessoa que abrir o site verá as alterações feitas pelos colegas na hora, sem precisar de F5.
               </div>
@@ -507,8 +507,8 @@ export default function SettingsView({
                     style={{
                       borderRadius: '9999px',
                       borderColor: '#7c3aed',
-                      color: '#6b21a8',
-                      background: '#f5f3ff',
+                      color: theme === 'dark' ? '#c4b5fd' : '#6b21a8',
+                      background: theme === 'dark' ? 'rgba(124, 58, 237, 0.2)' : '#f5f3ff',
                       fontWeight: 600
                     }}
                     onClick={async () => {

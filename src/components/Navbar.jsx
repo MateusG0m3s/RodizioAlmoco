@@ -58,40 +58,6 @@ export default function Navbar({
 
         {/* Relógio & Controle do Modo de Tempo */}
         <div className="navbar-actions">
-          {/* Badge de Conexão com a Nuvem (Firebase) */}
-          <button
-            type="button"
-            className="cloud-status-badge"
-            title={isCloudConnected ? "Conectado ao Firebase Realtime Database (Sincronização em tempo real ativa)" : "Modo Local (Clique para configurar a sincronização em nuvem)"}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: '9999px',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              background: isCloudConnected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.1)',
-              color: isCloudConnected ? '#059669' : '#d97706',
-              border: `1.2px solid ${isCloudConnected ? 'rgba(16, 185, 129, 0.35)' : 'rgba(245, 158, 11, 0.3)'}`,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onClick={() => setActiveTab('settings')}
-          >
-            <span
-              style={{
-                width: '7px',
-                height: '7px',
-                borderRadius: '50%',
-                background: isCloudConnected ? '#10b981' : '#f59e0b',
-                boxShadow: isCloudConnected ? '0 0 8px #10b981' : 'none'
-              }}
-            />
-            <Cloud size={13} color={isCloudConnected ? '#10b981' : '#f59e0b'} />
-            <span>{isCloudConnected ? 'Nuvem Ao Vivo' : 'Modo Local'}</span>
-          </button>
-
           {/* Botão de Tema (Modo Escuro / Modo Claro) */}
           <button
             type="button"

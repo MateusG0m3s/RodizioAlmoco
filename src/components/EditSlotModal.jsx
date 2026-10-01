@@ -199,10 +199,10 @@ export default function EditSlotModal({
                   />
                 </div>
                 <div className="time-stepper-buttons" style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: '#fff', cursor: 'pointer' }} onClick={() => handleAdjustStart(-15)} title="-15 min">-15m</button>
-                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: '#fff', cursor: 'pointer' }} onClick={() => handleAdjustStart(-5)} title="-5 min">-5m</button>
-                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: '#fff', cursor: 'pointer' }} onClick={() => handleAdjustStart(5)} title="+5 min">+5m</button>
-                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: '#fff', cursor: 'pointer' }} onClick={() => handleAdjustStart(15)} title="+15 min">+15m</button>
+                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(-15)} title="-15 min">-15m</button>
+                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(-5)} title="-5 min">-5m</button>
+                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(5)} title="+5 min">+5m</button>
+                  <button type="button" className="btn-time-step" style={{ borderRadius: '9999px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, border: '1.5px solid var(--border-color)', background: 'var(--bg-subtle)', color: 'var(--text-main)', cursor: 'pointer' }} onClick={() => handleAdjustStart(15)} title="+15 min">+15m</button>
                 </div>
               </div>
 
@@ -225,10 +225,10 @@ export default function EditSlotModal({
 
           {/* Alerta de Conflito em Tempo Real */}
           {conflictWarning ? (
-            <div className="conflict-alert-box animate-shake" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', background: '#fff1f2', border: '1px solid #fecdd3', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
+            <div className="conflict-alert-box animate-shake" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', background: 'var(--conflict-bg)', border: '1px solid var(--conflict-border)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <AlertTriangle size={18} className="text-rose-500 shrink-0" />
-                <div className="conflict-alert-text" style={{ fontSize: '0.82rem', color: '#9f1239' }}>
+                <div className="conflict-alert-text" style={{ fontSize: '0.82rem', color: 'var(--conflict-text)' }}>
                   <strong>Atenção:</strong> {conflictWarning}
                 </div>
               </div>
@@ -244,12 +244,12 @@ export default function EditSlotModal({
               </button>
             </div>
           ) : sharedShiftNames.length > 0 ? (
-            <div className="shared-shift-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--scada-purple-subtle)', border: '1px solid var(--scada-purple-tint)', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--scada-purple-deep)' }}>
+            <div className="shared-shift-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--scada-purple-subtle)', border: '1px solid var(--border-color)', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-main)' }}>
               <span style={{ fontSize: '1.1rem' }}>👥</span>
               <span>Almoçando no mesmo turno com: <strong>{sharedShiftNames.join(', ')}</strong>. Atendimento aos clientes garantido pelos colegas de plantão!</span>
             </div>
           ) : (
-            <div className="success-slot-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.82rem', color: '#065f46' }}>
+            <div className="success-slot-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--working-bg)', border: '1px solid var(--working-border)', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.82rem', color: 'var(--working-text)' }}>
               <Check size={16} className="text-emerald-500" />
               <span>Horário disponível e com atendimento aos clientes 100% garantido!</span>
             </div>

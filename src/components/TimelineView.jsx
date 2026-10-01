@@ -341,7 +341,7 @@ export default function TimelineView({
                           className="btn-add-slot-row"
                           style={{
                             borderRadius: '9999px',
-                            background: '#ffffff',
+                            background: 'var(--bg-card)',
                             border: '1.5px dashed var(--scada-cyan)',
                             color: 'var(--scada-cyan)',
                             padding: '6px 16px',
