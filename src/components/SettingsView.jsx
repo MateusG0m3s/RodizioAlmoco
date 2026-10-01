@@ -435,7 +435,7 @@ export default function SettingsView({
               }}
             >
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isFirebaseConnected ? '#10b981' : '#f59e0b' }} />
-              <span>{isFirebaseConnected ? 'Firebase Conectado (Ao Vivo)' : 'Modo Local (Offline)'}</span>
+              <span>{isFirebaseConnected ? 'Conectado (Online)' : 'Desconectado (Offline)'}</span>
             </div>
           </div>
 

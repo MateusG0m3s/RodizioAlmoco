@@ -3604,5 +3604,67 @@ input[type="date"] {
   color: #ffffff !important;
 }
 
+/* 5. Card "Almoçando Agora" no Dark Mode (Ativo / Com pessoas) */
+[data-theme="dark"] .hero-card.is-active-lunch {
+  background: linear-gradient(180deg, #1e1138 0%, #150d27 100%) !important;
+  border-color: #7c3aed !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .hero-card.is-active-lunch .hero-emp-name {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .hero-card.is-active-lunch .hero-time-range {
+  color: #c084fc !important;
+}
+
+[data-theme="dark"] .hero-card.is-active-lunch .live-pulsing-badge {
+  background: rgba(124, 58, 237, 0.25) !important;
+  color: #ddd6fe !important;
+  border: 1px solid rgba(124, 58, 237, 0.4);
+}
+
+[data-theme="dark"] .hero-card.is-active-lunch .progress-bar-bg {
+  background: #251645 !important;
+}
+
+[data-theme="dark"] .hero-card.is-active-lunch .progress-remaining,
+[data-theme="dark"] .hero-card.is-active-lunch .progress-percent {
+  color: #cbd5e1 !important;
+}
+
+/* 6. Inputs de Horário (Time Picker) no Modal e Geral */
+.time-picker-input {
+  width: 100%;
+  border: 1.5px solid var(--border-color);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: var(--bg-card);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.time-picker-input:focus {
+  border-color: var(--scada-purple-mid);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+[data-theme="dark"] .time-picker-input {
+  background: #180f2d !important;
+  border-color: #381f5e !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .time-picker-input:focus {
+  border-color: #7c3aed !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3) !important;
+}
+
+
 
 
