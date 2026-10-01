@@ -125,6 +125,7 @@ export default function DashboardView({
         daySlots={daySlots}
         currentTimeMinutes={currentTimeMinutes}
         coverage={coverage}
+        settings={settings}
         balanceStatus={balanceStatus}
         balanceScore={balanceScore}
       />

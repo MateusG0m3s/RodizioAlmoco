@@ -3,10 +3,11 @@ import { Utensils, Users, Clock, ShieldCheck, AlertTriangle, Hourglass, Headset,
 import { timeToMinutes } from '../utils/timeUtils';
 
 export default function LiveSummaryCards({
-  employees,
-  daySlots,
+  employees = [],
+  daySlots = [],
   currentTimeMinutes,
   coverage,
+  settings = {},
   balanceStatus,
   balanceScore
 }) {
