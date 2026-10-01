@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Clock, Plus, Edit2, AlertCircle, Check, Briefcase, GripHorizontal, ShieldAlert, Headset } from 'lucide-react';
+import { Clock, Plus, Edit2, AlertCircle, Check, Briefcase, GripHorizontal, ShieldAlert, Headset, X, ArrowRight } from 'lucide-react';
 import { timeToMinutes, minutesToTime, snapToInterval } from '../utils/timeUtils';
 
 export default function TimelineView({
@@ -18,6 +18,9 @@ export default function TimelineView({
   const [dragStartX, setDragStartX] = useState(0);
   const [dragOriginalStartMin, setDragOriginalStartMin] = useState(0);
   const [dragPreviewStartMin, setDragPreviewStartMin] = useState(null);
+  const [pendingMove, setPendingMove] = useState(null);
+  const isDraggingRef = useRef(false);
+  const dragDistanceRef = useRef(0);
 
   const startHourMin = timeToMinutes(settings.startHour || '11:00'); // 660
   const endHourMin = timeToMinutes(settings.endHour || '14:00');     // 840
@@ -61,12 +64,19 @@ export default function TimelineView({
     setDragStartX(clientX);
     setDragOriginalStartMin(timeToMinutes(slot.startTime));
     setDragPreviewStartMin(timeToMinutes(slot.startTime));
+    dragDistanceRef.current = 0;
+    isDraggingRef.current = false;
 
     const handleMove = (moveEvent) => {
       if (!timelineRef.current) return;
       const currentX = moveEvent.type.includes('touch') ? moveEvent.touches[0].clientX : moveEvent.clientX;
-      const rect = timelineRef.current.getBoundingClientRect();
       const deltaX = currentX - clientX;
+      dragDistanceRef.current += Math.abs(deltaX);
+      if (dragDistanceRef.current > 4) {
+        isDraggingRef.current = true;
+      }
+
+      const rect = timelineRef.current.getBoundingClientRect();
       const deltaMinutes = (deltaX / rect.width) * totalTimelineMinutes;
 
       const rawNewStart = timeToMinutes(slot.startTime) + deltaMinutes;
@@ -82,12 +92,31 @@ export default function TimelineView({
       window.removeEventListener('touchmove', handleMove);
       window.removeEventListener('touchend', handleEnd);
 
+      if (isDraggingRef.current) {
+        setTimeout(() => {
+          isDraggingRef.current = false;
+        }, 200);
+      }
+
       setDragPreviewStartMin((finalStartMin) => {
         if (finalStartMin !== null && finalStartMin !== timeToMinutes(slot.startTime)) {
           const duration = slot.duration || (timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime));
           const newStartTime = minutesToTime(finalStartMin);
           const newEndTime = minutesToTime(finalStartMin + duration);
-          onUpdateSlotTimes(slot.id, newStartTime, newEndTime);
+          const emp = employees.find((e) => e.id === slot.employeeId);
+
+          // Ao invés de salvar imediatamente, salva no estado pendente para exibir a caixa de confirmação!
+          setPendingMove({
+            slotId: slot.id,
+            slot,
+            employee: emp || { name: 'Colaborador', color: '#7c3aed' },
+            originalStartTime: slot.startTime,
+            originalEndTime: slot.endTime,
+            newStartTime,
+            newEndTime,
+            duration,
+            newStartMin: finalStartMin
+          });
         }
         return null;
       });
@@ -183,13 +212,18 @@ export default function TimelineView({
               const slot = daySlots.find((s) => s.employeeId === emp.id);
               const isSlotInConflict = slot && conflictSlotIds.includes(slot.id);
               const isBeingDragged = draggingSlot && draggingSlot.id === slot?.id;
+              const isPendingThisSlot = pendingMove && pendingMove.slotId === slot?.id;
 
               let blockStartMin = slot ? timeToMinutes(slot.startTime) : 0;
               let blockEndMin = slot ? timeToMinutes(slot.endTime) : 0;
-              const duration = slot ? blockEndMin - blockStartMin : 30;
+              let duration = slot ? blockEndMin - blockStartMin : 30;
 
               if (isBeingDragged && dragPreviewStartMin !== null) {
                 blockStartMin = dragPreviewStartMin;
+                blockEndMin = blockStartMin + duration;
+              } else if (isPendingThisSlot) {
+                blockStartMin = pendingMove.newStartMin;
+                duration = pendingMove.duration;
                 blockEndMin = blockStartMin + duration;
               }
 
@@ -226,6 +260,8 @@ export default function TimelineView({
                           <span className="text-purple-scada font-semibold">Almoçando agora</span>
                         ) : hasFinishedLunch ? (
                           <span className="text-emerald-600">Almoço concluído</span>
+                        ) : isPendingThisSlot ? (
+                          <span className="text-amber-600 font-semibold">Alteração pendente ({pendingMove.newStartTime})</span>
                         ) : slot ? (
                           <span>Almoço às {slot.startTime}</span>
                         ) : (
@@ -243,14 +279,20 @@ export default function TimelineView({
                     {/* Bloco de Almoço */}
                     {slot ? (
                       <div
-                        className={`lunch-slot-block ${isSlotInConflict ? 'is-conflict' : ''} ${isCurrentlyLunching ? 'is-active-pulse' : ''} ${isBeingDragged ? 'is-dragging' : ''}`}
+                        className={`lunch-slot-block ${isSlotInConflict ? 'is-conflict' : ''} ${isCurrentlyLunching ? 'is-active-pulse' : ''} ${isBeingDragged ? 'is-dragging' : ''} ${isPendingThisSlot ? 'is-pending-confirm' : ''}`}
                         style={{
                           left: `${leftPercent}%`,
                           width: `${widthPercent}%`,
                           '--emp-accent': emp.color || '#381267'
                         }}
-                        onClick={() => onEditSlot(slot, emp)}
-                        title="Clique para editar ou arraste para reposicionar (passos de 5 min)"
+                        onClick={(e) => {
+                          if (isDraggingRef.current) {
+                            e.stopPropagation();
+                            return;
+                          }
+                          onEditSlot(slot, emp);
+                        }}
+                        title={isPendingThisSlot ? "Aguardando confirmação na barra inferior" : "Clique para editar ou arraste para reposicionar (passos de 5 min)"}
                       >
                         <div
                           className="drag-handle"
@@ -262,10 +304,14 @@ export default function TimelineView({
                         </div>
 
                         <div className="slot-block-content">
-                          <span className="slot-badge-label">ALMOÇO</span>
+                          <span className="slot-badge-label">
+                            {isPendingThisSlot ? 'NOVO HORÁRIO' : 'ALMOÇO'}
+                          </span>
                           <span className="slot-time-range">
                             {isBeingDragged
                               ? `${minutesToTime(blockStartMin)} - ${minutesToTime(blockEndMin)}`
+                              : isPendingThisSlot
+                              ? `${pendingMove.newStartTime} - ${pendingMove.newEndTime}`
                               : `${slot.startTime} - ${slot.endTime}`}
                           </span>
                         </div>
@@ -322,6 +368,52 @@ export default function TimelineView({
           </div>
         </div>
       </div>
+
+      {/* Caixa de Confirmação Flutuante para Reposicionamento de Horário */}
+      {pendingMove && (
+        <div className="timeline-confirm-banner animate-slide-up">
+          <div className="confirm-banner-body">
+            <div className="confirm-badge-bell">
+              <Clock size={20} className="pulse-cyan" />
+            </div>
+            <div className="confirm-text-group">
+              <div className="confirm-title">
+                Confirmar alteração de horário de almoço?
+              </div>
+              <div className="confirm-subtitle">
+                <strong>{pendingMove.employee.name}</strong>:{' '}
+                <span className="time-badge old-time">{pendingMove.originalStartTime} — {pendingMove.originalEndTime}</span>
+                <ArrowRight size={14} style={{ display: 'inline', margin: '0 6px', verticalAlign: 'middle' }} />
+                <span className="time-badge new-time">{pendingMove.newStartTime} — {pendingMove.newEndTime}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="confirm-actions-group">
+            <button
+              type="button"
+              className="btn-timeline-cancel"
+              onClick={() => setPendingMove(null)}
+              title="Cancelar e restaurar o horário anterior"
+            >
+              <X size={15} />
+              <span>Cancelar</span>
+            </button>
+            <button
+              type="button"
+              className="btn-timeline-confirm"
+              onClick={() => {
+                onUpdateSlotTimes(pendingMove.slotId, pendingMove.newStartTime, pendingMove.newEndTime);
+                setPendingMove(null);
+              }}
+              title="Confirmar e salvar o novo horário na escala"
+            >
+              <Check size={16} />
+              <span>Salvar Alterações</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

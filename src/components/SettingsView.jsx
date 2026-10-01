@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Database, Wifi, WifiOff, UploadCloud } from 'lucide-react';
+import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Database, Wifi, WifiOff, UploadCloud, Sun, Moon } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { firebaseService } from '../services/firebaseService';
 
@@ -9,7 +9,9 @@ export default function SettingsView({
   onResetAllData,
   onReloadData,
   isCloudConnected,
-  onSyncAllToCloud
+  onSyncAllToCloud,
+  theme,
+  onToggleTheme
 }) {
   const [formData, setFormData] = useState({ ...settings });
   const [importText, setImportText] = useState('');
@@ -99,6 +101,69 @@ export default function SettingsView({
       </div>
 
       <div className="settings-grid">
+        {/* Card 0: Preferência Visual do Usuário (Tema Claro / Escuro) */}
+        <div className="settings-card" style={{ gridColumn: '1 / -1' }}>
+          <div className="settings-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h3 className="card-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {theme === 'dark' ? <Moon size={18} className="text-purple-400" /> : <Sun size={18} className="text-amber-500" />}
+                <span>Aparência & Modo de Exibição</span>
+              </h3>
+              <span className="card-section-caption">
+                Escolha o tema visual que preferir (salvo individualmente no seu navegador)
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                className={`theme-pill-choice ${theme !== 'dark' ? 'active' : ''}`}
+                onClick={() => theme === 'dark' && onToggleTheme && onToggleTheme()}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 18px',
+                  borderRadius: '9999px',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: theme !== 'dark' ? '2px solid var(--scada-purple-mid)' : '1px solid var(--border-color)',
+                  background: theme !== 'dark' ? 'var(--scada-purple-tint)' : 'var(--bg-card)',
+                  color: theme !== 'dark' ? 'var(--scada-purple-dark)' : 'var(--text-muted)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Sun size={16} color={theme !== 'dark' ? '#d97706' : '#94a3b8'} />
+                <span>Modo Claro</span>
+              </button>
+
+              <button
+                type="button"
+                className={`theme-pill-choice ${theme === 'dark' ? 'active' : ''}`}
+                onClick={() => theme !== 'dark' && onToggleTheme && onToggleTheme()}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 18px',
+                  borderRadius: '9999px',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: theme === 'dark' ? '2px solid #7c3aed' : '1px solid var(--border-color)',
+                  background: theme === 'dark' ? 'rgba(124, 58, 237, 0.25)' : 'var(--bg-card)',
+                  color: theme === 'dark' ? '#e9d5ff' : 'var(--text-muted)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Moon size={16} color={theme === 'dark' ? '#c084fc' : '#94a3b8'} />
+                <span>Modo Escuro</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Card 1: Janela Crítica de Atendimento & Horários */}
         <div className="settings-card">
           <div className="settings-card-header">

@@ -28,6 +28,30 @@ export default function App() {
   const [historyData, setHistoryData] = useState(() => storageService.getHistory());
   const [isCloudConnected, setIsCloudConnected] = useState(false);
 
+  // Modo Escuro / Claro personalizado por usuário (salvo no navegador)
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('scadahub_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    } catch (e) {
+      return 'light';
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('scadahub_theme', theme);
+    } catch (e) {}
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   const getNowMinutes = () => {
     const d = new Date();
     return d.getHours() * 60 + d.getMinutes();
@@ -290,6 +314,8 @@ export default function App() {
         setSimulatedMinutes={setSimulatedMinutes}
         systemTimeMinutes={systemTimeMinutes}
         isCloudConnected={isCloudConnected}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       {/* Simulador de Horário Interativo */}
@@ -364,6 +390,8 @@ export default function App() {
             onResetAllData={storageService.resetAllData}
             onReloadData={handleReloadAll}
             isCloudConnected={isCloudConnected}
+            theme={theme}
+            onToggleTheme={toggleTheme}
             onSyncAllToCloud={async () => {
               await firebaseService.pushEmployees(employees);
               await firebaseService.pushAllSchedules(allSchedules);

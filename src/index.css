@@ -2648,3 +2648,315 @@ body {
     justify-content: space-between;
   }
 }
+
+/* ==========================================================================
+   Repositioning & Drag Confirmation Banner
+   ========================================================================== */
+
+/* Bloco com reposicionamento pendente de confirmação */
+.lunch-slot-block.is-pending-confirm {
+  border: 2px dashed #f59e0b !important;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.45) !important;
+  animation: pendingSlotGlow 1.8s infinite ease-in-out;
+}
+
+@keyframes pendingSlotGlow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.65);
+  }
+}
+
+/* Banner de Confirmação Flutuante do Drag and Drop */
+.timeline-confirm-banner {
+  margin-top: 18px;
+  background: var(--bg-card);
+  border: 1.5px solid #7c3aed;
+  border-radius: var(--radius-lg);
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 12px 30px rgba(124, 58, 237, 0.2);
+  position: relative;
+  overflow: hidden;
+  border-left: 6px solid #7c3aed;
+}
+
+.confirm-banner-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.confirm-badge-bell {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7c3aed;
+  flex-shrink: 0;
+}
+
+.confirm-title {
+  font-weight: 700;
+  font-size: 0.96rem;
+  color: var(--text-main);
+  margin-bottom: 3px;
+}
+
+.confirm-subtitle {
+  font-size: 0.83rem;
+  color: var(--text-body);
+}
+
+.time-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.time-badge.old-time {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.time-badge.new-time {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.confirm-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-timeline-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border-radius: 9999px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  background: var(--bg-subtle);
+  color: var(--text-body);
+  border: 1.2px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-timeline-cancel:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.btn-timeline-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 24px;
+  border-radius: 9999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #240a42 0%, #381267 100%);
+  color: #ffffff;
+  border: 1px solid #7c3aed;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(36, 10, 66, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-timeline-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
+/* ==========================================================================
+   Dark Mode / Light Mode Theming System
+   ========================================================================== */
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--bg-subtle);
+  color: var(--text-body);
+  border: 1.2px solid var(--border-color);
+  transition: all 0.25s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--scada-purple-tint);
+  border-color: var(--scada-purple-mid);
+  color: var(--scada-purple-dark);
+}
+
+.theme-icon {
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle-btn:hover .theme-icon {
+  transform: rotate(25deg);
+}
+
+/* Tokens de cores para Modo Escuro */
+[data-theme="dark"] {
+  --bg-app: #0c0817;
+  --bg-card: #150e26;
+  --bg-subtle: #1c1333;
+  --border-color: #2c1a4d;
+  --border-subtle: #22143c;
+  --text-main: #f8fafc;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --scada-purple-dark: #120824;
+  --scada-purple-subtle: #180f2e;
+  --scada-purple-tint: #2a154d;
+  --scada-cyan-light: rgba(2, 132, 199, 0.15);
+  --scada-cyan-border: #0284c7;
+
+  --working-bg: rgba(16, 185, 129, 0.12);
+  --working-text: #34d399;
+  --working-border: rgba(16, 185, 129, 0.3);
+
+  --lunch-bg: rgba(124, 58, 237, 0.2);
+  --lunch-text: #c4b5fd;
+  --lunch-border: rgba(139, 92, 246, 0.35);
+
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-text: #fbbf24;
+  --warning-border: rgba(245, 158, 11, 0.3);
+
+  --conflict-bg: rgba(239, 68, 68, 0.18);
+  --conflict-text: #f87171;
+  --conflict-border: rgba(239, 68, 68, 0.35);
+
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 6px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 18px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 28px -4px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 24px 36px -6px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] body {
+  background-color: var(--bg-app);
+  color: var(--text-body);
+}
+
+[data-theme="dark"] .navbar {
+  background: rgba(21, 14, 38, 0.9);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-input {
+  background-color: #1a1130;
+  border-color: #381f5e;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .form-input:focus {
+  border-color: #0284c7;
+  background-color: #20153d;
+}
+
+[data-theme="dark"] .employee-info-cell {
+  background: var(--bg-card);
+  border-right-color: var(--border-color);
+}
+
+[data-theme="dark"] .time-pill {
+  background: #1c1333;
+  border-color: #341e59;
+}
+
+[data-theme="dark"] .modal-overlay {
+  background: rgba(7, 4, 15, 0.8);
+}
+
+[data-theme="dark"] .modal-card {
+  background: #180f2d;
+  border-color: #371f61;
+}
+
+[data-theme="dark"] .employee-row-card {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .ruler-track {
+  background: #130b24;
+}
+
+[data-theme="dark"] .working-background-bar {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+[data-theme="dark"] .day-column {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .timeline-time-ruler {
+  background: var(--bg-card);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .scadahub-footer {
+  border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .nav-tab-btn {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .nav-tab-btn:hover {
+  background: rgba(124, 58, 237, 0.15);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .nav-tab-btn.active {
+  background: linear-gradient(135deg, #381267 0%, #7c3aed 100%);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .critical-settings-highlight-box {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(2, 132, 199, 0.25);
+}
+
+[data-theme="dark"] .timeline-confirm-banner {
+  background: #180e2f;
+  border-color: #7c3aed;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .time-badge.new-time {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Users, BarChart3, Settings, Play, RefreshCw, Clock, ShieldCheck, Cloud } from 'lucide-react';
+import { Calendar, Users, BarChart3, Settings, Play, RefreshCw, Clock, ShieldCheck, Cloud, Sun, Moon } from 'lucide-react';
 import { minutesToTime } from '../utils/timeUtils';
 
 export default function Navbar({
@@ -10,7 +10,9 @@ export default function Navbar({
   setIsSimulatingTime,
   setSimulatedMinutes,
   systemTimeMinutes,
-  isCloudConnected
+  isCloudConnected,
+  theme,
+  toggleTheme
 }) {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -88,6 +90,24 @@ export default function Navbar({
             />
             <Cloud size={13} color={isCloudConnected ? '#10b981' : '#f59e0b'} />
             <span>{isCloudConnected ? 'Nuvem Ao Vivo' : 'Modo Local'}</span>
+          </button>
+
+          {/* Botão de Tema (Modo Escuro / Modo Claro) */}
+          <button
+            type="button"
+            className="theme-toggle-btn"
+            title={theme === 'dark' ? 'Alternar para Modo Claro' : 'Alternar para Modo Escuro'}
+            onClick={toggleTheme}
+            aria-label="Alternar tema de cores"
+          >
+            {theme === 'dark' ? (
+              <Sun size={15} className="theme-icon sun" />
+            ) : (
+              <Moon size={15} className="theme-icon moon" />
+            )}
+            <span className="theme-btn-text">
+              {theme === 'dark' ? 'Claro' : 'Escuro'}
+            </span>
           </button>
 
           <div className={`time-pill ${isSimulatingTime ? 'simulating' : ''}`}>
