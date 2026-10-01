@@ -4,5 +4,6 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './', // Garante funcionamento em qualquer subdiretório (como no GitHub Pages)
+  base: process.env.NODE_ENV === 'production' ? '/RodizioAlmoco/' : '/',
 })
+
