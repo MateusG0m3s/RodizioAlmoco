@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, X, Calendar, RefreshCw, ShieldCheck, ArrowRight, Shuffle } from 'lucide-react';
+import { Sparkles, X, Calendar, RefreshCw, ShieldCheck, ArrowRight, Shuffle, AlertTriangle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { generateAutoSchedule } from '../utils/scheduler';
 import { getWorkDaysOfWeek } from '../utils/timeUtils';
@@ -34,20 +34,34 @@ export default function GenerateModal({
   };
 
   const handleConfirm = () => {
+    if (previewToday.success === false) {
+      return;
+    }
+
     if (mode === 'today') {
       onApplySchedule(currentDate, previewToday);
     } else {
       const workdays = getWorkDaysOfWeek(currentDate);
       const weekSchedules = {};
+      let hasError = false;
+
       workdays.forEach((day, index) => {
-        weekSchedules[day.date] = generateAutoSchedule({
+        const dayGen = generateAutoSchedule({
           employees,
           date: day.date,
           settings,
           dayOffset: index,
           rotationIndex: rotationSeed + index
         });
+        if (dayGen.success === false) {
+          hasError = true;
+        }
+        weekSchedules[day.date] = dayGen;
       });
+
+      if (hasError) {
+        return;
+      }
       onApplyWeekSchedule(weekSchedules);
     }
 
@@ -76,7 +90,7 @@ export default function GenerateModal({
             <div>
               <h3 className="modal-title">Gerador Inteligente scadahub</h3>
               <span className="modal-subtitle">
-                Garante atendimento contínuo aos clientes (11:30h — 13:30h)
+                Garante atendimento contínuo aos clientes ({settings.criticalStart || '11:30'}h — {settings.criticalEnd || '13:30'}h)
               </span>
             </div>
           </div>
@@ -110,9 +124,19 @@ export default function GenerateModal({
           <div className="generator-rules-pill scadahub-pill">
             <ShieldCheck size={18} className="text-emerald-600 shrink-0" />
             <span>
-              <strong>Atendimento Garantido:</strong> Almoços organizados em turnos de revezamento. Sempre há colaboradores atendendo clientes entre <strong>11:30h e 13:30h</strong>.
+              <strong>Atendimento Garantido:</strong> Almoços organizados em turnos de revezamento. Sempre há no mínimo <strong>{settings.minWorkingDuringCritical || 1} atendente(s)</strong> atendendo clientes entre <strong>{settings.criticalStart || '11:30'}h e {settings.criticalEnd || '13:30'}h</strong>.
             </span>
           </div>
+
+          {/* Aviso se a geração for impossível com as regras atuais */}
+          {previewToday.success === false && (
+            <div className="conflict-alert-box animate-shake" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--conflict-bg)', border: '1px solid var(--conflict-border)', padding: '12px 16px', borderRadius: 'var(--radius-md)', color: 'var(--conflict-text)', marginTop: '10px' }}>
+              <AlertTriangle size={18} className="text-rose-500 shrink-0" />
+              <div style={{ fontSize: '0.84rem' }}>
+                <strong>Impossível Gerar:</strong> {previewToday.error}
+              </div>
+            </div>
+          )}
 
           {/* Pré-visualização da Distribuição */}
           <div className="preview-schedule-box">
@@ -159,7 +183,13 @@ export default function GenerateModal({
           <button type="button" className="btn-secondary" onClick={onClose}>
             Cancelar
           </button>
-          <button type="button" className="btn-primary" onClick={handleConfirm}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={handleConfirm}
+            disabled={previewToday.success === false}
+            style={{ opacity: previewToday.success === false ? 0.5 : 1, cursor: previewToday.success === false ? 'not-allowed' : 'pointer' }}
+          >
             <Sparkles size={16} />
             <span>{mode === 'today' ? 'Aplicar ao Dia de Hoje' : 'Aplicar à Semana Inteira'}</span>
           </button>

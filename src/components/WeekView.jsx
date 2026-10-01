@@ -48,7 +48,7 @@ export default function WeekView({
       {/* Barra de Navegação Semanal */}
       <div className="week-header-bar">
         <div className="week-title-group">
-          <Calendar size={22} className="text-primary-500" />
+          <Calendar size={22} className="text-scada-cyan header-calendar-icon" />
           <div>
             <h2 className="week-main-title">Visão Semanal do Rodízio</h2>
             <p className="week-sub-title">Planejamento e acompanhamento dos 5 dias úteis</p>

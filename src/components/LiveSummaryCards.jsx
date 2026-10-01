@@ -85,9 +85,9 @@ export default function LiveSummaryCards({
           <div className="critical-gap-text">
             <strong>⚠️ ATENÇÃO: Risco de Clientes sem Atendimento!</strong>
             <p>
-              Existem horários vazios sem nenhum atendente trabalhando entre 11:30 e 13:30:{' '}
+              Existem horários com menos de {settings?.minWorkingDuringCritical || 1} atendente(s) trabalhando entre {settings?.criticalStart || '11:30'} e {settings?.criticalEnd || '13:30'}:{' '}
               <strong>
-                {coverage.gaps.map((g) => `${g.startTime} — ${g.endTime}`).join(', ')}
+                {coverage.gaps.map((g) => `${g.startTime} — ${g.endTime} (${g.workingCount} ativo(s))`).join(', ')}
               </strong>
               . Ajuste os horários ou use "Gerar Rodízio" para cobrir a janela.
             </p>
@@ -199,7 +199,7 @@ export default function LiveSummaryCards({
                   <ShieldCheck size={18} /> 100% Coberto
                 </div>
                 <div className="stat-subtext text-emerald-700 font-semibold">
-                  Nenhum horário vazio entre 11:30 e 13:30!
+                  Nenhum horário desfalca o atendimento entre {settings?.criticalStart || '11:30'} e {settings?.criticalEnd || '13:30'}!
                 </div>
                 <div className="stat-live-workers">
                   <span>Trabalhando no posto agora:</span>
@@ -212,7 +212,7 @@ export default function LiveSummaryCards({
                   <AlertTriangle size={18} /> Janela Descoberta
                 </div>
                 <div className="stat-subtext text-rose-600 font-semibold">
-                  Há horário sem atendente ativo!
+                  Horário com menos de {settings?.minWorkingDuringCritical || 1} atendente(s) ativo(s)!
                 </div>
                 <div className="stat-live-workers">
                   <span>Trabalhando agora:</span>

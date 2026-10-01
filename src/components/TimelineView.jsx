@@ -137,7 +137,7 @@ export default function TimelineView({
           <Headset size={18} className="text-scada-cyan" />
           <h3 className="timeline-title">Timeline de Atendimento & Rodízio</h3>
           <span className="timeline-caption">
-            Janela Crítica: 11:30h às 13:30h • Mínimo de 1 atendente sempre trabalhando
+            Janela Crítica: {settings.criticalStart || '11:30'}h às {settings.criticalEnd || '13:30'}h • Mínimo de {settings.minWorkingDuringCritical || 1} atendente{(settings.minWorkingDuringCritical || 1) > 1 ? 's' : ''} sempre trabalhando
           </span>
         </div>
         <div className="timeline-legend">
@@ -155,11 +155,11 @@ export default function TimelineView({
               <span>Equipe SCADA</span>
             </div>
             <div className="ruler-track">
-              {/* Destaque sombreado da Zona Crítica de Atendimento aos Clientes (11:30 — 13:30) */}
+              {/* Destaque sombreado da Zona Crítica de Atendimento aos Clientes */}
               <div
                 className="critical-zone-indicator"
                 style={{ left: `${critLeftPercent}%`, width: `${critWidthPercent}%` }}
-                title="Janela Crítica de Atendimento aos Clientes (11:30 às 13:30)"
+                title={`Janela Crítica de Atendimento aos Clientes (${settings.criticalStart || '11:30'} às ${settings.criticalEnd || '13:30'})`}
               />
 
               {hourMarkers.map((marker) => (

@@ -2823,6 +2823,11 @@ body {
 }
 
 /* Tokens de cores para Modo Escuro */
+[data-theme="dark"],
+[data-theme="dark"] body {
+  color-scheme: dark;
+}
+
 [data-theme="dark"] {
   --bg-app: #0c0817;
   --bg-card: #150e26;
@@ -2834,33 +2839,41 @@ body {
   --text-muted: #94a3b8;
   --text-light: #64748b;
 
-  --scada-purple-dark: #120824;
+  /* No modo escuro, elementos de destaque do brand scadahub devem ter alto contraste e elegância */
+  --scada-purple-dark: #f8fafc;   /* Corresponde ao texto 'scada' e display de hora no dark */
+  --scada-purple-deep: #d8b4fe;   /* Corresponde ao texto de departamento 'Escala de Almoço' e botões ativos */
+  --scada-purple: #c084fc;
+  --scada-purple-mid: #a78bfa;
+  --scada-purple-light: #7c3aed;
   --scada-purple-subtle: #180f2e;
-  --scada-purple-tint: #2a154d;
-  --scada-cyan-light: rgba(2, 132, 199, 0.15);
+  --scada-purple-tint: rgba(124, 58, 237, 0.25);
+
+  --scada-cyan: #38bdf8;          /* Ciano mais brilhante e legível no fundo escuro */
+  --scada-cyan-vibrant: #00d2d3;
+  --scada-cyan-light: rgba(2, 132, 199, 0.2);
   --scada-cyan-border: #0284c7;
 
-  --working-bg: rgba(16, 185, 129, 0.12);
+  --working-bg: rgba(16, 185, 129, 0.14);
   --working-text: #34d399;
-  --working-border: rgba(16, 185, 129, 0.3);
+  --working-border: rgba(16, 185, 129, 0.35);
 
-  --lunch-bg: rgba(124, 58, 237, 0.2);
-  --lunch-text: #c4b5fd;
-  --lunch-border: rgba(139, 92, 246, 0.35);
+  --lunch-bg: rgba(124, 58, 237, 0.22);
+  --lunch-text: #ddd6fe;
+  --lunch-border: rgba(139, 92, 246, 0.4);
 
-  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-bg: rgba(245, 158, 11, 0.14);
   --warning-text: #fbbf24;
-  --warning-border: rgba(245, 158, 11, 0.3);
+  --warning-border: rgba(245, 158, 11, 0.35);
 
-  --conflict-bg: rgba(239, 68, 68, 0.18);
+  --conflict-bg: rgba(239, 68, 68, 0.2);
   --conflict-text: #f87171;
-  --conflict-border: rgba(239, 68, 68, 0.35);
+  --conflict-border: rgba(239, 68, 68, 0.4);
 
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 2px 6px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 18px -2px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 16px 28px -4px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0 24px 36px -6px rgba(0, 0, 0, 0.7);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 6px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 18px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 28px -4px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 24px 36px -6px rgba(0, 0, 0, 0.8);
 }
 
 [data-theme="dark"] body {
@@ -3265,4 +3278,188 @@ body {
   background: rgba(16, 185, 129, 0.2);
   color: #34d399;
 }
+
+/* ==========================================================================
+   DARK MODE - REFINAMENTOS DE CONTRASTE & COMPONENTES (Imagens 1 a 5)
+   ========================================================================== */
+
+/* 1. Cabeçalho / Brand scadahub (Imagem 2) */
+[data-theme="dark"] .scada-part {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .hub-part {
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .brand-divider-vertical {
+  background: #6d28d9 !important;
+}
+
+[data-theme="dark"] .brand-dept-tag {
+  color: #c084fc !important;
+}
+
+[data-theme="dark"] .brand-sub-company {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .time-pill {
+  background: #1c1333 !important;
+  border-color: #381f5e !important;
+}
+
+[data-theme="dark"] .time-display {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .time-label {
+  color: #94a3b8 !important;
+}
+
+/* 2. Calendário e Date Picker (Imagem 3) */
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"] {
+  color-scheme: dark !important;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85) brightness(1.2) !important;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator:hover,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(1) brightness(1.6) !important;
+  opacity: 1;
+}
+
+[data-theme="dark"] .date-badge-box {
+  background: #180f2d !important;
+  border-color: #381f5e !important;
+}
+
+[data-theme="dark"] .date-weekday {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .date-full-str {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .date-picker-inline {
+  background: #180f2d !important;
+  border-color: #381f5e !important;
+  color: #f8fafc !important;
+  color-scheme: dark !important;
+}
+
+/* 3. Botão "Hoje" e Badges de Data (Imagem 4) */
+[data-theme="dark"] .btn-week-today {
+  background: rgba(124, 58, 237, 0.28) !important;
+  border: 1.5px solid #8b5cf6 !important;
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .btn-week-today:hover {
+  background: rgba(124, 58, 237, 0.5) !important;
+  border-color: #a78bfa !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-week-nav {
+  background: #180f2d !important;
+  border: 1.5px solid #381f5e !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .btn-week-nav:hover {
+  background: #231442 !important;
+  border-color: #6d28d9 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-today-step {
+  background: #180f2d !important;
+  border: 1px solid #381f5e !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .btn-today-step:hover {
+  background: #231442 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-today-step.is-current {
+  background: rgba(124, 58, 237, 0.3) !important;
+  border: 1px solid #8b5cf6 !important;
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .today-chip {
+  background: rgba(2, 132, 199, 0.22) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .today-badge {
+  background: rgba(2, 132, 199, 0.25) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  font-weight: 700 !important;
+}
+
+/* 4. Ícones de Relógio e Formulários (Imagem 5) */
+[data-theme="dark"] .form-input {
+  background: #180f2d !important;
+  border-color: #381f5e !important;
+  color: #f8fafc !important;
+  color-scheme: dark !important;
+}
+
+[data-theme="dark"] .form-input:focus {
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25) !important;
+}
+
+[data-theme="dark"] select.form-input option {
+  background: #180f2d;
+  color: #f8fafc;
+}
+
+/* 5. Alertas de Gaps Críticos e Cobertura */
+.critical-gap-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #fef2f2;
+  border: 1.5px solid #f87171;
+  border-radius: var(--radius-md);
+  color: #991b1b;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .critical-gap-banner {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+
+.critical-gap-banner strong {
+  color: #7f1d1d;
+}
+
+[data-theme="dark"] .critical-gap-banner strong {
+  color: #fecaca;
+}
+
 

@@ -129,6 +129,11 @@ export default function App() {
       rotationIndex: nextSeed
     });
 
+    if (newSlots.success === false) {
+      showToast(newSlots.error || 'Não foi possível gerar a escala para hoje sem ferir a regra de atendimento.', 'Conflito de Regras');
+      return;
+    }
+
     handleApplyGeneratedSchedule(currentDate, newSlots);
 
     try {
@@ -141,7 +146,7 @@ export default function App() {
     } catch (e) {}
 
     showToast(
-      'Turnos de hoje alternados com sucesso! 100% de cobertura no atendimento ao cliente (11:30h — 13:30h).',
+      `Turnos de hoje alternados com sucesso! 100% de cobertura no atendimento ao cliente (${settings.criticalStart || '11:30'}h — ${settings.criticalEnd || '13:30'}h).`,
       'Rodízio Gerado!'
     );
   };
@@ -152,15 +157,28 @@ export default function App() {
 
     const workdays = getWorkDaysOfWeek(currentDate);
     const weekMap = {};
+    let hasFailure = false;
+    let failureMsg = '';
+
     workdays.forEach((day, index) => {
-      weekMap[day.date] = generateAutoSchedule({
+      const daySlots = generateAutoSchedule({
         employees,
         date: day.date,
         settings,
         dayOffset: index,
         rotationIndex: nextSeed + index
       });
+      if (daySlots.success === false) {
+        hasFailure = true;
+        failureMsg = daySlots.error;
+      }
+      weekMap[day.date] = daySlots;
     });
+
+    if (hasFailure) {
+      showToast(failureMsg || 'Não foi possível gerar a semana com 100% de cobertura.', 'Conflito de Regras');
+      return;
+    }
 
     handleApplyWeekSchedule(weekMap);
 
@@ -174,7 +192,7 @@ export default function App() {
     } catch (e) {}
 
     showToast(
-      'Escala da semana inteira gerada com sucesso com turnos distribuídos e atendimento ininterrupto!',
+      `Escala semanal gerada com sucesso com turnos distribuídos e atendimento ininterrupto (${settings.criticalStart || '11:30'}h — ${settings.criticalEnd || '13:30'}h)!`,
       'Escala Semanal Gerada!'
     );
   };

@@ -169,7 +169,7 @@ export default function SettingsView({
           <div className="settings-card-header">
             <h3 className="card-section-title">Regras de Atendimento ao Cliente</h3>
             <span className="card-section-caption">
-              Garante que nenhum cliente fique sem suporte entre 11:30 e 13:30
+              Garante que nenhum cliente fique sem suporte entre {formData.criticalStart || '11:30'} e {formData.criticalEnd || '13:30'}
             </span>
           </div>
 

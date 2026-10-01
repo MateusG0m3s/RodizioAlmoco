@@ -124,7 +124,7 @@ export default function EditSlotModal({
         {/* Cabeçalho do Modal */}
         <div className="modal-header">
           <div className="modal-title-wrap">
-            <Clock size={19} className="text-primary-500" />
+            <Clock size={19} className="text-scada-cyan" />
             <div>
               <h3 className="modal-title">{slot ? 'Editar Almoço' : 'Definir Almoço'}</h3>
               <span className="modal-subtitle">Ajuste o horário com passos de 5 minutos</span>
