@@ -1430,6 +1430,7 @@ body {
 .lunch-slot-block:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+  background: var(--bg-card);
 }
 
 .lunch-slot-block.is-active-pulse {
@@ -3155,14 +3156,17 @@ body {
   border-bottom-color: var(--border-color);
 }
 
-/* Blocos de Almoço na Timeline */
+/* Blocos de Almoço na Timeline - Padrão Visual Fixo e Estável */
 [data-theme="dark"] .lunch-slot-block {
-  background: #1d1236;
+  background: #1d1236 !important;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="dark"] .lunch-slot-block:hover {
-  background: #251645;
+[data-theme="dark"] .lunch-slot-block:hover,
+[data-theme="dark"] .lunch-slot-block:focus,
+[data-theme="dark"] .lunch-slot-block:active {
+  background: #1d1236 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
 
 [data-theme="dark"] .slot-badge-label {
