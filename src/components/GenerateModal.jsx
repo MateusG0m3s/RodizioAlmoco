@@ -13,11 +13,8 @@ export default function GenerateModal({
   onApplySchedule,
   onApplyWeekSchedule
 }) {
-  if (!isOpen) return null;
-
   const [mode, setMode] = useState('today');
   const [rotationSeed, setRotationSeed] = useState(() => Math.floor(Math.random() * 5) + 1);
-  const activeEmployees = employees.filter((e) => e.active);
 
   // Calcula a prévia para hoje usando a semente de rotação
   const previewToday = generateAutoSchedule({
@@ -78,6 +75,8 @@ export default function GenerateModal({
 
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop animate-fade-in" onClick={onClose}>

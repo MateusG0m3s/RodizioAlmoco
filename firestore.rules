@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Funções auxiliares de autenticação e autorização
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/scadahub_admins/$(request.auth.uid)) ||
+        (exists(/databases/$(database)/documents/scadahub_users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/scadahub_users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+    
+    function getUserEmployeeId() {
+      return get(/databases/$(database)/documents/scadahub_users/$(request.auth.uid)).data.employeeId;
+    }
+    
+    function isOwnEmployee(empId) {
+      return isAuthenticated() && getUserEmployeeId() == empId;
+    }
+    
+    // Administradores
+    match /scadahub_admins/{uid} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Gerenciado apenas via Admin SDK ou Firebase Console
+    }
+    
+    // Usuários do sistema
+    match /scadahub_users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == uid && request.resource.data.role != 'admin';
+      allow update: if isAdmin() || (
+        isAuthenticated() && 
+        request.auth.uid == uid && 
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.employeeId == resource.data.employeeId
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Funcionários
+    match /scadahub_employees/{empId} {
+      allow read: if isAuthenticated();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (isOwnEmployee(empId) && request.resource.data.id == empId);
+    }
+    
+    // Escalas de Almoço por Data
+    match /scadahub_schedules/{date} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+      
+      match /slots/{slotId} {
+        allow read: if isAuthenticated();
+        // Admin pode gerenciar qualquer slot.
+        // Usuário normal pode gerenciar apenas sua própria escala em qualquer dia ou semana.
+        allow create: if isAdmin() || (
+          isAuthenticated() && 
+          request.resource.data.employeeId == getUserEmployeeId()
+        );
+        allow update: if isAdmin() || (
+          isAuthenticated() && 
+          resource.data.employeeId == getUserEmployeeId() && 
+          request.resource.data.employeeId == getUserEmployeeId()
+        );
+        allow delete: if isAdmin() || (
+          isAuthenticated() && 
+          resource.data.employeeId == getUserEmployeeId()
+        );
+      }
+    }
+    
+    // Configurações e Regras de Atendimento
+    match /scadahub_settings/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Histórico de distribuição
+    match /scadahub_history/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

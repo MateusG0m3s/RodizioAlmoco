@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getDatabase, ref, onValue, set, get, child } from 'firebase/database';
-import { defaultFirebaseConfig } from '../firebaseConfig';
+import { getDatabase, ref, onValue, set, get, child, remove } from 'firebase/database';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
+import { defaultFirebaseConfig } from '../firebaseConfig.js';
 
 const STORAGE_KEY_CONFIG = 'scadahub_firebase_custom_config';
 
@@ -8,6 +9,7 @@ class FirebaseService {
   constructor() {
     this.app = null;
     this.db = null;
+    this.auth = null;
     this.isInitialized = false;
     this.isConnected = false;
     this.listeners = [];
@@ -16,13 +18,15 @@ class FirebaseService {
   // Obtém a configuração ativa (prioriza configuração salva na UI, senão pega a do arquivo)
   getActiveConfig() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_CONFIG);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && parsed.apiKey) return parsed;
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem(STORAGE_KEY_CONFIG);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.apiKey) return parsed;
+        }
       }
-    } catch (e) {
-      console.warn('Erro ao ler configuração salva do Firebase:', e);
+    } catch {
+      // Ignora erro em ambientes de teste sem window
     }
     return defaultFirebaseConfig;
   }
@@ -41,19 +45,21 @@ class FirebaseService {
     localStorage.removeItem(STORAGE_KEY_CONFIG);
     this.isInitialized = false;
     this.db = null;
+    this.auth = null;
   }
 
   isConfigValid(config) {
     return Boolean(config && (config.databaseURL || (config.apiKey && config.projectId)));
   }
 
-  // Inicializa o Firebase
+  // Inicializa o Firebase (Database + Auth)
   init(customConfig = null) {
     const config = customConfig || this.getActiveConfig();
 
     if (!this.isConfigValid(config)) {
       this.isInitialized = false;
       this.db = null;
+      this.auth = null;
       return false;
     }
 
@@ -65,12 +71,19 @@ class FirebaseService {
       }
 
       this.db = getDatabase(this.app);
+      try {
+        this.auth = getAuth(this.app);
+      } catch (authErr) {
+        console.warn('Firebase Auth não inicializado no ambiente local:', authErr);
+      }
+
       this.isInitialized = true;
       return true;
     } catch (err) {
       console.error('Falha ao inicializar o Firebase:', err);
       this.isInitialized = false;
       this.db = null;
+      this.auth = null;
       return false;
     }
   }
@@ -151,16 +164,73 @@ class FirebaseService {
     }
   }
 
-  // Salva escala completa no Firebase
+  // --- Operações Granulares de Escala (em conformidade com as Security Rules) ---
+
+  // Salva slot específico de um colaborador (escrita permitida pelo próprio usuário ou admin)
+  async pushSlot(dateStr, slotData) {
+    if (!this.isInitialized || !this.db) return false;
+    const key = slotData.id || slotData.employeeId;
+    if (!key) return false;
+
+    try {
+      await set(ref(this.db, `scadahub_schedules/${dateStr}/${key}`), slotData);
+      return true;
+    } catch (err) {
+      console.error('Erro ao enviar slot para o Firebase:', err);
+      return false;
+    }
+  }
+
+  // Remove slot específico de um colaborador
+  async deleteSlot(dateStr, slotId) {
+    if (!this.isInitialized || !this.db) return false;
+    try {
+      await remove(ref(this.db, `scadahub_schedules/${dateStr}/${slotId}`));
+      return true;
+    } catch (err) {
+      console.error('Erro ao remover slot do Firebase:', err);
+      return false;
+    }
+  }
+
+  // Salva escala completa de um dia específico (Geração automática - Exclusivo Admin)
+  async pushDaySchedule(dateStr, slots) {
+    if (!this.isInitialized || !this.db) return false;
+    try {
+      let payload = null;
+      if (Array.isArray(slots) && slots.length > 0) {
+        const slotMap = {};
+        slots.forEach((s) => {
+          const k = s.id || s.employeeId;
+          if (k) slotMap[k] = s;
+        });
+        payload = slotMap;
+      } else if (slots && typeof slots === 'object') {
+        payload = slots;
+      }
+      await set(ref(this.db, `scadahub_schedules/${dateStr}`), payload);
+      return true;
+    } catch (err) {
+      console.error('Erro ao enviar escala do dia:', err);
+      return false;
+    }
+  }
+
+  // Salva escala completa no Firebase (Exclusivo Admin)
   async pushAllSchedules(allSchedules) {
     if (!this.isInitialized || !this.db) return false;
     try {
       const cleanMap = {};
       if (allSchedules && typeof allSchedules === 'object') {
         Object.keys(allSchedules).forEach((k) => {
-          const list = Array.isArray(allSchedules[k]) ? allSchedules[k] : [];
+          const list = Array.isArray(allSchedules[k]) ? allSchedules[k] : (allSchedules[k] && typeof allSchedules[k] === 'object' ? Object.values(allSchedules[k]) : []);
           if (list.length > 0) {
-            cleanMap[k] = list;
+            const dayMap = {};
+            list.forEach((s) => {
+              const sid = s.id || s.employeeId;
+              if (sid) dayMap[sid] = s;
+            });
+            cleanMap[k] = dayMap;
           }
         });
       }
@@ -172,24 +242,46 @@ class FirebaseService {
     }
   }
 
-  // Salva escala de um dia específico
-  async pushDaySchedule(dateStr, slots) {
+  // --- Operações Granulares de Colaboradores ---
+
+  // Salva ou atualiza colaborador individual (permitido para o próprio usuário ou admin)
+  async pushEmployee(empId, employeeData) {
     if (!this.isInitialized || !this.db) return false;
     try {
-      const payload = Array.isArray(slots) && slots.length === 0 ? null : slots;
-      await set(ref(this.db, `scadahub_schedules/${dateStr}`), payload);
+      await set(ref(this.db, `scadahub_employees/${empId}`), employeeData);
       return true;
     } catch (err) {
-      console.error('Erro ao enviar escala do dia:', err);
+      console.error('Erro ao enviar funcionário:', err);
       return false;
     }
   }
 
-  // Salva lista de funcionários
+  // Exclui colaborador (Exclusivo Admin)
+  async deleteEmployee(empId) {
+    if (!this.isInitialized || !this.db) return false;
+    try {
+      await remove(ref(this.db, `scadahub_employees/${empId}`));
+      return true;
+    } catch (err) {
+      console.error('Erro ao excluir funcionário:', err);
+      return false;
+    }
+  }
+
+  // Salva lista de funcionários em massa (Exclusivo Admin)
   async pushEmployees(employees) {
     if (!this.isInitialized || !this.db) return false;
     try {
-      await set(ref(this.db, 'scadahub_employees'), employees);
+      let payload = null;
+      if (Array.isArray(employees)) {
+        payload = {};
+        employees.forEach((emp) => {
+          if (emp.id) payload[emp.id] = emp;
+        });
+      } else {
+        payload = employees;
+      }
+      await set(ref(this.db, 'scadahub_employees'), payload);
       return true;
     } catch (err) {
       console.error('Erro ao enviar funcionários:', err);
@@ -197,7 +289,7 @@ class FirebaseService {
     }
   }
 
-  // Salva configurações operacionais
+  // Salva configurações operacionais (Exclusivo Admin)
   async pushSettings(settings) {
     if (!this.isInitialized || !this.db) return false;
     try {
@@ -206,6 +298,63 @@ class FirebaseService {
     } catch (err) {
       console.error('Erro ao enviar configurações:', err);
       return false;
+    }
+  }
+
+  // --- Métodos de Verificação de Permissão no Firebase ---
+
+  async checkIfAdmin(uid) {
+    if (!this.isInitialized || !this.db || !uid) return false;
+    try {
+      const snap = await get(child(ref(this.db), `scadahub_admins/${uid}`));
+      return snap.exists() && snap.val() === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async getUserRecord(uid) {
+    if (!this.isInitialized || !this.db || !uid) return null;
+    try {
+      const snap = await get(child(ref(this.db), `scadahub_users/${uid}`));
+      return snap.exists() ? snap.val() : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // --- Métodos do Firebase Authentication ---
+
+  onAuthStateChange(callback) {
+    if (!this.auth) {
+      this.init();
+    }
+    if (!this.auth) {
+      if (typeof callback === 'function') callback(null);
+      return () => {};
+    }
+    return onAuthStateChanged(this.auth, callback);
+  }
+
+  async signInWithEmail(email, password) {
+    if (!this.auth) {
+      this.init();
+    }
+    if (!this.auth) return { success: false, code: 'auth/not-initialized', message: 'Serviço de autenticação não inicializado.' };
+    try {
+      const res = await signInWithEmailAndPassword(this.auth, email, password);
+      return { success: true, user: res.user };
+    } catch (err) {
+      return { success: false, code: err.code || 'auth/unknown', message: err.message };
+    }
+  }
+
+  async signOutAuth() {
+    if (!this.auth) return;
+    try {
+      await signOut(this.auth);
+    } catch (e) {
+      console.warn('Erro ao deslogar do Firebase:', e);
     }
   }
 }

@@ -3682,6 +3682,280 @@ input[type="date"] {
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3) !important;
 }
 
+/* ==========================================================================
+   7. TELA DE LOGIN & AUTENTICAÇÃO OFICIAL SCADAHUB
+   ========================================================================== */
+.login-screen-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at top center, rgba(124, 58, 237, 0.18), transparent 70%), var(--bg-body);
+  position: relative;
+}
+
+.login-theme-container {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+}
+
+.login-theme-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.login-theme-btn:hover {
+  border-color: var(--scada-purple-mid);
+  transform: translateY(-1px);
+}
+
+.login-card-container {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 36px 32px;
+  box-shadow: 0 20px 45px rgba(36, 10, 66, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  backdrop-filter: blur(12px);
+}
+
+.login-brand-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-icon-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--scada-purple-deep), var(--scada-purple-mid));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35);
+  margin-bottom: 4px;
+}
+
+.login-title {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.login-scadahub-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--scada-purple-mid);
+}
+
+[data-theme="dark"] .login-scadahub-tag {
+  color: #38bdf8;
+}
+
+.login-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.login-error-alert {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.login-error-icon {
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.login-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-field-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-body);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.login-input:focus {
+  border-color: var(--scada-purple-mid);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.login-password-toggle:hover {
+  color: var(--text-main);
+}
+
+.login-submit-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: var(--radius-full);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.login-card-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.login-security-notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.login-author-tag {
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
+/* ==========================================================================
+   8. TELA DE VERIFICAÇÃO DE SESSÃO (LOADING SCREEN)
+   ========================================================================== */
+.auth-loading-screen {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-body);
+}
+
+.auth-loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.scadahub-spinner {
+  width: 42px;
+  height: 42px;
+  border: 3.5px solid rgba(124, 58, 237, 0.2);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
 
 
 

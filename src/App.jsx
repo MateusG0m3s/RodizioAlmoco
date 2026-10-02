@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { CheckCircle2, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import Navbar from './components/Navbar';
 import TimeSimulatorBar from './components/TimeSimulatorBar';
 import DashboardView from './components/DashboardView';
@@ -10,8 +10,11 @@ import HistoryView from './components/HistoryView';
 import SettingsView from './components/SettingsView';
 import EditSlotModal from './components/EditSlotModal';
 import GenerateModal from './components/GenerateModal';
+import AuthModal from './components/AuthModal';
+import LoginScreen from './components/LoginScreen';
 import { storageService } from './services/storageService';
 import { firebaseService } from './services/firebaseService';
+import { authService } from './services/authService';
 import { toISODateString, timeToMinutes, getWorkDaysOfWeek } from './utils/timeUtils';
 import { detectConflicts, calculateBalanceMetrics, checkAttendanceCoverage, generateAutoSchedule, ensureArray } from './utils/scheduler';
 
@@ -35,6 +38,42 @@ export default function App() {
   const [historyData, setHistoryData] = useState(() => storageService.getHistory());
   const [isCloudConnected, setIsCloudConnected] = useState(false);
 
+  // Estados de Autenticação e RBAC
+  const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
+  const [isAuthLoading, setIsAuthLoading] = useState(() => authService.isLoading());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const isAdmin = Boolean(currentUser && currentUser.role === 'admin');
+  const currentUserEmployeeId = currentUser?.employeeId || null;
+
+  const [toastNotification, setToastNotification] = useState(null);
+
+  const showToast = (message, title = 'Sucesso!') => {
+    setToastNotification({ title, message });
+    setTimeout(() => {
+      setToastNotification(null);
+    }, 4500);
+  };
+
+  useEffect(() => {
+    const unsubscribeAuth = authService.subscribe((u, loading) => {
+      setCurrentUser(u);
+      setIsAuthLoading(loading);
+    });
+    return () => {
+      if (unsubscribeAuth) unsubscribeAuth();
+    };
+  }, []);
+
+  const handleSelectTab = (tab) => {
+    if (tab === 'settings' && !isAdmin) {
+      showToast('Acesso restrito: A aba Configurações é exclusiva para Administradores.', 'Acesso Negado');
+      return;
+    }
+    setActiveTab(tab);
+  };
+
+  const effectiveTab = (!isAdmin && activeTab === 'settings') ? 'dashboard' : activeTab;
+
   // Modo Escuro / Claro personalizado por usuário (salvo no navegador)
   const [theme, setTheme] = useState(() => {
     try {
@@ -43,7 +82,7 @@ export default function App() {
       return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
-    } catch (e) {
+    } catch {
       return 'light';
     }
   });
@@ -52,7 +91,9 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     try {
       localStorage.setItem('scadahub_theme', theme);
-    } catch (e) {}
+    } catch {
+      // Ignora erro de storage
+    }
   }, [theme]);
 
   const toggleTheme = () => {
@@ -76,8 +117,10 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Assinatura em tempo real do Firebase (recebe atualizações de outros usuários)
+  // Assinatura em tempo real do Firebase (ativa SOMENTE com usuário autenticado)
   useEffect(() => {
+    if (!currentUser) return;
+
     const unsubscribe = firebaseService.subscribe({
       onSchedules: (cloudSchedules) => {
         if (cloudSchedules && typeof cloudSchedules === 'object') {
@@ -109,8 +152,9 @@ export default function App() {
 
     return () => {
       if (unsubscribe) unsubscribe();
+      setIsCloudConnected(false);
     };
-  }, []);
+  }, [currentUser]);
 
   const currentTimeMinutes = isSimulatingTime ? simulatedMinutes : systemTimeMinutes;
 
@@ -121,16 +165,14 @@ export default function App() {
 
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [rotationSeed, setRotationSeed] = useState(() => Math.floor(Math.random() * 10) + 1);
-  const [toastNotification, setToastNotification] = useState(null);
 
-  const showToast = (message, title = 'Sucesso!') => {
-    setToastNotification({ title, message });
-    setTimeout(() => {
-      setToastNotification(null);
-    }, 4500);
-  };
-
+  // Geração rápida para hoje (Exclusivo Administrador)
   const handleQuickGenerateToday = () => {
+    if (!isAdmin) {
+      showToast('Apenas administradores podem executar geração automática de escalas.', 'Acesso Negado');
+      return;
+    }
+
     const nextSeed = rotationSeed + 1;
     setRotationSeed(nextSeed);
 
@@ -155,7 +197,9 @@ export default function App() {
         origin: { y: 0.6 },
         colors: ['#2D0C5E', '#7c3aed', '#0284c7', '#38bdf8']
       });
-    } catch (e) {}
+    } catch {
+      // Ignora erro de confetti
+    }
 
     showToast(
       `Turnos de hoje alternados com sucesso! 100% de cobertura no atendimento ao cliente (${settings.criticalStart || '11:30'}h — ${settings.criticalEnd || '13:30'}h).`,
@@ -163,7 +207,13 @@ export default function App() {
     );
   };
 
+  // Geração rápida para a semana (Exclusivo Administrador)
   const handleQuickGenerateWeek = () => {
+    if (!isAdmin) {
+      showToast('Apenas administradores podem executar geração de escalas da semana.', 'Acesso Negado');
+      return;
+    }
+
     const nextSeed = rotationSeed + 1;
     setRotationSeed(nextSeed);
 
@@ -201,7 +251,9 @@ export default function App() {
         origin: { y: 0.6 },
         colors: ['#2D0C5E', '#7c3aed', '#0284c7', '#38bdf8']
       });
-    } catch (e) {}
+    } catch {
+      // Ignora erro de confetti
+    }
 
     showToast(
       `Escala semanal gerada com sucesso com turnos distribuídos e atendimento ininterrupto (${settings.criticalStart || '11:30'}h — ${settings.criticalEnd || '13:30'}h)!`,
@@ -218,8 +270,16 @@ export default function App() {
   // Métricas de Equilíbrio
   const balanceInfo = calculateBalanceMetrics(employees, allSchedules, historyData);
 
+  // Salvar Slot com Validação de Autorização por Propriedade da Escala
   const handleSaveSlot = (slotData) => {
     const targetDate = slotData.date || currentDate;
+    const canEditThis = isAdmin || (slotData && slotData.employeeId === currentUserEmployeeId);
+
+    if (!canEditThis) {
+      showToast('Acesso negado: Você só pode modificar a sua própria escala.', 'Permissão Negada');
+      return;
+    }
+
     const dayList = ensureArray(allSchedules[targetDate]);
     const index = dayList.findIndex(
       (s) => s.id === slotData.id || s.employeeId === slotData.employeeId
@@ -236,32 +296,59 @@ export default function App() {
     const updatedAll = { ...allSchedules, [targetDate]: updatedDayList };
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
-    firebaseService.pushDaySchedule(targetDate, updatedDayList);
-    firebaseService.pushAllSchedules(updatedAll);
+
+    // Gravação granular protegida compatível com as regras de segurança do Firebase
+    firebaseService.pushSlot(targetDate, slotData);
+    if (isAdmin) {
+      firebaseService.pushDaySchedule(targetDate, updatedDayList);
+    }
   };
 
+  // Excluir Slot com Validação de Autorização por Propriedade da Escala
   const handleDeleteSlot = (slotId) => {
     const targetDate = editingTargetDate || currentDate;
     const dayList = ensureArray(allSchedules[targetDate]);
-    const updatedDayList = dayList.filter((s) => s.id !== slotId);
+    const slotToDelete = dayList.find((s) => s.id === slotId);
 
+    const canDeleteThis = isAdmin || (slotToDelete && slotToDelete.employeeId === currentUserEmployeeId);
+    if (!canDeleteThis) {
+      showToast('Acesso negado: Você não pode remover o horário de outro colaborador.', 'Permissão Negada');
+      return;
+    }
+
+    const updatedDayList = dayList.filter((s) => s.id !== slotId);
     const updatedAll = { ...allSchedules, [targetDate]: updatedDayList };
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
-    firebaseService.pushDaySchedule(targetDate, updatedDayList);
-    firebaseService.pushAllSchedules(updatedAll);
+
+    // Remoção granular protegida
+    firebaseService.deleteSlot(targetDate, slotId);
+    if (isAdmin) {
+      firebaseService.pushDaySchedule(targetDate, updatedDayList);
+    }
   };
 
+  // Atualizar Horários via Arraste (Timeline)
   const handleUpdateSlotTimes = (slotId, newStartTime, newEndTime) => {
     const dayList = ensureArray(allSchedules[currentDate]);
+    const targetSlot = dayList.find((s) => s.id === slotId);
+
+    const canUpdateThis = isAdmin || (targetSlot && targetSlot.employeeId === currentUserEmployeeId);
+    if (!canUpdateThis) {
+      showToast('Acesso negado: Você só pode reposicionar a sua própria escala.', 'Permissão Negada');
+      return;
+    }
+
+    let modifiedSlot = null;
     const updatedDayList = dayList.map((slot) => {
       if (slot.id === slotId) {
-        return {
+        modifiedSlot = {
           ...slot,
           startTime: newStartTime,
           endTime: newEndTime,
           duration: timeToMinutes(newEndTime) - timeToMinutes(newStartTime)
         };
+        return modifiedSlot;
       }
       return slot;
     });
@@ -269,20 +356,36 @@ export default function App() {
     const updatedAll = { ...allSchedules, [currentDate]: updatedDayList };
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
-    firebaseService.pushDaySchedule(currentDate, updatedDayList);
-    firebaseService.pushAllSchedules(updatedAll);
+
+    if (modifiedSlot) {
+      firebaseService.pushSlot(currentDate, modifiedSlot);
+    }
+    if (isAdmin) {
+      firebaseService.pushDaySchedule(currentDate, updatedDayList);
+    }
   };
 
+  // Aplicação de escala gerada (Exclusivo Administrador)
   const handleApplyGeneratedSchedule = (dateStr, slots) => {
+    if (!isAdmin) {
+      showToast('Apenas administradores podem aplicar escalas automáticas.', 'Acesso Negado');
+      return;
+    }
+
     const safeList = ensureArray(slots);
     const updatedAll = { ...allSchedules, [dateStr]: safeList };
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
     firebaseService.pushDaySchedule(dateStr, safeList);
-    firebaseService.pushAllSchedules(updatedAll);
   };
 
+  // Aplicação de escala semanal (Exclusivo Administrador)
   const handleApplyWeekSchedule = (weekSchedulesMap) => {
+    if (!isAdmin) {
+      showToast('Apenas administradores podem aplicar escalas semanais completas.', 'Acesso Negado');
+      return;
+    }
+
     const normalizedWeek = {};
     Object.keys(weekSchedulesMap || {}).forEach((k) => {
       normalizedWeek[k] = ensureArray(weekSchedulesMap[k]);
@@ -293,7 +396,20 @@ export default function App() {
     firebaseService.pushAllSchedules(updatedAll);
   };
 
+  // Gerenciamento de Funcionários (Salvar com RBAC)
   const handleSaveEmployee = (empData) => {
+    const isOwnEmployee = empData.id === currentUserEmployeeId;
+    const isExisting = employees.some((e) => e.id === empData.id);
+
+    if (!isAdmin && !isOwnEmployee) {
+      showToast('Usuários normais só podem editar o seu próprio perfil.', 'Acesso Negado');
+      return;
+    }
+    if (!isAdmin && !isExisting) {
+      showToast('Apenas administradores podem cadastrar novos funcionários.', 'Acesso Negado');
+      return;
+    }
+
     const index = employees.findIndex((e) => e.id === empData.id);
     let updated;
     if (index >= 0) {
@@ -304,16 +420,27 @@ export default function App() {
     }
     setEmployees(updated);
     storageService.saveEmployees(updated);
-    firebaseService.pushEmployees(updated);
+
+    firebaseService.pushEmployee(empData.id, empData);
+    if (isAdmin) {
+      firebaseService.pushEmployees(updated);
+    }
   };
 
+  // Excluir Funcionário (Exclusivo Administrador)
   const handleDeleteEmployee = (empId) => {
+    if (!isAdmin) {
+      showToast('Apenas administradores podem excluir funcionários.', 'Acesso Negado');
+      return;
+    }
+
     const updated = employees.filter((e) => e.id !== empId);
     setEmployees(updated);
     storageService.saveEmployees(updated);
+    firebaseService.deleteEmployee(empId);
     firebaseService.pushEmployees(updated);
 
-    // Remove slots órfãos do funcionário excluído de todos os dias
+    // Remove slots do funcionário excluído de todos os dias
     const cleanedSchedules = {};
     Object.keys(allSchedules).forEach((dateKey) => {
       cleanedSchedules[dateKey] = ensureArray(allSchedules[dateKey]).filter(
@@ -325,7 +452,12 @@ export default function App() {
     firebaseService.pushAllSchedules(cleanedSchedules);
   };
 
+  // Salvar Configurações (Exclusivo Administrador)
   const handleSaveSettings = (newSettings) => {
+    if (!isAdmin) {
+      showToast('Apenas administradores podem modificar configurações e regras de atendimento.', 'Acesso Negado');
+      return;
+    }
     setSettings(newSettings);
     storageService.saveSettings(newSettings);
     firebaseService.pushSettings(newSettings);
@@ -346,18 +478,57 @@ export default function App() {
   };
 
   const handleAddSlotForEmployee = (employee, targetDate = currentDate) => {
+    const canAdd = isAdmin || employee.id === currentUserEmployeeId;
+    if (!canAdd) {
+      showToast('Você só pode definir horários para a sua própria escala.', 'Permissão Negada');
+      return;
+    }
     setEditingSlot(null);
     setEditingEmployee(employee);
     setEditingTargetDate(targetDate);
     setIsEditModalOpen(true);
   };
 
+  // 1. Estado de Verificação de Sessão do Firebase
+  if (isAuthLoading) {
+    return (
+      <div className="auth-loading-screen animate-fade-in">
+        <div className="auth-loading-card">
+          <div className="scadahub-spinner" />
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+            Verificando sessão...
+          </h2>
+          <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', margin: 0 }}>
+            Validando identidade e permissões com o Firebase Authentication
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Bloqueio Estrito: Usuário Não Autenticado vê APENAS a Tela de Login
+  if (!currentUser) {
+    return (
+      <LoginScreen
+        onLogin={async (email, password) => {
+          const res = await authService.loginWithEmailAndPassword(email, password);
+          if (res.success && res.user) {
+            showToast(`Bem-vindo, ${res.user.name}!`, 'Login realizado');
+          }
+          return res;
+        }}
+        theme={theme}
+        toggleTheme={toggleTheme}
+      />
+    );
+  }
+
   return (
     <div className="app-container">
-      {/* Navbar com Logo Oficial scadahub */}
+      {/* Navbar com Logo Oficial, Perfil, RBAC e Logout */}
       <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        activeTab={effectiveTab}
+        setActiveTab={handleSelectTab}
         currentTimeMinutes={currentTimeMinutes}
         isSimulatingTime={isSimulatingTime}
         setIsSimulatingTime={setIsSimulatingTime}
@@ -366,6 +537,13 @@ export default function App() {
         isCloudConnected={isCloudConnected}
         theme={theme}
         toggleTheme={toggleTheme}
+        currentUser={currentUser}
+        isAdmin={isAdmin}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onLogout={async () => {
+          await authService.logout();
+          showToast('Sessão encerrada com sucesso.', 'Até logo!');
+        }}
       />
 
       {/* Simulador de Horário Interativo */}
@@ -380,9 +558,9 @@ export default function App() {
         }}
       />
 
-      {/* Conteúdo Principal */}
+      {/* Conteúdo Principal com Autorização RBAC */}
       <main className="main-content">
-        {activeTab === 'dashboard' && (
+        {effectiveTab === 'dashboard' && (
           <DashboardView
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
@@ -391,46 +569,56 @@ export default function App() {
             settings={settings}
             currentTimeMinutes={currentTimeMinutes}
             conflictSlotIds={conflictReport.conflictSlotIds}
-            hasConflicts={conflictReport.hasConflicts}
+            _hasConflicts={conflictReport.hasConflicts}
             coverage={coverageReport}
             balanceStatus={balanceInfo.balanceStatus}
             balanceScore={balanceInfo.balanceScore}
-            onOpenGenerateModal={() => setIsGenerateModalOpen(true)}
+            onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
             onQuickGenerateToday={handleQuickGenerateToday}
             onOpenEditModal={(slot, emp) => handleOpenEditModal(slot, emp, currentDate)}
             onAddSlotForEmployee={(emp) => handleAddSlotForEmployee(emp, currentDate)}
             onUpdateSlotTimes={handleUpdateSlotTimes}
+            isAdmin={isAdmin}
+            currentUserEmployeeId={currentUserEmployeeId}
           />
         )}
 
-        {activeTab === 'week' && (
+        {effectiveTab === 'week' && (
           <WeekView
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             employees={employees}
             allSchedules={allSchedules}
-            onOpenGenerateModal={() => setIsGenerateModalOpen(true)}
+            onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
             onQuickGenerateWeek={handleQuickGenerateWeek}
             onOpenEditModal={(slot, emp, dateStr) => handleOpenEditModal(slot, emp, dateStr)}
-            setActiveTab={setActiveTab}
+            setActiveTab={handleSelectTab}
+            isAdmin={isAdmin}
+            currentUserEmployeeId={currentUserEmployeeId}
           />
         )}
 
-        {activeTab === 'team' && (
+        {effectiveTab === 'team' && (
           <TeamView
             employees={employees}
             onSaveEmployee={handleSaveEmployee}
             onDeleteEmployee={handleDeleteEmployee}
+            isAdmin={isAdmin}
+            currentUserEmployeeId={currentUserEmployeeId}
           />
         )}
 
-        {activeTab === 'history' && (
+        {effectiveTab === 'history' && (
           <HistoryView
             employees={employees}
             allSchedules={allSchedules}
             historyData={historyData}
-            onOpenGenerateModal={() => setIsGenerateModalOpen(true)}
+            onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
             onResetHistory={() => {
+              if (!isAdmin) {
+                showToast('Apenas administradores podem zerar o histórico.', 'Acesso Negado');
+                return;
+              }
               storageService.saveHistory({});
               setHistoryData({});
               showToast(
@@ -441,7 +629,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'settings' && (
+        {effectiveTab === 'settings' && (
           <SettingsView
             settings={settings}
             onSaveSettings={handleSaveSettings}
@@ -450,7 +638,12 @@ export default function App() {
             isCloudConnected={isCloudConnected}
             theme={theme}
             onToggleTheme={toggleTheme}
+            isAdmin={isAdmin}
             onSyncAllToCloud={async () => {
+              if (!isAdmin) {
+                showToast('Apenas administradores podem sincronizar dados em massa.', 'Acesso Negado');
+                return;
+              }
               await firebaseService.pushEmployees(employees);
               await firebaseService.pushAllSchedules(allSchedules);
               await firebaseService.pushSettings(settings);
@@ -463,7 +656,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Modal de Edição Manual */}
+      {/* Modal de Edição Manual com Proteção de Propriedade da Escala */}
       <EditSlotModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -475,17 +668,32 @@ export default function App() {
         date={editingTargetDate}
         onSave={handleSaveSlot}
         onDelete={handleDeleteSlot}
+        isAdmin={isAdmin}
+        currentUserEmployeeId={currentUserEmployeeId}
       />
 
-      {/* Modal do Gerador scadahub */}
-      <GenerateModal
-        isOpen={isGenerateModalOpen}
-        onClose={() => setIsGenerateModalOpen(false)}
-        employees={employees}
-        settings={settings}
-        currentDate={currentDate}
-        onApplySchedule={handleApplyGeneratedSchedule}
-        onApplyWeekSchedule={handleApplyWeekSchedule}
+      {/* Modal do Gerador scadahub (Exclusivo Administrador) */}
+      {isAdmin && (
+        <GenerateModal
+          isOpen={isGenerateModalOpen}
+          onClose={() => setIsGenerateModalOpen(false)}
+          employees={employees}
+          settings={settings}
+          currentDate={currentDate}
+          onApplySchedule={handleApplyGeneratedSchedule}
+          onApplyWeekSchedule={handleApplyWeekSchedule}
+        />
+      )}
+
+      {/* Modal de Autenticação e Chaveamento de Contas para Testes */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        currentUser={currentUser}
+        onUserChanged={(user) => {
+          setCurrentUser(user);
+          showToast(`Sessão ativa alterada para: ${user?.name || 'Visitante'} (${user?.role === 'admin' ? 'Administrador' : 'Usuário Normal'})`, 'Identidade Atualizada');
+        }}
       />
 
       {/* Rodapé EF - Mateus Silva */}

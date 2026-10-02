@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Database, Wifi, WifiOff, UploadCloud, Sun, Moon, ChevronDown, ChevronUp, RefreshCw, Lock, KeyRound } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Wifi, Sun, Moon, ChevronDown, ChevronUp, RefreshCw, Lock, UploadCloud } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { firebaseService } from '../services/firebaseService';
 
@@ -11,7 +11,8 @@ export default function SettingsView({
   isCloudConnected,
   onSyncAllToCloud,
   theme,
-  onToggleTheme
+  onToggleTheme,
+  isAdmin = true
 }) {
   const [formData, setFormData] = useState({ ...settings });
   const [importText, setImportText] = useState('');
@@ -21,24 +22,31 @@ export default function SettingsView({
   // Estados do Firebase
   const [firebaseConfigForm, setFirebaseConfigForm] = useState(() => firebaseService.getActiveConfig());
   const [firebaseStatusMsg, setFirebaseStatusMsg] = useState(null);
-  const [isFirebaseConnected, setIsFirebaseConnected] = useState(isCloudConnected || firebaseService.isConnected);
   const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const isFirebaseConnected = isCloudConnected !== undefined ? isCloudConnected : firebaseService.isConnected;
   const [showAdvancedFirebase, setShowAdvancedFirebase] = useState(false);
-  const [isTechAdminAuthenticated, setIsTechAdminAuthenticated] = useState(false);
-  const [techPasswordInput, setTechPasswordInput] = useState('');
-  const [techPasswordError, setTechPasswordError] = useState('');
-  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
 
-  // Estados de confirmação por senha para restaurar dados padrão
+  // Estados de confirmação para restaurar dados padrão
   const [showResetPasswordPrompt, setShowResetPasswordPrompt] = useState(false);
-  const [resetPasswordInput, setResetPasswordInput] = useState('');
-  const [resetPasswordError, setResetPasswordError] = useState('');
+  const [resetConfirmInput, setResetConfirmInput] = useState('');
+  const [resetConfirmError, setResetConfirmError] = useState('');
 
-  useEffect(() => {
-    if (isCloudConnected !== undefined) {
-      setIsFirebaseConnected(isCloudConnected);
-    }
-  }, [isCloudConnected]);
+  // Bloqueio de acesso no frontend para não-administradores
+  if (!isAdmin) {
+    return (
+      <div className="settings-view-container animate-fade-in" style={{ padding: '48px 20px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '440px', margin: '0 auto', background: 'var(--bg-card)', padding: '36px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+          <ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 16px', display: 'block' }} />
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+            Acesso Restrito ao Administrador
+          </h2>
+          <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '20px' }}>
+            A aba Configurações, alteração de regras de atendimento e ferramentas de restauração são exclusivas para administradores autenticados.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -99,7 +107,6 @@ export default function SettingsView({
   const handleReconnectFirebase = () => {
     const cfg = firebaseService.getActiveConfig();
     const success = firebaseService.init(cfg);
-    setIsFirebaseConnected(success || firebaseService.isConnected);
     if (success) {
       setFirebaseStatusMsg({ success: true, message: 'Reconectado à nuvem com sucesso!' });
       onReloadData();
@@ -110,63 +117,30 @@ export default function SettingsView({
   };
 
   const handleToggleAdvanced = () => {
-    if (showAdvancedFirebase) {
-      setShowAdvancedFirebase(false);
-      setShowPasswordPrompt(false);
-      setTechPasswordError('');
-      return;
-    }
-    if (isTechAdminAuthenticated) {
-      setShowAdvancedFirebase(true);
-    } else {
-      setShowPasswordPrompt(true);
-      setTechPasswordError('');
-      setTechPasswordInput('');
-    }
-  };
-
-  const handleVerifyPassword = (e) => {
-    e.preventDefault();
-    if (techPasswordInput.trim() === 'useradminshub') {
-      setIsTechAdminAuthenticated(true);
-      setShowAdvancedFirebase(true);
-      setShowPasswordPrompt(false);
-      setTechPasswordError('');
-      setTechPasswordInput('');
-    } else {
-      setTechPasswordError('Senha incorreta! Digite a senha correta para prosseguir.');
-    }
-  };
-
-  const handleLockAdvanced = () => {
-    setIsTechAdminAuthenticated(false);
-    setShowAdvancedFirebase(false);
-    setShowPasswordPrompt(false);
-    setTechPasswordInput('');
-    setTechPasswordError('');
+    setShowAdvancedFirebase((prev) => !prev);
   };
 
   const handleOpenResetPrompt = () => {
     setShowResetPasswordPrompt(true);
-    setResetPasswordInput('');
-    setResetPasswordError('');
+    setResetConfirmInput('');
+    setResetConfirmError('');
   };
 
   const handleCancelResetPrompt = () => {
     setShowResetPasswordPrompt(false);
-    setResetPasswordInput('');
-    setResetPasswordError('');
+    setResetConfirmInput('');
+    setResetConfirmError('');
   };
 
   const handleConfirmReset = (e) => {
     if (e) e.preventDefault();
-    if (resetPasswordInput.trim() === 'useradminshub') {
+    if (resetConfirmInput.trim().toUpperCase() === 'RESTAURAR') {
       setShowResetPasswordPrompt(false);
-      setResetPasswordInput('');
-      setResetPasswordError('');
+      setResetConfirmInput('');
+      setResetConfirmError('');
       onResetAllData();
     } else {
-      setResetPasswordError('Senha incorreta! Digite a senha correta (useradminshub) para prosseguir.');
+      setResetConfirmError('Confirmação inválida! Digite exatamente RESTAURAR para confirmar.');
     }
   };
 
@@ -503,22 +477,22 @@ export default function SettingsView({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <Lock size={15} className="text-rose-500" />
                     <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      Confirmação de Segurança Requerida
+                      Confirmação de Segurança Administrativa
                     </span>
                   </div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '10px', lineHeight: 1.4 }}>
-                    Esta ação apagará as alterações atuais e restaurará a escala para os dados iniciais. Digite a senha de administrador (<strong style={{ color: 'var(--text-main)' }}>a mesma das configurações técnicas</strong>) para confirmar:
+                    Esta ação apagará as alterações atuais e restaurará a escala para os dados iniciais de fábrica. Digite <strong style={{ color: '#ef4444' }}>RESTAURAR</strong> para confirmar:
                   </p>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input
-                      type="password"
+                      type="text"
                       className="form-input"
                       style={{ flex: '1 1 200px', padding: '6px 12px', fontSize: '0.84rem', minWidth: '180px' }}
-                      placeholder="Digite a senha..."
-                      value={resetPasswordInput}
+                      placeholder="Digite RESTAURAR..."
+                      value={resetConfirmInput}
                       onChange={(e) => {
-                        setResetPasswordInput(e.target.value);
-                        setResetPasswordError('');
+                        setResetConfirmInput(e.target.value);
+                        setResetConfirmError('');
                       }}
                       autoFocus
                     />
@@ -538,9 +512,9 @@ export default function SettingsView({
                       Cancelar
                     </button>
                   </div>
-                  {resetPasswordError && (
+                  {resetConfirmError && (
                     <div style={{ marginTop: '8px', fontSize: '0.78rem', color: '#ef4444', fontWeight: 600 }}>
-                      ⚠️ {resetPasswordError}
+                      ⚠️ {resetConfirmError}
                     </div>
                   )}
                 </form>
@@ -705,93 +679,10 @@ export default function SettingsView({
                   {showAdvancedFirebase ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   <span>Configurações Técnicas de Manutenção ({showAdvancedFirebase ? 'Ocultar' : 'Apenas para Administrador'})</span>
                 </button>
-
-                {isTechAdminAuthenticated && showAdvancedFirebase && (
-                  <button
-                    type="button"
-                    onClick={handleLockAdvanced}
-                    style={{
-                      background: 'none',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '9999px',
-                      color: 'var(--text-muted)',
-                      fontSize: '0.72rem',
-                      padding: '2px 10px',
-                      cursor: 'pointer'
-                    }}
-                    title="Bloquear configurações técnicas novamente"
-                  >
-                    🔒 Bloquear Acesso
-                  </button>
-                )}
               </div>
 
-              {/* Solicitação de Senha */}
-              {showPasswordPrompt && !isTechAdminAuthenticated && (
-                <form
-                  onSubmit={handleVerifyPassword}
-                  className="animate-fade-in"
-                  style={{
-                    marginTop: '12px',
-                    padding: '16px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--scada-purple-light, #7c3aed)',
-                    borderRadius: 'var(--radius-md)',
-                    maxWidth: '460px'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                    <KeyRound size={16} className="text-amber-400" />
-                    <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      Autenticação de Administrador
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '10px', lineHeight: 1.4 }}>
-                    Para alterar URL do banco, Project ID ou chaves de API, informe a senha de manutenção:
-                  </p>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input
-                      type="password"
-                      className="form-input"
-                      style={{ flex: 1, padding: '6px 12px', fontSize: '0.84rem' }}
-                      placeholder="Digite a senha..."
-                      value={techPasswordInput}
-                      onChange={(e) => {
-                        setTechPasswordInput(e.target.value);
-                        setTechPasswordError('');
-                      }}
-                      autoFocus
-                    />
-                    <button
-                      type="submit"
-                      className="btn-primary"
-                      style={{ borderRadius: '9999px', fontSize: '0.8rem', padding: '6px 16px', flexShrink: 0 }}
-                    >
-                      Acessar
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      style={{ borderRadius: '9999px', fontSize: '0.8rem', padding: '6px 12px', flexShrink: 0 }}
-                      onClick={() => {
-                        setShowPasswordPrompt(false);
-                        setTechPasswordError('');
-                        setTechPasswordInput('');
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                  {techPasswordError && (
-                    <div style={{ fontSize: '0.78rem', color: '#ef4444', fontWeight: 600, marginTop: '8px' }}>
-                      ⚠️ {techPasswordError}
-                    </div>
-                  )}
-                </form>
-              )}
-
-              {/* Formulário Técnico Desbloqueado */}
-              {isTechAdminAuthenticated && showAdvancedFirebase && (
+              {/* Formulário Técnico para Administrador */}
+              {showAdvancedFirebase && (
                 <form onSubmit={handleSaveFirebaseConfig} className="settings-form animate-fade-in" style={{ marginTop: '12px' }}>
                   <div className="form-group-row">
                     <div className="form-group flex-1">

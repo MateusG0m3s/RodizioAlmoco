@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, Clock, CheckCircle2, Briefcase, Edit2, AlertTriangle, Plus, ChevronRight } from 'lucide-react';
+import { Utensils, Clock, CheckCircle2, Briefcase, Edit2, AlertTriangle, Plus, Lock } from 'lucide-react';
 import { getEmployeeLunchStatus } from '../utils/timeUtils';
 
 export default function CardsView({
@@ -8,7 +8,9 @@ export default function CardsView({
   currentTimeMinutes,
   conflictSlotIds,
   onEditSlot,
-  onAddSlotForEmployee
+  onAddSlotForEmployee,
+  isAdmin = true,
+  currentUserEmployeeId = null
 }) {
   return (
     <div className="employee-cards-grid">
@@ -16,12 +18,37 @@ export default function CardsView({
         const slot = daySlots.find((s) => s.employeeId === emp.id);
         const status = getEmployeeLunchStatus(emp.id, daySlots, currentTimeMinutes, 10);
         const isConflict = slot && conflictSlotIds.includes(slot.id);
+        const isOwn = emp.id === currentUserEmployeeId;
+        const canManageThis = isAdmin || isOwn;
 
         return (
           <div
             key={emp.id}
             className={`employee-status-card ${status.type} ${isConflict ? 'has-conflict-border' : ''} ${!emp.active ? 'is-inactive' : ''}`}
+            style={{
+              border: isOwn ? '1.5px solid var(--primary-500)' : '1px solid var(--border-color)',
+              position: 'relative'
+            }}
           >
+            {isOwn && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'var(--primary-500)',
+                  color: '#ffffff',
+                  fontSize: '0.66rem',
+                  fontWeight: 700,
+                  padding: '2px 7px',
+                  borderRadius: '9999px',
+                  letterSpacing: '0.04em'
+                }}
+              >
+                VOCÊ
+              </div>
+            )}
+
             {/* Topo do Card */}
             <div className="card-person-header">
               <div
@@ -87,17 +114,18 @@ export default function CardsView({
               )}
             </div>
 
-            {/* Botão de Ação */}
+            {/* Botão de Ação com RBAC */}
             <div className="card-actions-footer">
               {slot ? (
                 <button
                   className="btn-card-edit"
                   onClick={() => onEditSlot(slot, emp)}
+                  title={canManageThis ? "Editar este horário" : "Visualizar detalhes (somente leitura)"}
                 >
-                  <Edit2 size={14} />
-                  <span>Editar Horário</span>
+                  {canManageThis ? <Edit2 size={14} /> : <Lock size={14} />}
+                  <span>{canManageThis ? (isOwn ? 'Editar Meu Horário' : 'Editar Horário') : 'Ver Horário (Leitura)'}</span>
                 </button>
-              ) : (
+              ) : canManageThis ? (
                 <button
                   className="btn-card-add"
                   onClick={() => onAddSlotForEmployee(emp)}
@@ -105,6 +133,11 @@ export default function CardsView({
                   <Plus size={14} />
                   <span>Definir Horário</span>
                 </button>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', color: 'var(--text-muted)', padding: '6px 0' }}>
+                  <Lock size={12} />
+                  <span>Definição reservada ao colaborador</span>
+                </div>
               )}
             </div>
           </div>

@@ -1,5 +1,5 @@
-import { INITIAL_EMPLOYEES, INITIAL_SETTINGS, INITIAL_HISTORY } from '../data/initialData';
-import { toISODateString, getWorkDaysOfWeek } from '../utils/timeUtils';
+import { INITIAL_EMPLOYEES, INITIAL_SETTINGS, INITIAL_HISTORY } from '../data/initialData.js';
+import { toISODateString, getWorkDaysOfWeek } from '../utils/timeUtils.js';
 
 const STORAGE_KEYS = {
   EMPLOYEES: 'scadahub_rodizio_employees_v2',

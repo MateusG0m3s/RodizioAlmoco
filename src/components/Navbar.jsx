@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Users, BarChart3, Settings, Play, RefreshCw, Clock, ShieldCheck, Cloud, Sun, Moon } from 'lucide-react';
+import { Calendar, Users, BarChart3, Settings, Play, RefreshCw, Clock, ShieldCheck, Sun, Moon, LogOut } from 'lucide-react';
 import { minutesToTime } from '../utils/timeUtils';
 
 export default function Navbar({
@@ -10,17 +10,24 @@ export default function Navbar({
   setIsSimulatingTime,
   setSimulatedMinutes,
   systemTimeMinutes,
-  isCloudConnected,
+  _isCloudConnected,
   theme,
-  toggleTheme
+  toggleTheme,
+  currentUser,
+  isAdmin,
+  onOpenAuthModal,
+  onLogout
 }) {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'week', label: 'Rodízio Semanal', icon: Calendar },
     { id: 'team', label: 'Equipe', icon: Users },
     { id: 'history', label: 'Histórico & Equilíbrio', icon: ShieldCheck },
-    { id: 'settings', label: 'Configurações', icon: Settings }
+    ...(isAdmin ? [{ id: 'settings', label: 'Configurações', icon: Settings }] : [])
   ];
+
+  const userInitial = currentUser?.avatar || (currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : 'US');
+  const userShortName = currentUser?.name ? currentUser.name.split(' ')[0] : 'Usuário';
 
   return (
     <header className="navbar">
@@ -56,8 +63,74 @@ export default function Navbar({
           })}
         </nav>
 
-        {/* Relógio & Controle do Modo de Tempo */}
+        {/* Relógio, Tema & Perfil de Autenticação */}
         <div className="navbar-actions">
+          {/* Badge de Usuário Autenticado / RBAC */}
+          <button
+            type="button"
+            className="user-auth-btn"
+            onClick={onOpenAuthModal}
+            title={`Conectado como ${currentUser?.name || 'Usuário'} (${isAdmin ? 'Administrador' : 'Usuário Normal'}). Clique para alternar conta ou autenticar.`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '5px 12px 5px 6px',
+              borderRadius: '9999px',
+              background: 'var(--bg-subtle)',
+              border: `1.5px solid ${isAdmin ? 'rgba(124, 58, 237, 0.45)' : 'rgba(2, 132, 199, 0.35)'}`,
+              cursor: 'pointer',
+              color: 'var(--text-main)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <div
+              style={{
+                width: '26px',
+                height: '26px',
+                borderRadius: '50%',
+                background: currentUser?.color || (isAdmin ? '#381267' : '#0284c7'),
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.72rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {userInitial}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
+                {userShortName}
+              </span>
+              <span style={{ fontSize: '0.66rem', color: isAdmin ? '#c084fc' : '#38bdf8', fontWeight: 600 }}>
+                {isAdmin ? '👑 Admin' : '👤 Normal'}
+              </span>
+            </div>
+          </button>
+
+          {/* Botão Oficial Sair / Logout */}
+          {onLogout && (
+            <button
+              type="button"
+              className="theme-toggle-btn"
+              style={{
+                color: '#f87171',
+                borderColor: 'rgba(239, 68, 68, 0.35)',
+                background: 'rgba(239, 68, 68, 0.08)'
+              }}
+              title="Encerrar sessão com segurança"
+              onClick={onLogout}
+              aria-label="Encerrar sessão"
+            >
+              <LogOut size={14} />
+              <span className="theme-btn-text" style={{ color: '#f87171', fontWeight: 700 }}>
+                Sair
+              </span>
+            </button>
+          )}
+
           {/* Botão de Tema (Modo Escuro / Modo Claro) */}
           <button
             type="button"
@@ -76,6 +149,7 @@ export default function Navbar({
             </span>
           </button>
 
+          {/* Controle do Relógio / Simulador */}
           <div className={`time-pill ${isSimulatingTime ? 'simulating' : ''}`}>
             <Clock size={15} className={isSimulatingTime ? 'pulse-amber' : 'pulse-cyan'} />
             <div className="time-pill-content">

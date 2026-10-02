@@ -1,6 +1,6 @@
 import React from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Sparkles, Clock, CheckCircle2, AlertCircle, Plus } from 'lucide-react';
-import { getWorkDaysOfWeek, formatDateBR, toISODateString, parseISODate } from '../utils/timeUtils';
+import { Calendar, ChevronLeft, ChevronRight, Sparkles, Clock, Plus, Lock } from 'lucide-react';
+import { getWorkDaysOfWeek, toISODateString, parseISODate } from '../utils/timeUtils';
 
 export default function WeekView({
   currentDate,
@@ -10,12 +10,12 @@ export default function WeekView({
   onOpenGenerateModal,
   onQuickGenerateWeek,
   onOpenEditModal,
-  setActiveTab
+  setActiveTab,
+  isAdmin = true,
+  currentUserEmployeeId = null
 }) {
   const baseDate = parseISODate(currentDate);
   const workdays = getWorkDaysOfWeek(baseDate);
-
-  const empMap = Object.fromEntries(employees.map((e) => [e.id, e]));
 
   // Navegar semana
   const handlePrevWeek = () => {
@@ -87,26 +87,37 @@ export default function WeekView({
             <span>Próxima Semana</span>
             <ChevronRight size={16} />
           </button>
-          <button
-            type="button"
-            className="btn-primary"
-            style={{ borderRadius: '9999px' }}
-            onClick={onQuickGenerateWeek || onOpenGenerateModal}
-            title="Gera automaticamente a escala da semana inteira alternando turnos"
-          >
-            <Sparkles size={16} />
-            <span>Gerar Escala da Semana</span>
-          </button>
-          {onOpenGenerateModal && (
-            <button
-              type="button"
-              className="btn-secondary"
-              style={{ borderRadius: '9999px' }}
-              onClick={onOpenGenerateModal}
-              title="Opções do gerador"
-            >
-              <span className="text-xs">Opções</span>
-            </button>
+
+          {/* Geração de escala da semana inteira exclusiva para Administradores */}
+          {isAdmin ? (
+            <>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ borderRadius: '9999px' }}
+                onClick={onQuickGenerateWeek || onOpenGenerateModal}
+                title="Gera automaticamente a escala da semana inteira alternando turnos (Admin)"
+              >
+                <Sparkles size={16} />
+                <span>Gerar Escala da Semana</span>
+              </button>
+              {onOpenGenerateModal && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ borderRadius: '9999px' }}
+                  onClick={onOpenGenerateModal}
+                  title="Opções do gerador"
+                >
+                  <span className="text-xs">Opções</span>
+                </button>
+              )}
+            </>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg-subtle)', padding: '6px 14px', borderRadius: '9999px', border: '1px solid var(--border-subtle)' }}>
+              <Lock size={13} />
+              <span>Geração em lote exclusiva para administradores</span>
+            </div>
           )}
         </div>
       </div>
@@ -153,7 +164,9 @@ export default function WeekView({
         <div className="matrix-card-header">
           <h3 className="matrix-title">Grade Completa da Semana</h3>
           <span className="text-xs text-slate-500">
-            Clique em qualquer horário para editar ou no cabeçalho do dia para abrir o dashboard
+            {isAdmin 
+              ? 'Clique em qualquer horário para editar ou no cabeçalho do dia para abrir o dashboard' 
+              : 'Você pode editar sua própria escala em qualquer dia da semana (passada, presente ou futura)'}
           </span>
         </div>
 
@@ -180,74 +193,86 @@ export default function WeekView({
               </tr>
             </thead>
             <tbody>
-              {employees.map((emp) => (
-                <tr key={emp.id} className={!emp.active ? 'tr-inactive' : ''}>
-                  <td className="td-employee">
-                    <div className="matrix-emp-info">
-                      <div
-                        className="matrix-avatar"
-                        style={{
-                          backgroundColor: emp.color || '#381267',
-                          width: '32px',
-                          height: '32px',
-                          minWidth: '32px',
-                          minHeight: '32px',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#ffffff',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          flexShrink: 0
-                        }}
-                      >
-                        {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div className="matrix-emp-text">
-                        <span className="matrix-emp-name">{emp.name}</span>
-                        {!emp.active && <span className="matrix-inactive-tag">Inativo</span>}
-                      </div>
-                    </div>
-                  </td>
+              {employees.map((emp) => {
+                const isOwnEmployee = emp.id === currentUserEmployeeId;
+                const canManageThisEmp = isAdmin || isOwnEmployee;
 
-                  {workdays.map((day) => {
-                    const daySlots = allSchedules[day.date] || [];
-                    const slot = daySlots.find((s) => s.employeeId === emp.id);
+                return (
+                  <tr key={emp.id} className={!emp.active ? 'tr-inactive' : ''}>
+                    <td className="td-employee">
+                      <div className="matrix-emp-info">
+                        <div
+                          className="matrix-avatar"
+                          style={{
+                            backgroundColor: emp.color || '#381267',
+                            width: '32px',
+                            height: '32px',
+                            minWidth: '32px',
+                            minHeight: '32px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#ffffff',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            flexShrink: 0
+                          }}
+                        >
+                          {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="matrix-emp-text">
+                          <span className="matrix-emp-name">
+                            {emp.name} {isOwnEmployee ? ' (Você)' : ''}
+                          </span>
+                          {!emp.active && <span className="matrix-inactive-tag">Inativo</span>}
+                        </div>
+                      </div>
+                    </td>
 
-                    return (
-                      <td
-                        key={day.date}
-                        className={`td-slot-cell ${day.date === currentDate ? 'current-selected-col' : ''}`}
-                      >
-                        {slot ? (
-                          <div
-                            className="week-slot-pill"
-                            style={{ borderLeftColor: emp.color || '#3b82f6' }}
-                            onClick={() => onOpenEditModal(slot, emp, day.date)}
-                            title="Clique para editar"
-                          >
-                            <Clock size={12} className="text-slate-400" />
-                            <span className="slot-hours">
-                              {slot.startTime} — {slot.endTime}
-                            </span>
-                          </div>
-                        ) : emp.active ? (
-                          <button
-                            className="btn-matrix-add"
-                            onClick={() => onOpenEditModal(null, emp, day.date)}
-                            title="Definir horário para este dia"
-                          >
-                            <Plus size={13} />
-                          </button>
-                        ) : (
-                          <span className="matrix-dash">—</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+                    {workdays.map((day) => {
+                      const rawSlots = allSchedules[day.date];
+                      const daySlots = Array.isArray(rawSlots) ? rawSlots : (rawSlots && typeof rawSlots === 'object' ? Object.values(rawSlots) : []);
+                      const slot = daySlots.find((s) => s.employeeId === emp.id);
+
+                      return (
+                        <td
+                          key={day.date}
+                          className={`td-slot-cell ${day.date === currentDate ? 'current-selected-col' : ''}`}
+                        >
+                          {slot ? (
+                            <div
+                              className="week-slot-pill"
+                              style={{
+                                borderLeftColor: emp.color || '#3b82f6',
+                                cursor: canManageThisEmp ? 'pointer' : 'default',
+                                opacity: canManageThisEmp ? 1 : 0.85
+                              }}
+                              onClick={() => onOpenEditModal(slot, emp, day.date)}
+                              title={canManageThisEmp ? "Clique para editar seu horário" : `Escala de ${emp.name} (Somente leitura)`}
+                            >
+                              <Clock size={12} className="text-slate-400" />
+                              <span className="slot-hours">
+                                {slot.startTime} — {slot.endTime}
+                              </span>
+                            </div>
+                          ) : emp.active && canManageThisEmp ? (
+                            <button
+                              className="btn-matrix-add"
+                              onClick={() => onOpenEditModal(null, emp, day.date)}
+                              title={isOwnEmployee ? "Definir seu horário para este dia" : "Definir horário (Admin)"}
+                            >
+                              <Plus size={13} />
+                            </button>
+                          ) : (
+                            <span className="matrix-dash">—</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

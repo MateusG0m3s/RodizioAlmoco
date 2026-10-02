@@ -1,5 +1,5 @@
-import React from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Sparkles, Plus, Headset } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, ChevronLeft, ChevronRight, Sparkles, Info } from 'lucide-react';
 import LiveSummaryCards from './LiveSummaryCards';
 import TimelineView from './TimelineView';
 import { formatDateBR, toISODateString, parseISODate } from '../utils/timeUtils';
@@ -12,7 +12,7 @@ export default function DashboardView({
   settings,
   currentTimeMinutes,
   conflictSlotIds,
-  hasConflicts,
+  _hasConflicts,
   coverage,
   balanceStatus,
   balanceScore,
@@ -20,7 +20,9 @@ export default function DashboardView({
   onQuickGenerateToday,
   onOpenEditModal,
   onAddSlotForEmployee,
-  onUpdateSlotTimes
+  onUpdateSlotTimes,
+  isAdmin = true,
+  currentUserEmployeeId = null
 }) {
   const dateObj = parseISODate(currentDate);
   const formattedDate = formatDateBR(dateObj);
@@ -45,11 +47,8 @@ export default function DashboardView({
     setCurrentDate(toISODateString(new Date()));
   };
 
-  const handleExportCSV = () => {
-    storageService.exportDayToCSV(currentDate, employees, daySlots);
-  };
-
-  const isToday = currentDate === toISODateString(new Date());
+  const [todayStr] = useState(() => toISODateString(new Date()));
+  const isToday = currentDate === todayStr;
 
   return (
     <div className="dashboard-container animate-fade-in">
@@ -90,31 +89,39 @@ export default function DashboardView({
           </div>
         </div>
 
-        {/* Ações Primárias */}
+        {/* Ações Primárias (Geração em massa exclusiva para Administradores) */}
         <div className="dashboard-action-buttons">
-          {/* Botão em estilo pílula scadahub - Gera o rodízio imediatamente com alternância */}
-          <button
-            type="button"
-            className="btn-primary btn-generate-hero"
-            style={{ borderRadius: '9999px' }}
-            onClick={onQuickGenerateToday || onOpenGenerateModal}
-            title="Gera e alterna imediatamente os turnos de hoje, garantindo atendimento contínuo"
-          >
-            <Sparkles size={16} />
-            <span>Gerar Rodízio</span>
-          </button>
+          {isAdmin ? (
+            <>
+              <button
+                type="button"
+                className="btn-primary btn-generate-hero"
+                style={{ borderRadius: '9999px' }}
+                onClick={onQuickGenerateToday || onOpenGenerateModal}
+                title="Gera e alterna imediatamente os turnos de hoje, garantindo atendimento contínuo (Admin)"
+              >
+                <Sparkles size={16} />
+                <span>Gerar Rodízio</span>
+              </button>
 
-          {onOpenGenerateModal && (
-            <button
-              type="button"
-              className="btn-secondary"
-              style={{ borderRadius: '9999px' }}
-              onClick={onOpenGenerateModal}
-              title="Opções avançadas de sorteio e geração para a semana toda"
-            >
-              <Calendar size={15} />
-              <span className="hidden-mobile">Opções / Semana</span>
-            </button>
+              {onOpenGenerateModal && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ borderRadius: '9999px' }}
+                  onClick={onOpenGenerateModal}
+                  title="Opções avançadas de sorteio e geração para a semana toda (Admin)"
+                >
+                  <Calendar size={15} />
+                  <span className="hidden-mobile">Opções / Semana</span>
+                </button>
+              )}
+            </>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg-subtle)', padding: '6px 14px', borderRadius: '9999px', border: '1px solid var(--border-subtle)' }}>
+              <Info size={14} className="text-cyan-bright" />
+              <span>Você pode editar e ajustar sua própria escala livremente</span>
+            </div>
           )}
         </div>
       </div>
@@ -130,7 +137,7 @@ export default function DashboardView({
         balanceScore={balanceScore}
       />
 
-      {/* Área da Escala (Timeline Fixa) */}
+      {/* Área da Escala (Timeline Fixa com RBAC) */}
       <div className="schedule-main-area">
         <TimelineView
           employees={employees}
@@ -142,6 +149,8 @@ export default function DashboardView({
           onEditSlot={onOpenEditModal}
           onAddSlotForEmployee={onAddSlotForEmployee}
           onUpdateSlotTimes={onUpdateSlotTimes}
+          isAdmin={isAdmin}
+          currentUserEmployeeId={currentUserEmployeeId}
         />
       </div>
     </div>

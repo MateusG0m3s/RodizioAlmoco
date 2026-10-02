@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Clock, Plus, Edit2, AlertCircle, Check, Briefcase, GripHorizontal, ShieldAlert, Headset, X, ArrowRight } from 'lucide-react';
+import { Clock, Plus, Edit2, AlertCircle, Check, GripHorizontal, Headset, X, ArrowRight, Lock } from 'lucide-react';
 import { timeToMinutes, minutesToTime, snapToInterval } from '../utils/timeUtils';
 
 export default function TimelineView({
@@ -11,24 +11,27 @@ export default function TimelineView({
   coverage,
   onEditSlot,
   onAddSlotForEmployee,
-  onUpdateSlotTimes
+  onUpdateSlotTimes,
+  isAdmin = true,
+  currentUserEmployeeId = null
 }) {
   const timelineRef = useRef(null);
   const [draggingSlot, setDraggingSlot] = useState(null);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragOriginalStartMin, setDragOriginalStartMin] = useState(0);
   const [dragPreviewStartMin, setDragPreviewStartMin] = useState(null);
   const [pendingMove, setPendingMove] = useState(null);
   const isDraggingRef = useRef(false);
   const dragDistanceRef = useRef(0);
 
-  const startHourMin = timeToMinutes(settings.startHour || '11:00'); // 660
-  const endHourMin = timeToMinutes(settings.endHour || '14:00');     // 840
+  const canEditSlot = (slot) => isAdmin || (slot && slot.employeeId === currentUserEmployeeId);
+  const canAddForEmp = (emp) => isAdmin || (emp && emp.id === currentUserEmployeeId);
+
+  const startHourMin = timeToMinutes(settings?.startHour || '11:00'); // 660
+  const endHourMin = timeToMinutes(settings?.endHour || '14:00');     // 840
   const totalTimelineMinutes = endHourMin - startHourMin;            // 180 min
 
   // Janela crítica de atendimento aos clientes (11:30 às 13:30)
-  const critStartMin = timeToMinutes(settings.criticalStart || '11:30');
-  const critEndMin = timeToMinutes(settings.criticalEnd || '13:30');
+  const critStartMin = timeToMinutes(settings?.criticalStart || '11:30');
+  const critEndMin = timeToMinutes(settings?.criticalEnd || '13:30');
   const critLeftPercent = Math.max(0, ((critStartMin - startHourMin) / totalTimelineMinutes) * 100);
   const critWidthPercent = Math.min(100, ((critEndMin - critStartMin) / totalTimelineMinutes) * 100);
 
@@ -56,13 +59,14 @@ export default function TimelineView({
   const currentTimePercent = Math.max(0, Math.min(100, ((currentTimeMinutes - startHourMin) / totalTimelineMinutes) * 100));
   const isCurrentTimeInRange = currentTimeMinutes >= startHourMin && currentTimeMinutes <= endHourMin;
 
-  // Iniciar Drag and Drop
+  // Iniciar Drag and Drop (Autorização por propriedade da escala)
   const handleDragStart = (e, slot) => {
+    if (!canEditSlot(slot)) {
+      return;
+    }
     e.stopPropagation();
     const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
     setDraggingSlot(slot);
-    setDragStartX(clientX);
-    setDragOriginalStartMin(timeToMinutes(slot.startTime));
     setDragPreviewStartMin(timeToMinutes(slot.startTime));
     dragDistanceRef.current = 0;
     isDraggingRef.current = false;
@@ -106,7 +110,6 @@ export default function TimelineView({
           const newEndTime = minutesToTime(finalStartMin + duration);
           const emp = employees.find((e) => e.id === slot.employeeId);
 
-          // Ao invés de salvar imediatamente, salva no estado pendente para exibir a caixa de confirmação!
           setPendingMove({
             slotId: slot.id,
             slot,
@@ -132,37 +135,51 @@ export default function TimelineView({
   };
 
   return (
-    <div className="timeline-card">
+    <div className="timeline-card animate-fade-in">
+      {/* Barra Superior da Timeline com Legenda e Janela Crítica */}
       <div className="timeline-header-bar">
         <div className="timeline-title-wrap">
-          <Headset size={18} className="text-scada-cyan" />
-          <h3 className="timeline-title">Timeline de Atendimento & Rodízio</h3>
+          <Headset size={18} color="var(--scada-purple-light)" />
+          <h3 className="timeline-title">Timeline de Atendimento &amp; Rodízio</h3>
           <span className="timeline-caption">
-            Janela Crítica: {settings.criticalStart || '11:30'}h às {settings.criticalEnd || '13:30'}h • Mínimo de {settings.minWorkingDuringCritical || 1} atendente{(settings.minWorkingDuringCritical || 1) > 1 ? 's' : ''} sempre trabalhando
+            Janela Crítica: {settings?.criticalStart || '11:30'}h às {settings?.criticalEnd || '13:30'}h • Mínimo de 1 atendente sempre trabalhando
           </span>
         </div>
         <div className="timeline-legend">
-          <span className="legend-item"><span className="legend-dot dot-critical-zone" /> Janela Crítica de Atendimento</span>
-          <span className="legend-item"><span className="legend-dot dot-work" /> Trabalhando</span>
-          <span className="legend-item"><span className="legend-dot dot-lunch" /> Almoço</span>
+          <div className="legend-item">
+            <span className="legend-dot dot-critical-zone"></span>
+            <span>Janela Crítica de Atendimento</span>
+          </div>
+          <div className="legend-item">
+            <span className="legend-dot dot-work"></span>
+            <span>Trabalhando</span>
+          </div>
+          <div className="legend-item">
+            <span className="legend-dot dot-lunch"></span>
+            <span>Almoço</span>
+          </div>
         </div>
       </div>
 
+      {/* Contêiner com Scroll da Linha do Tempo */}
       <div className="timeline-scroll-container">
         <div className="timeline-inner" ref={timelineRef}>
-          {/* Régua de Horários no Topo */}
+          {/* Régua de Horários Superior */}
           <div className="timeline-time-ruler">
             <div className="employee-column-header">
-              <span>Equipe SCADA</span>
+              <span>EQUIPE SCADA</span>
             </div>
             <div className="ruler-track">
-              {/* Destaque sombreado da Zona Crítica de Atendimento aos Clientes */}
+              {/* Faixa destacada da Janela Crítica */}
               <div
                 className="critical-zone-indicator"
-                style={{ left: `${critLeftPercent}%`, width: `${critWidthPercent}%` }}
-                title={`Janela Crítica de Atendimento aos Clientes (${settings.criticalStart || '11:30'} às ${settings.criticalEnd || '13:30'})`}
+                style={{
+                  left: `${critLeftPercent}%`,
+                  width: `${critWidthPercent}%`
+                }}
               />
 
+              {/* Marcadores de Horas */}
               {hourMarkers.map((marker) => (
                 <div
                   key={marker.minute}
@@ -176,25 +193,28 @@ export default function TimelineView({
             </div>
           </div>
 
-          {/* Linhas de cada Funcionário */}
+          {/* Área Principal de Linhas */}
           <div className="timeline-rows-container">
-            {/* Grade de fundo e zona crítica */}
+            {/* Grade de Fundo Vertical */}
             <div className="timeline-grid-overlay">
-              {/* Sombreamento suave na zona crítica de atendimento */}
-              <div
-                className="critical-zone-background"
-                style={{ left: `${critLeftPercent}%`, width: `${critWidthPercent}%` }}
-              />
-
-              {gridLines.map((grid) => (
+              {gridLines.map((line) => (
                 <div
-                  key={grid.minute}
-                  className={`grid-line ${grid.isHour ? 'grid-hour' : ''}`}
-                  style={{ left: `${grid.percent}%` }}
+                  key={line.minute}
+                  className={`grid-line ${line.isHour ? 'grid-hour' : ''}`}
+                  style={{ left: `${line.percent}%` }}
                 />
               ))}
 
-              {/* Indicador do Horário Atual (Linha Vermelha Viva) */}
+              {/* Destaque Vertical da Janela Crítica */}
+              <div
+                className="critical-zone-background"
+                style={{
+                  left: `${critLeftPercent}%`,
+                  width: `${critWidthPercent}%`
+                }}
+              />
+
+              {/* Agulha de Horário Atual */}
               {isCurrentTimeInRange && (
                 <div
                   className="current-time-marker"
@@ -214,6 +234,8 @@ export default function TimelineView({
               const isSlotInConflict = slot && conflictSlotIds.includes(slot.id);
               const isBeingDragged = draggingSlot && draggingSlot.id === slot?.id;
               const isPendingThisSlot = pendingMove && pendingMove.slotId === slot?.id;
+              const isEditable = canEditSlot(slot);
+              const canAdd = canAddForEmp(emp);
 
               let blockStartMin = slot ? timeToMinutes(slot.startTime) : 0;
               let blockEndMin = slot ? timeToMinutes(slot.endTime) : 0;
@@ -253,7 +275,9 @@ export default function TimelineView({
                     </div>
                     <div className="emp-text-details">
                       <div className="emp-name-row">
-                        <span className="emp-name" title={emp.name}>{emp.name}</span>
+                        <span className="emp-name" title={emp.name}>
+                          {emp.name} {emp.id === currentUserEmployeeId ? ' (Você)' : ''}
+                        </span>
                         {!emp.active && <span className="inactive-pill">Inativo</span>}
                       </div>
                       <span className="emp-role">
@@ -274,7 +298,6 @@ export default function TimelineView({
 
                   {/* Faixa da Linha do Tempo */}
                   <div className="employee-timeline-track">
-                    {/* Barra de Fundo: Trabalhando / Atendendo Clientes (Pura sem texto sobreposto) */}
                     <div className="working-background-bar" />
 
                     {/* Bloco de Almoço */}
@@ -284,7 +307,8 @@ export default function TimelineView({
                         style={{
                           left: `${leftPercent}%`,
                           width: `${widthPercent}%`,
-                          '--emp-accent': emp.color || '#381267'
+                          '--emp-accent': emp.color || '#381267',
+                          cursor: isEditable ? 'pointer' : 'default'
                         }}
                         onClick={(e) => {
                           if (isDraggingRef.current) {
@@ -293,16 +317,28 @@ export default function TimelineView({
                           }
                           onEditSlot(slot, emp);
                         }}
-                        title={isPendingThisSlot ? "Aguardando confirmação na barra inferior" : "Clique para editar ou arraste para reposicionar (passos de 5 min)"}
+                        title={
+                          !isEditable
+                            ? `Escala de ${emp.name} (Somente leitura)`
+                            : isPendingThisSlot
+                            ? "Aguardando confirmação na barra inferior"
+                            : "Clique para editar ou arraste para reposicionar (passos de 5 min)"
+                        }
                       >
-                        <div
-                          className="drag-handle"
-                          onMouseDown={(e) => handleDragStart(e, slot)}
-                          onTouchStart={(e) => handleDragStart(e, slot)}
-                          title="Segure e arraste para alterar o horário"
-                        >
-                          <GripHorizontal size={14} />
-                        </div>
+                        {isEditable ? (
+                          <div
+                            className="drag-handle"
+                            onMouseDown={(e) => handleDragStart(e, slot)}
+                            onTouchStart={(e) => handleDragStart(e, slot)}
+                            title="Segure e arraste para alterar seu horário"
+                          >
+                            <GripHorizontal size={14} />
+                          </div>
+                        ) : (
+                          <div style={{ padding: '0 6px', opacity: 0.6 }} title="Escala pertencente a outro colaborador">
+                            <Lock size={12} />
+                          </div>
+                        )}
 
                         <div className="slot-block-content">
                           <span className="slot-badge-label">
@@ -323,43 +359,47 @@ export default function TimelineView({
                           </div>
                         )}
 
-                        <button
-                          type="button"
-                          className="btn-quick-edit"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEditSlot(slot, emp);
-                          }}
-                          title="Editar horário"
-                        >
-                          <Edit2 size={12} />
-                        </button>
+                        {isEditable && (
+                          <button
+                            type="button"
+                            className="btn-quick-edit"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditSlot(slot, emp);
+                            }}
+                            title="Editar horário"
+                          >
+                            <Edit2 size={12} />
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="empty-slot-area" style={{ position: 'relative', zIndex: 10, paddingLeft: '16px' }}>
-                        <button
-                          type="button"
-                          className="btn-add-slot-row"
-                          style={{
-                            borderRadius: '9999px',
-                            background: 'var(--bg-card)',
-                            border: '1.5px dashed var(--scada-cyan)',
-                            color: 'var(--scada-cyan)',
-                            padding: '6px 16px',
-                            fontSize: '0.78rem',
-                            fontWeight: 600,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            cursor: 'pointer',
-                            boxShadow: 'var(--shadow-xs)'
-                          }}
-                          onClick={() => onAddSlotForEmployee(emp)}
-                          title="Definir horário de almoço para este colaborador"
-                        >
-                          <Plus size={13} />
-                          <span>Definir almoço</span>
-                        </button>
+                        {canAdd && (
+                          <button
+                            type="button"
+                            className="btn-add-slot-row"
+                            style={{
+                              borderRadius: '9999px',
+                              background: 'var(--bg-card)',
+                              border: '1.5px dashed var(--scada-cyan)',
+                              color: 'var(--scada-cyan)',
+                              padding: '6px 16px',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              cursor: 'pointer',
+                              boxShadow: 'var(--shadow-xs)'
+                            }}
+                            onClick={() => onAddSlotForEmployee(emp)}
+                            title="Definir horário de almoço para este colaborador"
+                          >
+                            <Plus size={13} />
+                            <span>Definir almoço</span>
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
