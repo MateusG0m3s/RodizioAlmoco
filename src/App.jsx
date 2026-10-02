@@ -278,6 +278,12 @@ export default function App() {
       return;
     }
 
+    const dur = slotData.duration || (timeToMinutes(slotData.endTime) - timeToMinutes(slotData.startTime));
+    if (dur < 30 || dur > 120) {
+      showToast('O intervalo de almoço deve ser de no mínimo 30 minutos e no máximo 2 horas.', 'Horário Inválido');
+      return;
+    }
+
     const dayList = ensureArray(allSchedules[targetDate]);
     const index = dayList.findIndex(
       (s) => s.id === slotData.id || s.employeeId === slotData.employeeId
@@ -334,6 +340,12 @@ export default function App() {
     const canUpdateThis = isAdmin || (targetSlot && targetSlot.employeeId === currentUserEmployeeId);
     if (!canUpdateThis) {
       showToast('Acesso negado: Você só pode reposicionar a sua própria escala.', 'Permissão Negada');
+      return;
+    }
+
+    const dur = timeToMinutes(newEndTime) - timeToMinutes(newStartTime);
+    if (dur < 30 || dur > 120) {
+      showToast('O intervalo de almoço deve ser de no mínimo 30 minutos e no máximo 2 horas.', 'Horário Inválido');
       return;
     }
 

@@ -18,9 +18,21 @@ export default function EditSlotModal({
   currentUserEmployeeId = null,
   theme
 }) {
+  // Limites Oficiais de Intervalo de Almoço (Mínimo: 30 minutos | Máximo: 2 horas / 120 minutos)
+  const MIN_LUNCH_MINUTES = 30;
+  const MAX_LUNCH_MINUTES = 120;
+  const DURATION_PRESETS = [30, 40, 45, 60, 120];
+
+  const getSafeDuration = (val) => {
+    const num = Number(val);
+    if (isNaN(num) || num < MIN_LUNCH_MINUTES) return MIN_LUNCH_MINUTES;
+    if (num > MAX_LUNCH_MINUTES) return MAX_LUNCH_MINUTES;
+    return num;
+  };
+
   const initialDuration = slot && slot.startTime && slot.endTime
-    ? Math.max(1, timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime))
-    : Number(slot?.duration || settings?.defaultDuration || 30);
+    ? getSafeDuration(timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime))
+    : getSafeDuration(slot?.duration || settings?.defaultDuration || 30);
 
   const [startTime, setStartTime] = useState(slot ? slot.startTime : '12:00');
   const [duration, setDuration] = useState(initialDuration);
@@ -33,13 +45,18 @@ export default function EditSlotModal({
   // Sincroniza estado quando modal abre ou o slot muda
   useEffect(() => {
     if (isOpen) {
-      const dur = slot && slot.startTime && slot.endTime
-        ? Math.max(1, timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime))
+      const rawDur = slot && slot.startTime && slot.endTime
+        ? timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime)
         : Number(slot?.duration || settings?.defaultDuration || 30);
+      const dur = getSafeDuration(rawDur);
       setDuration(dur);
       const start = slot ? slot.startTime : '12:00';
       setStartTime(start);
-      setEndTime(slot ? slot.endTime : addMinutesToTime(start, dur));
+      setEndTime(
+        slot && rawDur >= MIN_LUNCH_MINUTES && rawDur <= MAX_LUNCH_MINUTES
+          ? slot.endTime
+          : addMinutesToTime(start, dur)
+      );
     }
   }, [isOpen, slot, settings]);
 
@@ -102,26 +119,30 @@ export default function EditSlotModal({
   }, [isOpen, startTime, endTime, duration, daySlots, slot, employee, employees, settings]);
 
   const handleSelectDuration = (mins) => {
-    setDuration(mins);
+    const safeMins = Math.max(MIN_LUNCH_MINUTES, Math.min(MAX_LUNCH_MINUTES, mins));
+    setDuration(safeMins);
     if (startTime) {
-      setEndTime(addMinutesToTime(startTime, mins));
+      setEndTime(addMinutesToTime(startTime, safeMins));
     }
   };
 
   const handleStartTimeChange = (newStart) => {
     setStartTime(newStart);
     if (newStart && duration) {
-      setEndTime(addMinutesToTime(newStart, duration));
+      const validDuration = Math.max(MIN_LUNCH_MINUTES, Math.min(MAX_LUNCH_MINUTES, duration));
+      setEndTime(addMinutesToTime(newStart, validDuration));
     }
   };
 
   const handleEndTimeChange = (newEnd) => {
     setEndTime(newEnd);
     if (newEnd && startTime) {
-      const sMin = timeToMinutes(startTime);
-      const eMin = timeToMinutes(newEnd);
-      if (eMin > sMin) {
-        setDuration(eMin - sMin);
+      const startMinutes = timeToMinutes(startTime);
+      const endMinutes = timeToMinutes(newEnd);
+      if (endMinutes > startMinutes) {
+        setDuration(endMinutes - startMinutes);
+      } else {
+        setDuration(0);
       }
     }
   };
@@ -130,16 +151,35 @@ export default function EditSlotModal({
     const currentMin = timeToMinutes(startTime);
     const startLimit = timeToMinutes(settings?.startHour || '11:00');
     const endLimit = timeToMinutes(settings?.endHour || '14:00');
+    const validDuration = Math.max(MIN_LUNCH_MINUTES, Math.min(MAX_LUNCH_MINUTES, duration));
 
-    const newMin = Math.max(startLimit, Math.min(endLimit - duration, currentMin + deltaMinutes));
+    const newMin = Math.max(startLimit, Math.min(endLimit - validDuration, currentMin + deltaMinutes));
     const newStartStr = minutesToTime(newMin);
     setStartTime(newStartStr);
-    setEndTime(addMinutesToTime(newStartStr, duration));
+    setEndTime(addMinutesToTime(newStartStr, validDuration));
   };
 
   // Verificação de Propriedade da Escala (Regra Fundamental da Auditoria)
   const isOwner = employee?.id === currentUserEmployeeId;
   const isAllowedToEdit = isAdmin || isOwner;
+
+  // Validação Dinâmica do Intervalo de Almoço (Mínimo: 30 min | Máximo: 2 horas / 120 min)
+  const sMin = timeToMinutes(startTime);
+  const eMin = timeToMinutes(endTime);
+  const computedDuration = eMin > sMin ? eMin - sMin : 0;
+  const isTimeOrderInvalid = eMin <= sMin;
+  const isDurationTooShort = !isTimeOrderInvalid && computedDuration < MIN_LUNCH_MINUTES;
+  const isDurationTooLong = !isTimeOrderInvalid && computedDuration > MAX_LUNCH_MINUTES;
+  const isDurationInvalid = isTimeOrderInvalid || isDurationTooShort || isDurationTooLong;
+
+  let durationErrorMessage = null;
+  if (isTimeOrderInvalid) {
+    durationErrorMessage = 'O horário de término deve ser posterior ao horário de início!';
+  } else if (isDurationTooShort) {
+    durationErrorMessage = 'O intervalo de almoço deve ser de no mínimo 30 minutos.';
+  } else if (isDurationTooLong) {
+    durationErrorMessage = 'O intervalo de almoço deve ser de no máximo 2 horas (120 minutos).';
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -148,13 +188,19 @@ export default function EditSlotModal({
       return;
     }
 
-    const sMin = timeToMinutes(startTime);
-    const eMin = timeToMinutes(endTime);
     if (eMin <= sMin) {
       alert('O horário de término deve ser posterior ao horário de início!');
       return;
     }
     const finalDuration = eMin - sMin;
+    if (finalDuration < MIN_LUNCH_MINUTES) {
+      alert('O intervalo de almoço deve ser de no mínimo 30 minutos.');
+      return;
+    }
+    if (finalDuration > MAX_LUNCH_MINUTES) {
+      alert('O intervalo de almoço deve ser de no máximo 2 horas (120 minutos).');
+      return;
+    }
 
     onSave({
       id: slot ? slot.id : `slot-${date}-${employee.id}`,
@@ -310,8 +356,8 @@ export default function EditSlotModal({
               Duração do Almoço:
             </label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {[20, 30, 40, 45, 60].map((mins) => {
-                const isSelected = duration === mins;
+              {DURATION_PRESETS.map((mins) => {
+                const isSelected = computedDuration === mins || (duration === mins && !isDurationInvalid);
                 return (
                   <button
                     type="button"
@@ -437,13 +483,36 @@ export default function EditSlotModal({
             </div>
           </div>
 
-          {/* Linha da Duração */}
-          <div style={{ fontSize: '0.84rem', color: textSub, marginBottom: '16px' }}>
-            Duração: <strong style={{ color: isDark ? '#ffffff' : 'var(--text-main)' }}>{duration} min</strong> (Automático ou editável livremente)
+          {/* Linha da Duração com Validação (Mínimo: 30 min | Máximo: 2 horas) */}
+          <div style={{ fontSize: '0.84rem', color: isDurationInvalid ? '#f87171' : textSub, marginBottom: '16px' }}>
+            Duração: <strong style={{ color: isDurationInvalid ? '#f87171' : (isDark ? '#ffffff' : 'var(--text-main)') }}>{computedDuration} min</strong>{' '}
+            {isDurationInvalid ? (
+              <span style={{ color: '#f87171', fontWeight: 600 }}>
+                ({durationErrorMessage})
+              </span>
+            ) : (
+              '(Automático ou editável livremente)'
+            )}
           </div>
 
           {/* Mensagens de Alerta ou Sucesso */}
-          {conflictWarning ? (
+          {durationErrorMessage ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              padding: '12px 16px',
+              borderRadius: '14px',
+              fontSize: '0.82rem',
+              color: '#f87171',
+              marginBottom: '20px'
+            }}>
+              <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+              <span>{durationErrorMessage}</span>
+            </div>
+          ) : conflictWarning ? (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -545,16 +614,19 @@ export default function EditSlotModal({
               {isAllowedToEdit && (
                 <button
                   type="submit"
+                  disabled={isDurationInvalid}
                   style={{
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #0284c7 100%)',
-                    color: '#ffffff',
+                    background: isDurationInvalid
+                      ? (isDark ? 'rgba(124, 58, 237, 0.25)' : '#cbd5e1')
+                      : 'linear-gradient(135deg, #7c3aed 0%, #0284c7 100%)',
+                    color: isDurationInvalid ? (isDark ? '#64748b' : '#94a3b8') : '#ffffff',
                     border: 'none',
                     borderRadius: '9999px',
                     padding: '9px 24px',
                     fontSize: '0.84rem',
                     fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+                    cursor: isDurationInvalid ? 'not-allowed' : 'pointer',
+                    boxShadow: isDurationInvalid ? 'none' : '0 4px 14px rgba(124, 58, 237, 0.35)',
                     transition: 'all 0.15s ease'
                   }}
                 >

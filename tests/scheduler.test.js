@@ -223,3 +223,34 @@ test('10. Detecção de conflito em horários sobrepostos do mesmo colaborador',
   assert.equal(report.hasConflicts, true);
   assert.ok(report.conflictDetails.some((d) => d.type === 'SELF_OVERLAP'));
 });
+
+test('11. Validação de limites de duração de almoço (mínimo 30m e máximo 2 horas / 120m)', () => {
+  const MIN_LUNCH_MINUTES = 30;
+  const MAX_LUNCH_MINUTES = 120;
+
+  const validateLunchDuration = (startTime, endTime) => {
+    const [sH, sM] = startTime.split(':').map(Number);
+    const [eH, eM] = endTime.split(':').map(Number);
+    const duration = (eH * 60 + eM) - (sH * 60 + sM);
+    if (duration <= 0) return { valid: false, error: 'Horário de término deve ser posterior ao início' };
+    if (duration < MIN_LUNCH_MINUTES) return { valid: false, error: 'Mínimo de 30 minutos' };
+    if (duration > MAX_LUNCH_MINUTES) return { valid: false, error: 'Máximo de 2 horas (120 minutos)' };
+    return { valid: true, duration };
+  };
+
+  // Casos inválidos (menor que 30 min)
+  assert.equal(validateLunchDuration('12:00', '12:20').valid, false); // 20 min (antigo preset)
+  assert.equal(validateLunchDuration('12:00', '12:29').valid, false); // 29 min
+  assert.equal(validateLunchDuration('12:00', '12:00').valid, false); // 0 min
+
+  // Casos inválidos (maior que 120 min / 2 horas)
+  assert.equal(validateLunchDuration('11:00', '13:01').valid, false); // 121 min
+  assert.equal(validateLunchDuration('11:00', '14:00').valid, false); // 180 min (3 horas)
+
+  // Casos válidos (entre 30 min e 120 min)
+  assert.equal(validateLunchDuration('12:00', '12:30').valid, true); // 30 min (mínimo exato)
+  assert.equal(validateLunchDuration('12:00', '12:45').valid, true); // 45 min
+  assert.equal(validateLunchDuration('12:00', '13:00').valid, true); // 60 min (1 hora)
+  assert.equal(validateLunchDuration('11:30', '13:00').valid, true); // 90 min (1h30)
+  assert.equal(validateLunchDuration('11:00', '13:00').valid, true); // 120 min (máximo exato / 2 horas)
+});
