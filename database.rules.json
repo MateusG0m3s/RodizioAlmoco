@@ -4,7 +4,7 @@
     ".write": false,
 
     "scadahub_admins": {
-      ".read": "auth != null",
+      ".read": true,
       ".write": false,
       "$uid": {
         ".validate": "newData.isBoolean()"
@@ -12,45 +12,34 @@
     },
 
     "scadahub_users": {
-      ".read": "auth != null",
+      ".read": true,
       "$uid": {
-        ".write": "root.child('scadahub_admins').child(auth.uid).val() === true || (auth != null && auth.uid === $uid && ( (!data.exists() && newData.child('role').val() !== 'admin') || (data.exists() && newData.child('role').val() === data.child('role').val() && newData.child('employeeId').val() === data.child('employeeId').val()) ))",
-        ".validate": "newData.hasChildren(['uid', 'role', 'employeeId']) && newData.child('uid').val() === $uid"
+        ".write": "root.child('scadahub_admins').child(auth.uid).val() === true || auth != null",
+        ".validate": "newData.hasChildren(['uid', 'role', 'employeeId'])"
       }
     },
 
     "scadahub_employees": {
-      ".read": "auth != null",
-      ".write": "root.child('scadahub_admins').child(auth.uid).val() === true",
+      ".read": true,
+      ".write": true,
       "$empId": {
-        ".write": "root.child('scadahub_admins').child(auth.uid).val() === true || (auth != null && data.exists() && newData.exists() && root.child('scadahub_users').child(auth.uid).child('employeeId').val() === $empId && newData.child('id').val() === data.child('id').val() && newData.child('active').val() === data.child('active').val() && newData.child('role').val() === data.child('role').val())",
-        ".validate": "newData.hasChildren(['id', 'name']) && newData.child('id').val() === $empId"
+        ".validate": "newData.hasChildren(['id', 'name'])"
       }
     },
 
     "scadahub_schedules": {
-      ".read": "auth != null",
-      ".write": "root.child('scadahub_admins').child(auth.uid).val() === true",
-
-      "$date": {
-        ".write": "root.child('scadahub_admins').child(auth.uid).val() === true",
-
-        "$slotKey": {
-          ".write": "root.child('scadahub_admins').child(auth.uid).val() === true || (auth != null && ( (newData.exists() && newData.child('employeeId').val() === root.child('scadahub_users').child(auth.uid).child('employeeId').val() && (!data.exists() || data.child('employeeId').val() === root.child('scadahub_users').child(auth.uid).child('employeeId').val())) || (!newData.exists() && data.exists() && data.child('employeeId').val() === root.child('scadahub_users').child(auth.uid).child('employeeId').val()) ))",
-          ".validate": "!newData.exists() || (newData.hasChildren(['employeeId', 'startTime', 'endTime']) && newData.child('startTime').isString() && newData.child('endTime').isString() && newData.child('employeeId').isString())"
-        }
-      }
+      ".read": true,
+      ".write": true
     },
 
     "scadahub_settings": {
-      ".read": "auth != null",
-      ".write": "root.child('scadahub_admins').child(auth.uid).val() === true",
-      ".validate": "newData.hasChildren(['criticalStart', 'criticalEnd', 'minWorkingDuringCritical'])"
+      ".read": true,
+      ".write": true
     },
 
     "scadahub_history": {
-      ".read": "auth != null",
-      ".write": "root.child('scadahub_admins').child(auth.uid).val() === true"
+      ".read": true,
+      ".write": true
     }
   }
 }

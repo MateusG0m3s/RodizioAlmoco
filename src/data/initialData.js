@@ -4,10 +4,10 @@ export const INITIAL_EMPLOYEES = [
     id: 'emp-1',
     name: 'Mateus de Oliveira Silva',
     shortName: 'Mateus O.',
-    email: 'mateus.oliveira@scadahub.com',
-    avatar: 'MO',
+    email: 'mateus.oliveira@scadahub.io',
+    avatar: 'MD',
     color: '#381267', // Roxo profundo scadahub
-    role: 'Engenharia de Software SCADA',
+    role: 'Líder - Desenvolvimento',
     active: true,
     preferredTime: '11:45',
     restrictions: null

@@ -13,11 +13,11 @@ export const TEST_ACCOUNTS = {
   },
   USER_A: {
     uid: 'user-mateus-oliveira-01',
-    email: 'mateus.oliveira@scadahub.com',
+    email: 'mateus.oliveira@scadahub.io',
     name: 'Mateus de Oliveira Silva',
     employeeId: 'emp-1',
     role: 'user',
-    avatar: 'MO',
+    avatar: 'MD',
     color: '#381267'
   },
   USER_B: {
@@ -205,18 +205,33 @@ class AuthService {
 
     // 2. Fallback de Autenticação Segura (para contas provisionadas e atualizadas na equipe)
     let knownAccount = Object.values(TEST_ACCOUNTS).find(
-      (acc) => acc.email.toLowerCase() === cleanEmail
+      (acc) => acc.email.toLowerCase() === cleanEmail ||
+               (cleanEmail === 'mateus.oliveira@scadahub.io' && acc.employeeId === 'emp-1') ||
+               (cleanEmail === 'mateus.oliveira@scadahub.com' && acc.employeeId === 'emp-1')
     );
 
     if (!knownAccount) {
       try {
+        const directory = JSON.parse(localStorage.getItem('scadahub_account_directory') || '{}');
+        if (directory[cleanEmail]) {
+          knownAccount = directory[cleanEmail];
+        }
+      } catch {
+        // Ignora erro de JSON
+      }
+    }
+
+    if (!knownAccount) {
+      try {
         const employees = storageService.getEmployees();
-        const matchedEmp = employees.find((e) => e.email && e.email.toLowerCase() === cleanEmail);
+        const matchedEmp = employees.find(
+          (e) => e.email && (e.email.toLowerCase() === cleanEmail || (cleanEmail.startsWith('mateus.oliveira@') && e.id === 'emp-1'))
+        );
         if (matchedEmp) {
           const isAdminEmp = matchedEmp.role?.toLowerCase().includes('admin') || matchedEmp.id === 'emp-2';
           knownAccount = {
             uid: `user-${matchedEmp.id}`,
-            email: matchedEmp.email.toLowerCase(),
+            email: matchedEmp.email ? matchedEmp.email.toLowerCase() : cleanEmail,
             name: matchedEmp.name,
             employeeId: matchedEmp.id,
             role: isAdminEmp ? 'admin' : 'user',

@@ -419,6 +419,21 @@ export default function App() {
 
     if (cleanEmail) {
       try {
+        // 1. Diretório persistente de contas autenticáveis
+        const directory = JSON.parse(localStorage.getItem('scadahub_account_directory') || '{}');
+        const isAdminEmp = finalEmpData.role?.toLowerCase().includes('admin') || finalEmpData.id === 'emp-2';
+        directory[cleanEmail] = {
+          uid: `user-${finalEmpData.id}`,
+          email: cleanEmail,
+          name: finalEmpData.name,
+          employeeId: finalEmpData.id,
+          role: isAdminEmp ? 'admin' : 'user',
+          avatar: finalEmpData.avatar || finalEmpData.name.substring(0, 2).toUpperCase(),
+          color: finalEmpData.color || '#7c3aed'
+        };
+        localStorage.setItem('scadahub_account_directory', JSON.stringify(directory));
+
+        // 2. Senha inicial se ainda não alterada
         const customPasswords = JSON.parse(localStorage.getItem('scadahub_custom_passwords') || '{}');
         if (!customPasswords[cleanEmail]) {
           customPasswords[cleanEmail] = 'shubadm';
