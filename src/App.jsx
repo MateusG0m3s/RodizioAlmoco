@@ -420,10 +420,13 @@ export default function App() {
       return;
     }
 
+    const existingEmp = employees.find((e) => e.id === empData.id);
     const cleanEmail = (empData.email || '').trim().toLowerCase();
     const finalEmpData = {
       ...empData,
-      email: cleanEmail || empData.email || '',
+      email: isAdmin ? cleanEmail : (existingEmp?.email || cleanEmail || ''),
+      role: isAdmin ? empData.role : (existingEmp?.role || empData.role),
+      active: (isAdmin || isOwnEmployee) ? (empData.active !== false) : (existingEmp?.active !== false),
       initialPassword: 'shubadm'
     };
 

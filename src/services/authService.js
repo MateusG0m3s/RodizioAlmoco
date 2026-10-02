@@ -448,6 +448,12 @@ export function canUserEditEmployee(user, targetEmployeeId) {
   return user.employeeId === targetEmployeeId;
 }
 
+export function canUserEditEmployeeStatus(user, targetEmployeeId) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  return user.employeeId === targetEmployeeId;
+}
+
 export function canUserCreateEmployee(user) {
   return Boolean(user && user.role === 'admin');
 }

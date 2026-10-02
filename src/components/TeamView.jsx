@@ -31,6 +31,9 @@ export default function TeamView({
   const [formPreferredTime, setFormPreferredTime] = useState('');
   const [formRestrictions, setFormRestrictions] = useState('');
 
+  const isEditingOwnProfile = Boolean(editingEmp && editingEmp.id === currentUserEmployeeId);
+  const canEditStatus = Boolean(isAdmin || isEditingOwnProfile);
+
   const handleOpenAdd = () => {
     if (!isAdmin) {
       alert('Acesso negado: Somente administradores podem cadastrar novos funcionários.');
@@ -93,12 +96,12 @@ export default function TeamView({
       id: editingEmp ? editingEmp.id : `emp-${Date.now()}`,
       name: formName.trim(),
       shortName: formShortName.trim() || formName.trim().split(' ')[0],
-      email: formEmail.trim().toLowerCase(),
+      email: isAdmin ? formEmail.trim().toLowerCase() : (editingEmp?.email || formEmail).trim().toLowerCase(),
       avatar: initials,
       color: formColor,
       // Se não for admin, preserva o cargo original para evitar escalada de privilégio
       role: isAdmin ? formRole.trim() : (editingEmp?.role || formRole.trim()),
-      active: isAdmin ? formActive : (editingEmp?.active !== false),
+      active: canEditStatus ? formActive : (editingEmp?.active !== false),
       preferredTime: formPreferredTime || null,
       restrictions: formRestrictions.trim() || null
     };
@@ -282,7 +285,7 @@ export default function TeamView({
                 <Users size={19} className="text-primary-500" />
                 <div>
                   <h3 className="modal-title">
-                    {editingEmp ? (editingEmp.id === currentUserEmployeeId ? 'Editar Meus Dados' : 'Editar Funcionário') : 'Novo Funcionário'}
+                    {editingEmp ? (isEditingOwnProfile ? 'Editar Meus Dados' : 'Editar Funcionário') : 'Novo Funcionário'}
                   </h3>
                   <span className="modal-subtitle">Preencha os dados do colaborador</span>
                 </div>
@@ -373,18 +376,18 @@ export default function TeamView({
                 </div>
               </div>
 
-              {/* Status Ativo / Inativo (Somente Admin pode alterar) */}
+              {/* Status Ativo / Inativo (Admin ou o próprio colaborador ao editar seus dados) */}
               <div className="form-group">
                 <label className="form-label">
                   Status no Rodízio:
-                  {!isAdmin && <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '6px' }}>(Definido pela Gestão)</span>}
+                  {!canEditStatus && <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '6px' }}>(Definido pela Gestão)</span>}
                 </label>
-                <div className="switch-status-group" style={{ opacity: isAdmin ? 1 : 0.65 }}>
+                <div className="switch-status-group" style={{ opacity: canEditStatus ? 1 : 0.65 }}>
                   <label className="radio-label">
                     <input
                       type="radio"
                       name="status"
-                      disabled={!isAdmin}
+                      disabled={!canEditStatus}
                       checked={formActive}
                       onChange={() => setFormActive(true)}
                     />
@@ -394,7 +397,7 @@ export default function TeamView({
                     <input
                       type="radio"
                       name="status"
-                      disabled={!isAdmin}
+                      disabled={!canEditStatus}
                       checked={!formActive}
                       onChange={() => setFormActive(false)}
                     />

@@ -8,6 +8,7 @@ import {
   authService,
   canUserEditSlot,
   canUserEditEmployee,
+  canUserEditEmployeeStatus,
   canUserCreateEmployee,
   canUserDeleteEmployee,
   canUserAccessSettings,
@@ -147,6 +148,7 @@ test('SUÍTE DE SEGURANÇA 2: Testes de Autorização para Administrador (ADMIN)
   assert.equal(canUserCreateEmployee(admin), true, 'Admin pode criar funcionário (ex: USER_C)');
   assert.equal(canUserDeleteEmployee(admin), true, 'Admin pode excluir qualquer funcionário');
   assert.equal(canUserEditEmployee(admin, AUDIT_ACCOUNTS.USER_A.employeeId), true, 'Admin pode editar qualquer funcionário');
+  assert.equal(canUserEditEmployeeStatus(admin, AUDIT_ACCOUNTS.USER_A.employeeId), true, 'Admin pode alterar status de qualquer colaborador');
 
   // Configurações e Manutenção
   assert.equal(canUserAccessSettings(admin), true, 'Admin pode acessar aba Configurações');
@@ -195,7 +197,9 @@ test('SUÍTE DE SEGURANÇA 3: Testes de Autorização para Usuário Normal A (US
   assert.equal(canUserCreateEmployee(userA), false, 'USER_A NÃO pode criar funcionários');
   assert.equal(canUserDeleteEmployee(userA), false, 'USER_A NÃO pode excluir funcionários');
   assert.equal(canUserEditEmployee(userA, AUDIT_ACCOUNTS.USER_A.employeeId), true, 'USER_A pode editar seu próprio perfil');
+  assert.equal(canUserEditEmployeeStatus(userA, AUDIT_ACCOUNTS.USER_A.employeeId), true, 'USER_A pode alterar seu próprio status (ativo/inativo) na escala');
   assert.equal(canUserEditEmployee(userA, AUDIT_ACCOUNTS.USER_B.employeeId), false, 'USER_A NÃO pode editar perfil de USER_B');
+  assert.equal(canUserEditEmployeeStatus(userA, AUDIT_ACCOUNTS.USER_B.employeeId), false, 'USER_A NÃO pode alterar status de USER_B');
 
   // Configurações e Manutenção
   assert.equal(canUserAccessSettings(userA), false, 'USER_A NÃO pode acessar aba Configurações');
@@ -278,7 +282,9 @@ test('SUÍTE DE SEGURANÇA 4: Testes de Autorização Espelhados para Usuário N
   assert.equal(canUserCreateEmployee(userB), false, 'USER_B NÃO pode criar funcionários');
   assert.equal(canUserDeleteEmployee(userB), false, 'USER_B NÃO pode excluir funcionários');
   assert.equal(canUserEditEmployee(userB, AUDIT_ACCOUNTS.USER_B.employeeId), true, 'USER_B pode editar seu próprio perfil');
+  assert.equal(canUserEditEmployeeStatus(userB, AUDIT_ACCOUNTS.USER_B.employeeId), true, 'USER_B pode alterar seu próprio status (ativo/inativo) na escala');
   assert.equal(canUserEditEmployee(userB, AUDIT_ACCOUNTS.USER_A.employeeId), false, 'USER_B NÃO pode editar perfil de USER_A');
+  assert.equal(canUserEditEmployeeStatus(userB, AUDIT_ACCOUNTS.USER_A.employeeId), false, 'USER_B NÃO pode alterar status de USER_A');
 
   // Configurações
   assert.equal(canUserAccessSettings(userB), false, 'USER_B NÃO pode acessar configurações');
@@ -324,6 +330,7 @@ test('SUÍTE DE SEGURANÇA 5: Teste de Usuário Anônimo / Não Autenticado', ()
   assert.equal(canUserEditSlot(unauth, { employeeId: AUDIT_ACCOUNTS.USER_A.employeeId }), false, 'Não autenticado não edita slot');
   assert.equal(canUserCreateEmployee(unauth), false, 'Não autenticado não cria funcionário');
   assert.equal(canUserDeleteEmployee(unauth), false, 'Não autenticado não deleta funcionário');
+  assert.equal(canUserEditEmployeeStatus(unauth, AUDIT_ACCOUNTS.USER_A.employeeId), false, 'Não autenticado não altera status');
   assert.equal(canUserAccessSettings(unauth), false, 'Não autenticado não acessa settings');
 
   assert.equal(
