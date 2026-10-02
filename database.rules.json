@@ -2,7 +2,6 @@
   "rules": {
     ".read": false,
     ".write": false,
-
     "scadahub_admins": {
       ".read": true,
       ".write": false,
@@ -10,7 +9,6 @@
         ".validate": "newData.isBoolean()"
       }
     },
-
     "scadahub_users": {
       ".read": true,
       "$uid": {
@@ -18,7 +16,6 @@
         ".validate": "newData.hasChildren(['uid', 'role', 'employeeId'])"
       }
     },
-
     "scadahub_employees": {
       ".read": true,
       ".write": true,
@@ -26,17 +23,14 @@
         ".validate": "newData.hasChildren(['id', 'name'])"
       }
     },
-
     "scadahub_schedules": {
       ".read": true,
       ".write": true
     },
-
     "scadahub_settings": {
       ".read": true,
       ".write": true
     },
-
     "scadahub_history": {
       ".read": true,
       ".write": true

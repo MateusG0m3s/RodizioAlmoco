@@ -117,10 +117,8 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Assinatura em tempo real do Firebase (ativa SOMENTE com usuário autenticado)
+  // Assinatura em tempo real do Firebase (sempre ativa para sincronizar equipe, configurações e escalas mesmo na tela de login)
   useEffect(() => {
-    if (!currentUser) return;
-
     const unsubscribe = firebaseService.subscribe({
       onSchedules: (cloudSchedules) => {
         if (cloudSchedules && typeof cloudSchedules === 'object') {
@@ -154,7 +152,7 @@ export default function App() {
       if (unsubscribe) unsubscribe();
       setIsCloudConnected(false);
     };
-  }, [currentUser]);
+  }, []);
 
   const currentTimeMinutes = isSimulatingTime ? simulatedMinutes : systemTimeMinutes;
 

@@ -4,7 +4,7 @@ export const INITIAL_EMPLOYEES = [
     id: 'emp-1',
     name: 'Mateus de Oliveira Silva',
     shortName: 'Mateus O.',
-    email: 'mateus.oliveira@scadahub.io',
+    email: 'mateus.silva@scadahub.io',
     avatar: 'MD',
     color: '#381267', // Roxo profundo scadahub
     role: 'Líder - Desenvolvimento',
@@ -15,11 +15,11 @@ export const INITIAL_EMPLOYEES = [
   {
     id: 'emp-2',
     name: 'Mateus Augusto Santos Gomes',
-    shortName: 'Mateus A.',
-    email: 'mateusaugusto1441@gmail.com',
+    shortName: 'Mateus G.',
+    email: 'mateus.gomes@scadahub.io',
     avatar: 'MA',
     color: '#7c3aed', // Lilás scadahub
-    role: 'Administrador & Eng. de Software',
+    role: 'Administrador',
     active: true,
     preferredTime: '12:30',
     restrictions: null
@@ -28,11 +28,11 @@ export const INITIAL_EMPLOYEES = [
     id: 'emp-3',
     name: 'Monique Aparecida Hileshein',
     shortName: 'Monique',
-    email: 'monique@scadahub.com',
-    avatar: 'MH',
+    email: 'monique@scadahub.io',
+    avatar: 'MA',
     color: '#0284c7', // Azul Ciano Hub
-    role: 'Engenharia de Software SCADA',
-    active: true,
+    role: 'Dev Jr - Desenvolvimento',
+    active: false,
     preferredTime: '11:45',
     restrictions: null
   },
@@ -40,10 +40,10 @@ export const INITIAL_EMPLOYEES = [
     id: 'emp-4',
     name: 'Samara Ravoredo',
     shortName: 'Samara',
-    email: 'samara@scadahub.com',
+    email: 'samara.revoredo@scadahub.io',
     avatar: 'SR',
     color: '#6366f1', // Índigo moderno
-    role: 'Engenharia de Software SCADA',
+    role: 'Dev Pl - Desenvolvimento',
     active: true,
     preferredTime: '12:30',
     restrictions: null

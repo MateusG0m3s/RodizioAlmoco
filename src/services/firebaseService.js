@@ -289,6 +289,25 @@ class FirebaseService {
     }
   }
 
+  // Busca lista de colaboradores diretamente no Firebase Realtime Database
+  async getEmployees() {
+    if (!this.isInitialized || !this.db) {
+      this.init();
+    }
+    if (!this.db) return null;
+    try {
+      const snap = await get(ref(this.db, 'scadahub_employees'));
+      if (snap.exists()) {
+        const val = snap.val();
+        return Array.isArray(val) ? val : Object.values(val);
+      }
+      return null;
+    } catch (err) {
+      console.warn('Erro ao buscar funcionários do Firebase RTDB:', err);
+      return null;
+    }
+  }
+
   // Salva configurações operacionais (Exclusivo Admin)
   async pushSettings(settings) {
     if (!this.isInitialized || !this.db) return false;
