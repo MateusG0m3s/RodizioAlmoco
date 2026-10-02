@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Database, Wifi, WifiOff, UploadCloud, Sun, Moon } from 'lucide-react';
+import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Database, Wifi, WifiOff, UploadCloud, Sun, Moon, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { firebaseService } from '../services/firebaseService';
 
@@ -23,6 +23,7 @@ export default function SettingsView({
   const [firebaseStatusMsg, setFirebaseStatusMsg] = useState(null);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(isCloudConnected || firebaseService.isConnected);
   const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const [showAdvancedFirebase, setShowAdvancedFirebase] = useState(false);
 
   useEffect(() => {
     if (isCloudConnected !== undefined) {
@@ -84,6 +85,19 @@ export default function SettingsView({
       setTimeout(() => setFirebaseStatusMsg(null), 3000);
       onReloadData();
     }
+  };
+
+  const handleReconnectFirebase = () => {
+    const cfg = firebaseService.getActiveConfig();
+    const success = firebaseService.init(cfg);
+    setIsFirebaseConnected(success || firebaseService.isConnected);
+    if (success) {
+      setFirebaseStatusMsg({ success: true, message: 'Reconectado à nuvem com sucesso!' });
+      onReloadData();
+    } else {
+      setFirebaseStatusMsg({ success: false, message: 'Não foi possível reconectar à nuvem. Verifique a conexão ou as configurações avançadas.' });
+    }
+    setTimeout(() => setFirebaseStatusMsg(null), 4000);
   };
 
   return (
@@ -413,90 +427,86 @@ export default function SettingsView({
             <div>
               <h3 className="card-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Cloud size={18} className="text-scada-cyan" />
-                <span>Sincronização em Nuvem em Tempo Real (Firebase)</span>
+                <span>Sincronização em Nuvem (Tempo Real)</span>
               </h3>
               <span className="card-section-caption">
-                Permite que todos os colegas de trabalho vejam e editem a mesma escala em tempo real
+                Atualizações simultâneas e automáticas para todos os membros da equipe
               </span>
             </div>
 
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '5px 14px',
-                borderRadius: '9999px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                background: isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.15)' : '#fefce8'),
-                color: isFirebaseConnected ? (theme === 'dark' ? '#34d399' : '#059669') : (theme === 'dark' ? '#fbbf24' : '#b45309'),
-                border: `1.5px solid ${isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.3)' : '#fef08a')}`
-              }}
-            >
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isFirebaseConnected ? '#10b981' : '#f59e0b' }} />
-              <span>{isFirebaseConnected ? 'Conectado (Online)' : 'Desconectado (Offline)'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 14px',
+                  borderRadius: '9999px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  background: isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.15)' : '#fefce8'),
+                  color: isFirebaseConnected ? (theme === 'dark' ? '#34d399' : '#059669') : (theme === 'dark' ? '#fbbf24' : '#b45309'),
+                  border: `1.5px solid ${isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.3)' : '#fef08a')}`
+                }}
+              >
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isFirebaseConnected ? '#10b981' : '#f59e0b' }} />
+                <span>{isFirebaseConnected ? 'Conectado (Online)' : 'Desconectado (Offline)'}</span>
+              </div>
+
+              {!isFirebaseConnected && (
+                <button
+                  type="button"
+                  onClick={handleReconnectFirebase}
+                  className="btn-secondary"
+                  style={{ borderRadius: '9999px', padding: '4px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  title="Tentar reconectar à nuvem"
+                >
+                  <RefreshCw size={13} />
+                  <span>Reconectar</span>
+                </button>
+              )}
             </div>
           </div>
 
-          <form onSubmit={handleSaveFirebaseConfig} className="settings-form">
-            <div style={{ background: 'var(--bg-subtle)', padding: '16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-body)', lineHeight: 1.5 }}>
-                💡 <strong>Como funciona:</strong> Ao conectar o site com o Firebase Realtime Database (Google), qualquer pessoa que abrir o site verá as alterações feitas pelos colegas na hora, sem precisar de F5.
-              </div>
-
-              <div className="form-group-row">
-                <div className="form-group flex-1">
-                  <label className="form-label">Database URL (URL do Realtime Database):</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="https://seu-projeto-default-rtdb.firebaseio.com"
-                    value={firebaseConfigForm.databaseURL || ''}
-                    onChange={(e) => setFirebaseConfigForm({ ...firebaseConfigForm, databaseURL: e.target.value })}
-                  />
-                </div>
-                <div className="form-group flex-1">
-                  <label className="form-label">Project ID:</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="meu-rodizio-123"
-                    value={firebaseConfigForm.projectId || ''}
-                    onChange={(e) => setFirebaseConfigForm({ ...firebaseConfigForm, projectId: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Web API Key:</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="AIzaSy..."
-                  value={firebaseConfigForm.apiKey || ''}
-                  onChange={(e) => setFirebaseConfigForm({ ...firebaseConfigForm, apiKey: e.target.value })}
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  style={{ borderRadius: '9999px' }}
+          <div style={{ background: 'var(--bg-subtle)', padding: '18px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '50%',
+                    background: isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.15)' : '#fefce8'),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
                 >
-                  <Cloud size={16} />
-                  <span>Salvar & Conectar Firebase</span>
-                </button>
+                  <Wifi size={20} color={isFirebaseConnected ? '#10b981' : '#f59e0b'} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-main)', marginBottom: '2px' }}>
+                    {isFirebaseConnected ? 'Sistema operando 100% online em nuvem' : 'Sistema desconectado da nuvem'}
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                    {isFirebaseConnected
+                      ? 'Todas as alterações de horários, regras e equipe são sincronizadas automaticamente em tempo real para todos os colegas.'
+                      : 'O sistema está em modo local. Clique no botão Reconectar para voltar a sincronizar com a equipe.'}
+                  </div>
+                </div>
+              </div>
 
-                {firebaseConfigForm.apiKey && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                {!isFirebaseConnected && (
                   <button
                     type="button"
-                    className="btn-secondary"
-                    style={{ borderRadius: '9999px' }}
-                    onClick={handleClearFirebaseConfig}
+                    onClick={handleReconnectFirebase}
+                    className="btn-primary"
+                    style={{ borderRadius: '9999px', fontSize: '0.82rem', padding: '6px 18px' }}
                   >
-                    <span>Desconectar / Voltar ao Modo Local</span>
+                    <RefreshCw size={14} />
+                    <span>Reconectar Agora</span>
                   </button>
                 )}
 
@@ -509,7 +519,9 @@ export default function SettingsView({
                       borderColor: '#7c3aed',
                       color: theme === 'dark' ? '#c4b5fd' : '#6b21a8',
                       background: theme === 'dark' ? 'rgba(124, 58, 237, 0.2)' : '#f5f3ff',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      fontSize: '0.82rem',
+                      padding: '6px 16px'
                     }}
                     onClick={async () => {
                       setIsSyncingCloud(true);
@@ -519,25 +531,112 @@ export default function SettingsView({
                     disabled={isSyncingCloud}
                     title="Envia a lista de funcionários, regras e escalas locais atuais para o Firebase"
                   >
-                    <UploadCloud size={16} color="#7c3aed" />
+                    <UploadCloud size={15} color="#7c3aed" />
                     <span>{isSyncingCloud ? 'Sincronizando...' : 'Subir Dados Locais para Nuvem'}</span>
                   </button>
                 )}
-
-                {firebaseStatusMsg && (
-                  <span
-                    style={{
-                      fontSize: '0.84rem',
-                      fontWeight: 600,
-                      color: firebaseStatusMsg.success ? '#15803d' : '#dc2626'
-                    }}
-                  >
-                    {firebaseStatusMsg.message}
-                  </span>
-                )}
               </div>
             </div>
-          </form>
+
+            {firebaseStatusMsg && (
+              <div
+                style={{
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  color: firebaseStatusMsg.success ? '#10b981' : '#ef4444',
+                  padding: '8px 12px',
+                  background: firebaseStatusMsg.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: `1px solid ${firebaseStatusMsg.success ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
+                }}
+              >
+                {firebaseStatusMsg.message}
+              </div>
+            )}
+
+            {/* Manutenção Técnica Avançada (Oculta por padrão para não expor dados aos usuários) */}
+            <div style={{ marginTop: '6px', paddingTop: '10px', borderTop: '1px dashed var(--border-color)' }}>
+              <button
+                type="button"
+                onClick={() => setShowAdvancedFirebase(!showAdvancedFirebase)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.78rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 0'
+                }}
+                title="Configurações avançadas apenas para manutenção técnica"
+              >
+                {showAdvancedFirebase ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                <span>Configurações Técnicas de Manutenção ({showAdvancedFirebase ? 'Ocultar' : 'Apenas se necessário'})</span>
+              </button>
+
+              {showAdvancedFirebase && (
+                <form onSubmit={handleSaveFirebaseConfig} className="settings-form" style={{ marginTop: '12px' }}>
+                  <div className="form-group-row">
+                    <div className="form-group flex-1">
+                      <label className="form-label">Database URL (URL do Realtime Database):</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="https://seu-projeto-default-rtdb.firebaseio.com"
+                        value={firebaseConfigForm.databaseURL || ''}
+                        onChange={(e) => setFirebaseConfigForm({ ...firebaseConfigForm, databaseURL: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group flex-1">
+                      <label className="form-label">Project ID:</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="meu-rodizio-123"
+                        value={firebaseConfigForm.projectId || ''}
+                        onChange={(e) => setFirebaseConfigForm({ ...firebaseConfigForm, projectId: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Web API Key:</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="AIzaSy..."
+                      value={firebaseConfigForm.apiKey || ''}
+                      onChange={(e) => setFirebaseConfigForm({ ...firebaseConfigForm, apiKey: e.target.value })}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      style={{ borderRadius: '9999px' }}
+                    >
+                      <Cloud size={16} />
+                      <span>Salvar & Conectar Firebase</span>
+                    </button>
+
+                    {firebaseConfigForm.apiKey && (
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ borderRadius: '9999px' }}
+                        onClick={handleClearFirebaseConfig}
+                      >
+                        <span>Desconectar / Voltar ao Modo Local</span>
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
