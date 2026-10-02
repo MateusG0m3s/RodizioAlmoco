@@ -29,6 +29,11 @@ export default function SettingsView({
   const [techPasswordError, setTechPasswordError] = useState('');
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
 
+  // Estados de confirmação por senha para restaurar dados padrão
+  const [showResetPasswordPrompt, setShowResetPasswordPrompt] = useState(false);
+  const [resetPasswordInput, setResetPasswordInput] = useState('');
+  const [resetPasswordError, setResetPasswordError] = useState('');
+
   useEffect(() => {
     if (isCloudConnected !== undefined) {
       setIsFirebaseConnected(isCloudConnected);
@@ -139,6 +144,30 @@ export default function SettingsView({
     setShowPasswordPrompt(false);
     setTechPasswordInput('');
     setTechPasswordError('');
+  };
+
+  const handleOpenResetPrompt = () => {
+    setShowResetPasswordPrompt(true);
+    setResetPasswordInput('');
+    setResetPasswordError('');
+  };
+
+  const handleCancelResetPrompt = () => {
+    setShowResetPasswordPrompt(false);
+    setResetPasswordInput('');
+    setResetPasswordError('');
+  };
+
+  const handleConfirmReset = (e) => {
+    if (e) e.preventDefault();
+    if (resetPasswordInput.trim() === 'useradminshub') {
+      setShowResetPasswordPrompt(false);
+      setResetPasswordInput('');
+      setResetPasswordError('');
+      onResetAllData();
+    } else {
+      setResetPasswordError('Senha incorreta! Digite a senha correta (useradminshub) para prosseguir.');
+    }
   };
 
   return (
@@ -438,26 +467,84 @@ export default function SettingsView({
 
             <div className="backup-separator" />
 
-            <div className="reset-data-area">
-              <div className="reset-text">
-                <strong className="text-rose-600">Restaurar Dados Iniciais</strong>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  Restaura os 4 funcionários da planilha com a escala de atendimento contínuo (11:30 às 13:30).
-                </p>
+            <div className="reset-data-area" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <div className="reset-text">
+                  <strong className="text-rose-600">Restaurar Dados Iniciais</strong>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Restaura os 4 funcionários da planilha com a escala de atendimento contínuo (11:30 às 13:30).
+                  </p>
+                </div>
+                {!showResetPasswordPrompt && (
+                  <button
+                    type="button"
+                    className="btn-danger-outline"
+                    style={{ borderRadius: '9999px' }}
+                    onClick={handleOpenResetPrompt}
+                  >
+                    <RotateCcw size={14} />
+                    <span>Restaurar Padrão</span>
+                  </button>
+                )}
               </div>
-              <button
-                type="button"
-                className="btn-danger-outline"
-                style={{ borderRadius: '9999px' }}
-                onClick={() => {
-                  if (window.confirm('Tem certeza? Isso restaurará a escala para os dados iniciais.')) {
-                    onResetAllData();
-                  }
-                }}
-              >
-                <RotateCcw size={14} />
-                <span>Restaurar Padrão</span>
-              </button>
+
+              {showResetPasswordPrompt && (
+                <form
+                  onSubmit={handleConfirmReset}
+                  className="animate-fade-in"
+                  style={{
+                    padding: '14px 16px',
+                    background: 'var(--bg-card)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    borderRadius: 'var(--radius-md)',
+                    marginTop: '4px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <Lock size={15} className="text-rose-500" />
+                    <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      Confirmação de Segurança Requerida
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '10px', lineHeight: 1.4 }}>
+                    Esta ação apagará as alterações atuais e restaurará a escala para os dados iniciais. Digite a senha de administrador (<strong style={{ color: 'var(--text-main)' }}>a mesma das configurações técnicas</strong>) para confirmar:
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <input
+                      type="password"
+                      className="form-input"
+                      style={{ flex: '1 1 200px', padding: '6px 12px', fontSize: '0.84rem', minWidth: '180px' }}
+                      placeholder="Digite a senha..."
+                      value={resetPasswordInput}
+                      onChange={(e) => {
+                        setResetPasswordInput(e.target.value);
+                        setResetPasswordError('');
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      className="btn-danger"
+                      style={{ borderRadius: '9999px', fontSize: '0.8rem', padding: '6px 16px', flexShrink: 0 }}
+                    >
+                      Confirmar Restauração
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ borderRadius: '9999px', fontSize: '0.8rem', padding: '6px 14px', flexShrink: 0 }}
+                      onClick={handleCancelResetPrompt}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                  {resetPasswordError && (
+                    <div style={{ marginTop: '8px', fontSize: '0.78rem', color: '#ef4444', fontWeight: 600 }}>
+                      ⚠️ {resetPasswordError}
+                    </div>
+                  )}
+                </form>
+              )}
             </div>
           </div>
         </div>
