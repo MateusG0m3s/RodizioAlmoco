@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, AlertTriangle, Check, Trash2, Wand2, Lock } from 'lucide-react';
+import { X, Clock, AlertTriangle, Check, Trash2, Wand2, Lock, Users } from 'lucide-react';
 import { timeToMinutes, minutesToTime, addMinutesToTime, snapToInterval } from '../utils/timeUtils';
 import { findNextAvailableSlot } from '../utils/scheduler';
 
@@ -125,24 +125,15 @@ export default function EditSlotModal({
     }
   };
 
-  const handleAdjustStart = (deltaMinutes) => {
+  const handleFineAdjust = (deltaMinutes) => {
     const currentMin = timeToMinutes(startTime);
     const startLimit = timeToMinutes(settings?.startHour || '11:00');
     const endLimit = timeToMinutes(settings?.endHour || '14:00');
-    const interval = Number(settings?.slotInterval) || 5;
 
     const newMin = Math.max(startLimit, Math.min(endLimit - duration, currentMin + deltaMinutes));
-    const newStartStr = minutesToTime(snapToInterval(newMin, interval));
+    const newStartStr = minutesToTime(newMin);
     setStartTime(newStartStr);
     setEndTime(addMinutesToTime(newStartStr, duration));
-  };
-
-  const handleSuggestSlot = () => {
-    const suggestion = findNextAvailableSlot(daySlots, duration, settings, slot?.id);
-    if (suggestion) {
-      setStartTime(suggestion.startTime);
-      setEndTime(suggestion.endTime);
-    }
   };
 
   // Verificação de Propriedade da Escala (Regra Fundamental da Auditoria)
@@ -176,29 +167,53 @@ export default function EditSlotModal({
     onClose();
   };
 
-  const currentInterval = Number(settings?.slotInterval) || 5;
-
   if (!isOpen) return null;
 
   return (
-    <div className="modal-backdrop animate-fade-in" onClick={onClose}>
-      <div className="modal-card animate-scale-up" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop animate-fade-in" onClick={onClose} style={{ zIndex: 10000 }}>
+      <div
+        className="animate-scale-up"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: '#0d071e',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: '24px',
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75)',
+          maxWidth: '500px',
+          width: '92%',
+          overflow: 'hidden',
+          color: '#ffffff'
+        }}
+      >
         {/* Cabeçalho do Modal */}
-        <div className="modal-header">
-          <div className="modal-title-wrap">
-            <Clock size={19} className="text-scada-cyan" />
-            <div>
-              <h3 className="modal-title">
-                {isAllowedToEdit ? (slot ? 'Editar Almoço' : 'Definir Almoço') : 'Visualizar Almoço (Somente Leitura)'}
-              </h3>
-              <span className="modal-subtitle">
-                {isAllowedToEdit 
-                  ? 'Horário automático por duração ou personalizado livremente' 
-                  : 'Escala pertencente a outro colaborador (bloqueada para edição)'}
-              </span>
+        <div style={{ padding: '22px 24px 18px 24px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ marginBottom: '8px' }}>
+              <Clock size={20} style={{ color: '#ffffff' }} />
             </div>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-display)', letterSpacing: '-0.01em' }}>
+              {isAllowedToEdit ? (slot ? 'Editar Almoço' : 'Definir Almoço') : 'Visualizar Almoço (Somente Leitura)'}
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#94a3b8', lineHeight: 1.4 }}>
+              {isAllowedToEdit 
+                ? 'Horário automático por duração ou personalizado livremente (ex: 11:33 às 12:07)' 
+                : 'Escala pertencente a outro colaborador (bloqueada para edição)'}
+            </p>
           </div>
-          <button type="button" className="btn-modal-close" onClick={onClose}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              color: '#94a3b8',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
             <X size={18} />
           </button>
         </div>
@@ -213,10 +228,10 @@ export default function EditSlotModal({
               padding: '10px 14px',
               background: 'rgba(239, 68, 68, 0.12)',
               border: '1px solid rgba(239, 68, 68, 0.35)',
-              borderRadius: '8px',
+              borderRadius: '12px',
               color: '#f87171',
               fontSize: '0.84rem',
-              margin: '12px 0'
+              margin: '0 24px 16px 24px'
             }}
           >
             <Lock size={16} style={{ flexShrink: 0 }} />
@@ -227,23 +242,30 @@ export default function EditSlotModal({
         )}
 
         {/* Corpo do Modal */}
-        <form onSubmit={handleSubmit} className="modal-form">
+        <form onSubmit={handleSubmit} style={{ padding: '0 24px 22px 24px' }}>
           {/* Card do Funcionário */}
-          <div className="modal-emp-badge" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-lg)', marginBottom: '16px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            padding: '12px 18px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '16px',
+            marginBottom: '18px'
+          }}>
             <div
-              className="emp-avatar-modal"
               style={{
                 backgroundColor: employee?.color || '#381267',
-                width: '44px',
-                height: '44px',
-                minWidth: '44px',
-                minHeight: '44px',
+                width: '46px',
+                height: '46px',
+                minWidth: '46px',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#ffffff',
-                fontSize: '1rem',
+                fontSize: '1.05rem',
                 fontWeight: 700,
                 flexShrink: 0
               }}
@@ -251,128 +273,271 @@ export default function EditSlotModal({
               {employee?.avatar || employee?.name?.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <span className="modal-emp-label" style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>Funcionário</span>
-              <h4 className="modal-emp-name" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--scada-purple-deep)', margin: 0 }}>
+              <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                FUNCIONÁRIO
+              </span>
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#c084fc', margin: '2px 0 0 0' }}>
                 {employee?.name} {isOwner ? ' (Você)' : ''}
               </h4>
             </div>
           </div>
 
           {/* Duração do Almoço */}
-          <div className="form-group">
-            <label className="form-label">Duração do Almoço:</label>
-            <div className="duration-buttons-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {[20, 30, 40, 45, 60].map((mins) => (
-                <button
-                  type="button"
-                  key={mins}
-                  disabled={!isAllowedToEdit}
-                  className={`btn-duration-pill ${duration === mins ? 'active' : ''}`}
-                  onClick={() => handleSelectDuration(mins)}
-                  style={{ opacity: isAllowedToEdit ? 1 : 0.6 }}
-                >
-                  {mins} min
-                </button>
-              ))}
+          <div style={{ marginBottom: '18px' }}>
+            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '8px' }}>
+              Duração do Almoço:
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {[20, 30, 40, 45, 60].map((mins) => {
+                const isSelected = duration === mins;
+                return (
+                  <button
+                    type="button"
+                    key={mins}
+                    disabled={!isAllowedToEdit}
+                    onClick={() => handleSelectDuration(mins)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 0',
+                      borderRadius: '9999px',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      cursor: isAllowedToEdit ? 'pointer' : 'default',
+                      border: isSelected ? '1.5px solid #8b5cf6' : '1px solid #381f5e',
+                      background: isSelected ? '#7c3aed' : '#180f2d',
+                      color: isSelected ? '#ffffff' : '#cbd5e1',
+                      boxShadow: isSelected ? '0 0 14px rgba(124, 58, 237, 0.45)' : 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {mins} min
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Horários Início e Término */}
-          <div className="time-inputs-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-            <div className="form-group">
-              <label className="form-label">Início do Almoço:</label>
+          {/* Início e Pílulas de Ajuste Fino */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+              Início:
+            </label>
+            <div style={{
+              position: 'relative',
+              background: '#0c071a',
+              border: '1.5px solid #2e1065',
+              borderRadius: '14px',
+              padding: '8px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
               <input
                 type="time"
-                className="input-time"
                 value={startTime}
                 disabled={!isAllowedToEdit}
-                step={currentInterval * 60}
                 onChange={(e) => handleStartTimeChange(e.target.value)}
                 required
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#ffffff',
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  width: '100%',
+                  fontFamily: 'inherit',
+                  cursor: isAllowedToEdit ? 'pointer' : 'default'
+                }}
               />
+              <Clock size={16} style={{ color: 'rgba(255, 255, 255, 0.25)', pointerEvents: 'none', flexShrink: 0 }} />
             </div>
-            <div className="form-group">
-              <label className="form-label">Término do Almoço:</label>
+
+            {/* Pílulas de ajuste fino [-2m] [-1m] [+1m] [+2m] */}
+            {isAllowedToEdit && (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                {[-2, -1, 1, 2].map((delta) => (
+                  <button
+                    type="button"
+                    key={delta}
+                    onClick={() => handleFineAdjust(delta)}
+                    style={{
+                      background: '#180f2d',
+                      border: '1px solid #381f5e',
+                      color: '#cbd5e1',
+                      borderRadius: '9999px',
+                      padding: '4px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {delta > 0 ? `+${delta}m` : `${delta}m`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Fim */}
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+              Fim:
+            </label>
+            <div style={{
+              position: 'relative',
+              background: '#0c071a',
+              border: '1.5px solid #2e1065',
+              borderRadius: '14px',
+              padding: '8px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
               <input
                 type="time"
-                className="input-time"
                 value={endTime}
                 disabled={!isAllowedToEdit}
-                step={currentInterval * 60}
                 onChange={(e) => handleEndTimeChange(e.target.value)}
                 required
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#ffffff',
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  width: '100%',
+                  fontFamily: 'inherit',
+                  cursor: isAllowedToEdit ? 'pointer' : 'default'
+                }}
               />
+              <Clock size={16} style={{ color: 'rgba(255, 255, 255, 0.25)', pointerEvents: 'none', flexShrink: 0 }} />
             </div>
           </div>
 
-          {/* Ajustes Rápidos */}
-          {isAllowedToEdit && (
-            <div className="quick-adjust-bar" style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="btn-quick-adjust"
-                onClick={() => handleAdjustStart(-currentInterval)}
-              >
-                -{currentInterval} min
-              </button>
-              <button
-                type="button"
-                className="btn-quick-adjust"
-                onClick={() => handleAdjustStart(currentInterval)}
-              >
-                +{currentInterval} min
-              </button>
-              <button
-                type="button"
-                className="btn-quick-adjust text-cyan"
-                onClick={handleSuggestSlot}
-                title="Buscar próximo horário livre que cubra o atendimento"
-              >
-                <Wand2 size={13} />
-                <span>Sugerir Horário Livre</span>
-              </button>
-            </div>
-          )}
+          {/* Linha da Duração */}
+          <div style={{ fontSize: '0.84rem', color: '#94a3b8', marginBottom: '16px' }}>
+            Duração: <strong style={{ color: '#ffffff' }}>{duration} min</strong> (Automático ou editável livremente)
+          </div>
 
           {/* Mensagens de Alerta ou Sucesso */}
           {conflictWarning ? (
-            <div className="conflict-warning-box" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.82rem', color: '#f87171' }}>
-              <AlertTriangle size={16} />
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              padding: '12px 16px',
+              borderRadius: '14px',
+              fontSize: '0.82rem',
+              color: '#f87171',
+              marginBottom: '20px'
+            }}>
+              <AlertTriangle size={18} style={{ flexShrink: 0 }} />
               <span>{conflictWarning}</span>
             </div>
-          ) : sharedShiftNames.length > 0 ? (
-            <div className="shared-shift-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--scada-purple-subtle)', border: '1px solid var(--border-color)', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-main)' }}>
-              <span>👥 Almoçando no mesmo turno com: <strong>{sharedShiftNames.join(', ')}</strong></span>
-            </div>
           ) : (
-            <div className="success-slot-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--working-bg)', border: '1px solid var(--working-border)', padding: '10px 14px', borderRadius: 'var(--radius-md)', fontSize: '0.82rem', color: 'var(--working-text)' }}>
-              <Check size={16} className="text-emerald-500" />
-              <span>Horário compatível e com atendimento ao cliente 100% garantido!</span>
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.07)',
+              padding: '12px 16px',
+              borderRadius: '14px',
+              fontSize: '0.82rem',
+              color: '#cbd5e1',
+              marginBottom: '20px'
+            }}>
+              <Users size={18} style={{ color: '#a855f7', marginTop: '2px', flexShrink: 0 }} />
+              <div style={{ lineHeight: 1.45 }}>
+                {sharedShiftNames.length > 0 ? (
+                  <>
+                    Almoçando no mesmo turno com: <strong style={{ color: '#ffffff' }}>{sharedShiftNames.join(', ')}</strong>.
+                    <br />
+                    Atendimento aos clientes garantido pelos colegas de plantão!
+                  </>
+                ) : (
+                  <>
+                    Atendimento aos clientes garantido pelos colegas de plantão!
+                  </>
+                )}
+              </div>
             </div>
           )}
 
           {/* Rodapé do Modal */}
-          <div className="modal-footer" style={{ marginTop: '20px' }}>
-            {slot && isAllowedToEdit && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: '16px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+          }}>
+            {slot && isAllowedToEdit ? (
               <button
                 type="button"
-                className="btn-danger-outline"
-                style={{ borderRadius: '9999px' }}
                 onClick={() => {
                   onDelete(slot.id);
                   onClose();
                 }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#ffffff',
+                  color: '#e11d48',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  padding: '9px 18px',
+                  fontSize: '0.84rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
               >
-                <Trash2 size={14} />
+                <Trash2 size={15} color="#e11d48" />
                 <span>Remover Horário</span>
               </button>
-            )}
-            <div className="modal-footer-right" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
-              <button type="button" className="btn-secondary" style={{ borderRadius: '9999px' }} onClick={onClose}>
-                {isAllowedToEdit ? 'Cancelar' : 'Fechar'}
+            ) : <div />}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={onClose}
+                style={{
+                  background: '#1c1136',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '9999px',
+                  padding: '9px 22px',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                Cancelar
               </button>
               {isAllowedToEdit && (
-                <button type="submit" className="btn-primary" style={{ borderRadius: '9999px' }}>
+                <button
+                  type="submit"
+                  style={{
+                    background: 'linear-gradient(135deg, #7c3aed 0%, #0284c7 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '9px 24px',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
                   Salvar Horário
                 </button>
               )}
