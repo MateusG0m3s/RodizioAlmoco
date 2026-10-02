@@ -58,10 +58,5 @@ export const INITIAL_SETTINGS = {
   soundAlerts: false
 };
 
-// Histórico de distribuição anterior para cálculo de equilíbrio
-export const INITIAL_HISTORY = {
-  'emp-1': { '11h-12h': 4, '12h-13h': 5, '13h-14h': 4 },
-  'emp-2': { '11h-12h': 5, '12h-13h': 4, '13h-14h': 4 },
-  'emp-3': { '11h-12h': 4, '12h-13h': 5, '13h-14h': 4 },
-  'emp-4': { '11h-12h': 4, '12h-13h': 4, '13h-14h': 5 }
-};
+// Histórico de distribuição anterior para cálculo de equilíbrio (inicia limpo para ler apenas dados reais)
+export const INITIAL_HISTORY = {};

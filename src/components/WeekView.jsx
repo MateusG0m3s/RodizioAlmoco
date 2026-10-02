@@ -34,12 +34,15 @@ export default function WeekView({
     setCurrentDate(toISODateString(new Date()));
   };
 
-  // Helper para verificar status do dia
+  // Helper para verificar status do dia considerando apenas colaboradores ativos válidos
   const getDayStatus = (dateStr) => {
-    const slots = allSchedules[dateStr] || [];
-    const activeCount = employees.filter((e) => e.active).length;
-    if (slots.length === 0) return { icon: '⚪', label: 'Vazio', class: 'day-empty' };
-    if (slots.length >= activeCount) return { icon: '🟢', label: 'Completo', class: 'day-complete' };
+    const rawSlots = allSchedules[dateStr];
+    const slots = Array.isArray(rawSlots) ? rawSlots : (rawSlots && typeof rawSlots === 'object' ? Object.values(rawSlots) : []);
+    const activeEmps = employees.filter((e) => e.active);
+    const validSlots = slots.filter((s) => s && activeEmps.some((e) => e.id === s.employeeId));
+
+    if (validSlots.length === 0) return { icon: '⚪', label: 'Vazio', class: 'day-empty' };
+    if (validSlots.length >= activeEmps.length) return { icon: '🟢', label: 'Completo', class: 'day-complete' };
     return { icon: '🟡', label: 'Parcial', class: 'day-partial' };
   };
 
@@ -113,7 +116,11 @@ export default function WeekView({
         {workdays.map((day) => {
           const isSelected = day.date === currentDate;
           const status = getDayStatus(day.date);
-          const slotsCount = (allSchedules[day.date] || []).length;
+          const rawSlots = allSchedules[day.date];
+          const slots = Array.isArray(rawSlots) ? rawSlots : (rawSlots && typeof rawSlots === 'object' ? Object.values(rawSlots) : []);
+          const activeEmps = employees.filter((e) => e.active);
+          const validSlots = slots.filter((s) => s && activeEmps.some((e) => e.id === s.employeeId));
+          const slotsCount = validSlots.length;
 
           return (
             <div

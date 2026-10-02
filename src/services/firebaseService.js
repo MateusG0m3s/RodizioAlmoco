@@ -155,7 +155,16 @@ class FirebaseService {
   async pushAllSchedules(allSchedules) {
     if (!this.isInitialized || !this.db) return false;
     try {
-      await set(ref(this.db, 'scadahub_schedules'), allSchedules);
+      const cleanMap = {};
+      if (allSchedules && typeof allSchedules === 'object') {
+        Object.keys(allSchedules).forEach((k) => {
+          const list = Array.isArray(allSchedules[k]) ? allSchedules[k] : [];
+          if (list.length > 0) {
+            cleanMap[k] = list;
+          }
+        });
+      }
+      await set(ref(this.db, 'scadahub_schedules'), Object.keys(cleanMap).length > 0 ? cleanMap : null);
       return true;
     } catch (err) {
       console.error('Erro ao enviar escalas para o Firebase:', err);
@@ -167,7 +176,8 @@ class FirebaseService {
   async pushDaySchedule(dateStr, slots) {
     if (!this.isInitialized || !this.db) return false;
     try {
-      await set(ref(this.db, `scadahub_schedules/${dateStr}`), slots);
+      const payload = Array.isArray(slots) && slots.length === 0 ? null : slots;
+      await set(ref(this.db, `scadahub_schedules/${dateStr}`), payload);
       return true;
     } catch (err) {
       console.error('Erro ao enviar escala do dia:', err);

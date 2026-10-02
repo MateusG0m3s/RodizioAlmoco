@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Database, Wifi, WifiOff, UploadCloud, Sun, Moon, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Database, Wifi, WifiOff, UploadCloud, Sun, Moon, ChevronDown, ChevronUp, RefreshCw, Lock, KeyRound } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { firebaseService } from '../services/firebaseService';
 
@@ -24,6 +24,10 @@ export default function SettingsView({
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(isCloudConnected || firebaseService.isConnected);
   const [isSyncingCloud, setIsSyncingCloud] = useState(false);
   const [showAdvancedFirebase, setShowAdvancedFirebase] = useState(false);
+  const [isTechAdminAuthenticated, setIsTechAdminAuthenticated] = useState(false);
+  const [techPasswordInput, setTechPasswordInput] = useState('');
+  const [techPasswordError, setTechPasswordError] = useState('');
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
 
   useEffect(() => {
     if (isCloudConnected !== undefined) {
@@ -98,6 +102,43 @@ export default function SettingsView({
       setFirebaseStatusMsg({ success: false, message: 'Não foi possível reconectar à nuvem. Verifique a conexão ou as configurações avançadas.' });
     }
     setTimeout(() => setFirebaseStatusMsg(null), 4000);
+  };
+
+  const handleToggleAdvanced = () => {
+    if (showAdvancedFirebase) {
+      setShowAdvancedFirebase(false);
+      setShowPasswordPrompt(false);
+      setTechPasswordError('');
+      return;
+    }
+    if (isTechAdminAuthenticated) {
+      setShowAdvancedFirebase(true);
+    } else {
+      setShowPasswordPrompt(true);
+      setTechPasswordError('');
+      setTechPasswordInput('');
+    }
+  };
+
+  const handleVerifyPassword = (e) => {
+    e.preventDefault();
+    if (techPasswordInput.trim() === 'useradminshub') {
+      setIsTechAdminAuthenticated(true);
+      setShowAdvancedFirebase(true);
+      setShowPasswordPrompt(false);
+      setTechPasswordError('');
+      setTechPasswordInput('');
+    } else {
+      setTechPasswordError('Senha incorreta! Digite a senha correta para prosseguir.');
+    }
+  };
+
+  const handleLockAdvanced = () => {
+    setIsTechAdminAuthenticated(false);
+    setShowAdvancedFirebase(false);
+    setShowPasswordPrompt(false);
+    setTechPasswordInput('');
+    setTechPasswordError('');
   };
 
   return (
@@ -554,30 +595,117 @@ export default function SettingsView({
               </div>
             )}
 
-            {/* Manutenção Técnica Avançada (Oculta por padrão para não expor dados aos usuários) */}
+            {/* Manutenção Técnica Avançada (Protegida por senha "useradminshub") */}
             <div style={{ marginTop: '6px', paddingTop: '10px', borderTop: '1px dashed var(--border-color)' }}>
-              <button
-                type="button"
-                onClick={() => setShowAdvancedFirebase(!showAdvancedFirebase)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 0'
-                }}
-                title="Configurações avançadas apenas para manutenção técnica"
-              >
-                {showAdvancedFirebase ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                <span>Configurações Técnicas de Manutenção ({showAdvancedFirebase ? 'Ocultar' : 'Apenas se necessário'})</span>
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={handleToggleAdvanced}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '4px 0'
+                  }}
+                  title="Configurações avançadas apenas para manutenção técnica"
+                >
+                  <Lock size={13} className="text-amber-400" />
+                  {showAdvancedFirebase ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  <span>Configurações Técnicas de Manutenção ({showAdvancedFirebase ? 'Ocultar' : 'Apenas para Administrador'})</span>
+                </button>
 
-              {showAdvancedFirebase && (
-                <form onSubmit={handleSaveFirebaseConfig} className="settings-form" style={{ marginTop: '12px' }}>
+                {isTechAdminAuthenticated && showAdvancedFirebase && (
+                  <button
+                    type="button"
+                    onClick={handleLockAdvanced}
+                    style={{
+                      background: 'none',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '9999px',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.72rem',
+                      padding: '2px 10px',
+                      cursor: 'pointer'
+                    }}
+                    title="Bloquear configurações técnicas novamente"
+                  >
+                    🔒 Bloquear Acesso
+                  </button>
+                )}
+              </div>
+
+              {/* Solicitação de Senha */}
+              {showPasswordPrompt && !isTechAdminAuthenticated && (
+                <form
+                  onSubmit={handleVerifyPassword}
+                  className="animate-fade-in"
+                  style={{
+                    marginTop: '12px',
+                    padding: '16px',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--scada-purple-light, #7c3aed)',
+                    borderRadius: 'var(--radius-md)',
+                    maxWidth: '460px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <KeyRound size={16} className="text-amber-400" />
+                    <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      Autenticação de Administrador
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '10px', lineHeight: 1.4 }}>
+                    Para alterar URL do banco, Project ID ou chaves de API, informe a senha de manutenção:
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      type="password"
+                      className="form-input"
+                      style={{ flex: 1, padding: '6px 12px', fontSize: '0.84rem' }}
+                      placeholder="Digite a senha..."
+                      value={techPasswordInput}
+                      onChange={(e) => {
+                        setTechPasswordInput(e.target.value);
+                        setTechPasswordError('');
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      style={{ borderRadius: '9999px', fontSize: '0.8rem', padding: '6px 16px', flexShrink: 0 }}
+                    >
+                      Acessar
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ borderRadius: '9999px', fontSize: '0.8rem', padding: '6px 12px', flexShrink: 0 }}
+                      onClick={() => {
+                        setShowPasswordPrompt(false);
+                        setTechPasswordError('');
+                        setTechPasswordInput('');
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                  {techPasswordError && (
+                    <div style={{ fontSize: '0.78rem', color: '#ef4444', fontWeight: 600, marginTop: '8px' }}>
+                      ⚠️ {techPasswordError}
+                    </div>
+                  )}
+                </form>
+              )}
+
+              {/* Formulário Técnico Desbloqueado */}
+              {isTechAdminAuthenticated && showAdvancedFirebase && (
+                <form onSubmit={handleSaveFirebaseConfig} className="settings-form animate-fade-in" style={{ marginTop: '12px' }}>
                   <div className="form-group-row">
                     <div className="form-group flex-1">
                       <label className="form-label">Database URL (URL do Realtime Database):</label>

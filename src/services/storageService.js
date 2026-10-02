@@ -119,9 +119,21 @@ export const storageService = {
   getHistory: () => {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.HISTORY);
-      return data ? JSON.parse(data) : INITIAL_HISTORY;
+      if (data) {
+        const parsed = JSON.parse(data);
+        // Se for o mock antigo (ex: contagens acumuladas artificiais de 13/14 turnos), limpa automaticamente
+        const hasLegacyMock = parsed && typeof parsed === 'object' && Object.values(parsed).some(
+          (v) => v && typeof v === 'object' && ((v['11h-12h'] || 0) + (v['12h-13h'] || 0) + (v['13h-14h'] || 0) >= 10)
+        );
+        if (hasLegacyMock) {
+          localStorage.removeItem(STORAGE_KEYS.HISTORY);
+          return {};
+        }
+        return parsed || {};
+      }
+      return {};
     } catch (e) {
-      return INITIAL_HISTORY;
+      return {};
     }
   },
 

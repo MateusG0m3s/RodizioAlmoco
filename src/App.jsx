@@ -237,6 +237,7 @@ export default function App() {
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
     firebaseService.pushDaySchedule(targetDate, updatedDayList);
+    firebaseService.pushAllSchedules(updatedAll);
   };
 
   const handleDeleteSlot = (slotId) => {
@@ -248,6 +249,7 @@ export default function App() {
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
     firebaseService.pushDaySchedule(targetDate, updatedDayList);
+    firebaseService.pushAllSchedules(updatedAll);
   };
 
   const handleUpdateSlotTimes = (slotId, newStartTime, newEndTime) => {
@@ -268,6 +270,7 @@ export default function App() {
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
     firebaseService.pushDaySchedule(currentDate, updatedDayList);
+    firebaseService.pushAllSchedules(updatedAll);
   };
 
   const handleApplyGeneratedSchedule = (dateStr, slots) => {
@@ -276,6 +279,7 @@ export default function App() {
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
     firebaseService.pushDaySchedule(dateStr, safeList);
+    firebaseService.pushAllSchedules(updatedAll);
   };
 
   const handleApplyWeekSchedule = (weekSchedulesMap) => {
@@ -308,6 +312,17 @@ export default function App() {
     setEmployees(updated);
     storageService.saveEmployees(updated);
     firebaseService.pushEmployees(updated);
+
+    // Remove slots órfãos do funcionário excluído de todos os dias
+    const cleanedSchedules = {};
+    Object.keys(allSchedules).forEach((dateKey) => {
+      cleanedSchedules[dateKey] = ensureArray(allSchedules[dateKey]).filter(
+        (s) => s.employeeId !== empId
+      );
+    });
+    setAllSchedules(cleanedSchedules);
+    storageService.saveAllSchedules(cleanedSchedules);
+    firebaseService.pushAllSchedules(cleanedSchedules);
   };
 
   const handleSaveSettings = (newSettings) => {
@@ -415,6 +430,14 @@ export default function App() {
             allSchedules={allSchedules}
             historyData={historyData}
             onOpenGenerateModal={() => setIsGenerateModalOpen(true)}
+            onResetHistory={() => {
+              storageService.saveHistory({});
+              setHistoryData({});
+              showToast(
+                'Histórico acumulado zerado com sucesso! Agora exibindo apenas dados das escalas salvas.',
+                'Histórico Zerado'
+              );
+            }}
           />
         )}
 

@@ -1,8 +1,8 @@
 import React from 'react';
-import { BarChart3, TrendingUp, Sparkles, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { BarChart3, TrendingUp, Sparkles, AlertCircle, CheckCircle, Info, RotateCcw } from 'lucide-react';
 import { calculateBalanceMetrics } from '../utils/scheduler';
 
-export default function HistoryView({ employees, allSchedules, historyData, onOpenGenerateModal }) {
+export default function HistoryView({ employees, allSchedules, historyData, onOpenGenerateModal, onResetHistory }) {
   const { employeeStats, balanceScore, balanceStatus, balanceBadgeClass, bands } =
     calculateBalanceMetrics(employees, allSchedules, historyData);
 
@@ -15,12 +15,29 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
           <div>
             <h2 className="history-main-title">Histórico & Análise de Equilíbrio</h2>
             <p className="history-sub-title">
-              Distribuição justa dos horários para evitar que a mesma pessoa fique sempre cedo ou tarde
+              Distribuição justa dos horários baseada nas escalas ativas salvas
             </p>
           </div>
         </div>
 
         <div className="history-actions-group" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          {onResetHistory && (
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ borderRadius: '9999px', fontSize: '0.82rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => {
+                if (window.confirm('Deseja zerar o histórico acumulado? As escalas atuais permanecerão salvas.')) {
+                  onResetHistory();
+                }
+              }}
+              title="Zera o histórico anterior acumulado, mantendo apenas as escalas atuais"
+            >
+              <RotateCcw size={14} />
+              <span>Zerar Histórico Acumulado</span>
+            </button>
+          )}
+
           {onOpenGenerateModal && (
             <button
               type="button"
