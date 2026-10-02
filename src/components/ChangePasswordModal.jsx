@@ -127,7 +127,7 @@ export default function ChangePasswordModal({ isOpen, onClose, initialEmail = ''
                 type={showPassword ? 'text' : 'password'}
                 required
                 className="login-input"
-                placeholder="Digite a sua senha atual"
+                placeholder="Digite a senha atual (padrão inicial: shubadm)"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
               />

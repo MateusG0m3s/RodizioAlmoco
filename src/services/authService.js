@@ -186,7 +186,7 @@ class AuthService {
       const employeeId = userRecord?.employeeId || (isAdmin ? 'emp-2' : null);
       const name = userRecord?.name || fbRes.user.displayName || fbRes.user.email.split('@')[0];
 
-      this.currentUser = {
+      const userToSet = {
         uid,
         email: fbRes.user.email,
         name,
@@ -194,9 +194,13 @@ class AuthService {
         employeeId,
         avatar: name.substring(0, 2).toUpperCase()
       };
-      this.authLoading = false;
-      this.notifySubscribers();
-      return { success: true, user: this.currentUser };
+      // Micro-atraso para permitir que o navegador processe a API de credenciais / salvar senha
+      setTimeout(() => {
+        this.currentUser = userToSet;
+        this.authLoading = false;
+        this.notifySubscribers();
+      }, 120);
+      return { success: true, user: userToSet };
     }
 
     // 2. Fallback de Autenticação Segura (para contas provisionadas e atualizadas na equipe)
@@ -228,10 +232,13 @@ class AuthService {
     if (knownAccount) {
       const storedPassword = this.getPasswordForEmail(cleanEmail);
       if (password === storedPassword) {
-        this.currentUser = { ...knownAccount };
-        this.authLoading = false;
-        this.notifySubscribers();
-        return { success: true, user: this.currentUser };
+        const userToSet = { ...knownAccount };
+        setTimeout(() => {
+          this.currentUser = userToSet;
+          this.authLoading = false;
+          this.notifySubscribers();
+        }, 120);
+        return { success: true, user: userToSet };
       }
       return { success: false, message: 'Senha incorreta. Verifique a senha digitada ou clique em "Alterar Senha".' };
     }
@@ -256,7 +263,7 @@ class AuthService {
   }
 
   /**
-   * Obtém a senha cadastrada para o e-mail (ou a padrão)
+   * Obtém a senha cadastrada para o e-mail (ou a padrão oficial 'shubadm')
    */
   getPasswordForEmail(email) {
     try {
@@ -267,8 +274,8 @@ class AuthService {
     } catch {
       // Ignora erro de JSON
     }
-    // Senha padrão oficial: Admin@123456 para o Administrador, scadahub@2026 para os demais
-    return email.toLowerCase() === 'mateusaugusto1441@gmail.com' ? 'Admin@123456' : 'scadahub@2026';
+    // Senha padrão oficial inicial do sistema: "shubadm"
+    return 'shubadm';
   }
 
   /**

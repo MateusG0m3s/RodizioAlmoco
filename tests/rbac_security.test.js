@@ -393,9 +393,9 @@ test('SUÍTE DE SEGURANÇA 7: Validação Estrita de Senha Atual e Gerenciamento
   assert.ok(wrongCurrentRes.message.includes('incorreta'), 'Mensagem deve alertar senha incorreta');
 
   // 3. Alteração com senha atual correta -> DEVE TER SUCESSO
-  const validRes = await authService.changePassword(adminEmail, 'Admin@123456', 'Admin@Novapwd1');
+  const validRes = await authService.changePassword(adminEmail, 'shubadm', 'Admin@Novapwd1');
   assert.equal(validRes.success, true, 'Alteração com senha correta deve ser aprovada');
 
   // 4. Restaurar senha para testes futuros
-  await authService.changePassword(adminEmail, 'Admin@Novapwd1', 'Admin@123456');
+  await authService.changePassword(adminEmail, 'Admin@Novapwd1', 'shubadm');
 });

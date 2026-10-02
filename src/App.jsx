@@ -410,18 +410,37 @@ export default function App() {
       return;
     }
 
+    const cleanEmail = (empData.email || '').trim().toLowerCase();
+    const finalEmpData = {
+      ...empData,
+      email: cleanEmail || empData.email || '',
+      initialPassword: 'shubadm'
+    };
+
+    if (cleanEmail) {
+      try {
+        const customPasswords = JSON.parse(localStorage.getItem('scadahub_custom_passwords') || '{}');
+        if (!customPasswords[cleanEmail]) {
+          customPasswords[cleanEmail] = 'shubadm';
+          localStorage.setItem('scadahub_custom_passwords', JSON.stringify(customPasswords));
+        }
+      } catch {
+        // Ignora erro de storage local
+      }
+    }
+
     const index = employees.findIndex((e) => e.id === empData.id);
     let updated;
     if (index >= 0) {
       updated = [...employees];
-      updated[index] = empData;
+      updated[index] = finalEmpData;
     } else {
-      updated = [...employees, empData];
+      updated = [...employees, finalEmpData];
     }
     setEmployees(updated);
     storageService.saveEmployees(updated);
 
-    firebaseService.pushEmployee(empData.id, empData);
+    firebaseService.pushEmployee(finalEmpData.id, finalEmpData);
     if (isAdmin) {
       firebaseService.pushEmployees(updated);
     }
@@ -670,6 +689,7 @@ export default function App() {
         onDelete={handleDeleteSlot}
         isAdmin={isAdmin}
         currentUserEmployeeId={currentUserEmployeeId}
+        theme={theme}
       />
 
       {/* Modal do Gerador scadahub (Exclusivo Administrador) */}

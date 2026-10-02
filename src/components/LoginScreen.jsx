@@ -31,6 +31,20 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
       const res = await onLogin(email.trim(), password);
       if (!res.success) {
         setErrorMessage(res.message || 'Falha ao autenticar. Verifique suas credenciais.');
+      } else {
+        // Dispara a API nativa do W3C / Chrome Credential Management para salvar senha
+        if (typeof window !== 'undefined' && window.PasswordCredential && navigator.credentials?.store) {
+          try {
+            const cred = new window.PasswordCredential({
+              id: email.trim(),
+              password: password,
+              name: email.trim()
+            });
+            await navigator.credentials.store(cred);
+          } catch {
+            // Silencia erros de permissão ou sandbox de navegador
+          }
+        }
       }
     } catch {
       setErrorMessage('Ocorreu um erro ao processar a autenticação. Tente novamente.');
@@ -83,17 +97,18 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
         )}
 
         {/* Formulário de Login Oficial */}
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" name="loginForm" method="post" action="#">
           <div className="login-input-group">
-            <label htmlFor="login-email" className="login-label">
+            <label htmlFor="username" className="login-label">
               E-mail
             </label>
             <div className="login-input-wrapper">
               <Mail size={18} className="login-field-icon" />
               <input
-                id="login-email"
+                id="username"
+                name="username"
                 type="email"
-                autoComplete="email"
+                autoComplete="username"
                 required
                 className="login-input"
                 placeholder="seu.email@scadahub.com"
@@ -105,13 +120,14 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
           </div>
 
           <div className="login-input-group">
-            <label htmlFor="login-password" className="login-label">
+            <label htmlFor="password" className="login-label">
               Senha
             </label>
             <div className="login-input-wrapper">
               <Lock size={18} className="login-field-icon" />
               <input
-                id="login-password"
+                id="password"
+                name="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
@@ -153,7 +169,7 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', fontSize: '0.8rem' }}>
             <span style={{ color: 'var(--text-muted)' }}>
-              Senha inicial: <code style={{ color: 'var(--primary-400)', fontWeight: 600 }}>Admin@123456</code>
+              Senha inicial: <code style={{ color: 'var(--primary-400)', fontWeight: 600 }}>shubadm</code>
             </span>
             <button
               type="button"

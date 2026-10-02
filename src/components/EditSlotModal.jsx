@@ -15,7 +15,8 @@ export default function EditSlotModal({
   onSave,
   onDelete,
   isAdmin = true,
-  currentUserEmployeeId = null
+  currentUserEmployeeId = null,
+  theme
 }) {
   const initialDuration = slot && slot.startTime && slot.endTime
     ? Math.max(1, timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime))
@@ -169,32 +170,53 @@ export default function EditSlotModal({
 
   if (!isOpen) return null;
 
+  const currentTheme = theme || (typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : null) || 'light';
+  const isDark = currentTheme === 'dark';
+  const modalBg = isDark ? '#0d071e' : '#ffffff';
+  const modalBorder = isDark ? 'rgba(255, 255, 255, 0.12)' : 'var(--border-color)';
+  const textTitle = isDark ? '#ffffff' : 'var(--scada-purple-deep)';
+  const textSub = isDark ? '#94a3b8' : 'var(--text-muted)';
+  const cardBg = isDark ? 'rgba(255, 255, 255, 0.03)' : 'var(--bg-subtle)';
+  const cardBorder = isDark ? 'rgba(255, 255, 255, 0.08)' : 'var(--border-color)';
+  const inputBg = isDark ? '#0c071a' : '#f8fafc';
+  const inputBorder = isDark ? '#2e1065' : 'var(--border-color)';
+  const inputColor = isDark ? '#ffffff' : 'var(--text-main)';
+  const pillInactiveBg = isDark ? '#180f2d' : '#f1f5f9';
+  const pillInactiveBorder = isDark ? '#381f5e' : 'var(--border-color)';
+  const pillInactiveColor = isDark ? '#cbd5e1' : 'var(--text-main)';
+  const cancelBg = isDark ? '#1c1136' : '#f1f5f9';
+  const cancelBorder = isDark ? 'rgba(255, 255, 255, 0.12)' : 'var(--border-color)';
+  const cancelColor = isDark ? '#ffffff' : 'var(--text-main)';
+  const footerBorder = isDark ? 'rgba(255, 255, 255, 0.08)' : 'var(--border-color)';
+  const deleteBtnBg = isDark ? '#ffffff' : '#fee2e2';
+
   return (
     <div className="modal-backdrop animate-fade-in" onClick={onClose} style={{ zIndex: 10000 }}>
       <div
         className="animate-scale-up"
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#0d071e',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          background: modalBg,
+          border: `1px solid ${modalBorder}`,
           borderRadius: '24px',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75)',
+          boxShadow: isDark ? '0 24px 60px rgba(0, 0, 0, 0.75)' : 'var(--shadow-xl)',
           maxWidth: '500px',
           width: '92%',
           overflow: 'hidden',
-          color: '#ffffff'
+          color: isDark ? '#ffffff' : 'var(--text-main)',
+          transition: 'background 0.2s ease, border-color 0.2s ease'
         }}
       >
         {/* Cabeçalho do Modal */}
         <div style={{ padding: '22px 24px 18px 24px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ marginBottom: '8px' }}>
-              <Clock size={20} style={{ color: '#ffffff' }} />
+              <Clock size={20} style={{ color: isDark ? '#ffffff' : 'var(--primary-600)' }} />
             </div>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-display)', letterSpacing: '-0.01em' }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: textTitle, fontFamily: 'var(--font-display)', letterSpacing: '-0.01em' }}>
               {isAllowedToEdit ? (slot ? 'Editar Almoço' : 'Definir Almoço') : 'Visualizar Almoço (Somente Leitura)'}
             </h3>
-            <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#94a3b8', lineHeight: 1.4 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: textSub, lineHeight: 1.4 }}>
               {isAllowedToEdit 
                 ? 'Horário automático por duração ou personalizado livremente (ex: 11:33 às 12:07)' 
                 : 'Escala pertencente a outro colaborador (bloqueada para edição)'}
@@ -204,7 +226,7 @@ export default function EditSlotModal({
             type="button"
             onClick={onClose}
             style={{
-              color: '#94a3b8',
+              color: textSub,
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -249,8 +271,8 @@ export default function EditSlotModal({
             alignItems: 'center',
             gap: '14px',
             padding: '12px 18px',
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: cardBg,
+            border: `1px solid ${cardBorder}`,
             borderRadius: '16px',
             marginBottom: '18px'
           }}>
@@ -273,10 +295,10 @@ export default function EditSlotModal({
               {employee?.avatar || employee?.name?.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 700, letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: textSub, fontWeight: 700, letterSpacing: '0.04em' }}>
                 FUNCIONÁRIO
               </span>
-              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#c084fc', margin: '2px 0 0 0' }}>
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: isDark ? '#c084fc' : 'var(--scada-purple-dark)', margin: '2px 0 0 0' }}>
                 {employee?.name} {isOwner ? ' (Você)' : ''}
               </h4>
             </div>
@@ -284,7 +306,7 @@ export default function EditSlotModal({
 
           {/* Duração do Almoço */}
           <div style={{ marginBottom: '18px' }}>
-            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: isDark ? '#cbd5e1' : 'var(--text-main)', marginBottom: '8px' }}>
               Duração do Almoço:
             </label>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -303,9 +325,9 @@ export default function EditSlotModal({
                       fontSize: '0.85rem',
                       fontWeight: 700,
                       cursor: isAllowedToEdit ? 'pointer' : 'default',
-                      border: isSelected ? '1.5px solid #8b5cf6' : '1px solid #381f5e',
-                      background: isSelected ? '#7c3aed' : '#180f2d',
-                      color: isSelected ? '#ffffff' : '#cbd5e1',
+                      border: isSelected ? '1.5px solid #8b5cf6' : `1px solid ${pillInactiveBorder}`,
+                      background: isSelected ? '#7c3aed' : pillInactiveBg,
+                      color: isSelected ? '#ffffff' : pillInactiveColor,
                       boxShadow: isSelected ? '0 0 14px rgba(124, 58, 237, 0.45)' : 'none',
                       transition: 'all 0.15s ease'
                     }}
@@ -319,13 +341,13 @@ export default function EditSlotModal({
 
           {/* Início e Pílulas de Ajuste Fino */}
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: isDark ? '#cbd5e1' : 'var(--text-main)', marginBottom: '6px' }}>
               Início:
             </label>
             <div style={{
               position: 'relative',
-              background: '#0c071a',
-              border: '1.5px solid #2e1065',
+              background: inputBg,
+              border: `1.5px solid ${inputBorder}`,
               borderRadius: '14px',
               padding: '8px 16px',
               display: 'flex',
@@ -342,7 +364,7 @@ export default function EditSlotModal({
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  color: '#ffffff',
+                  color: inputColor,
                   fontSize: '1.25rem',
                   fontWeight: 700,
                   width: '100%',
@@ -350,7 +372,6 @@ export default function EditSlotModal({
                   cursor: isAllowedToEdit ? 'pointer' : 'default'
                 }}
               />
-              <Clock size={16} style={{ color: 'rgba(255, 255, 255, 0.25)', pointerEvents: 'none', flexShrink: 0 }} />
             </div>
 
             {/* Pílulas de ajuste fino [-2m] [-1m] [+1m] [+2m] */}
@@ -362,9 +383,9 @@ export default function EditSlotModal({
                     key={delta}
                     onClick={() => handleFineAdjust(delta)}
                     style={{
-                      background: '#180f2d',
-                      border: '1px solid #381f5e',
-                      color: '#cbd5e1',
+                      background: pillInactiveBg,
+                      border: `1px solid ${pillInactiveBorder}`,
+                      color: pillInactiveColor,
                       borderRadius: '9999px',
                       padding: '4px 14px',
                       fontSize: '0.8rem',
@@ -382,13 +403,13 @@ export default function EditSlotModal({
 
           {/* Fim */}
           <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: isDark ? '#cbd5e1' : 'var(--text-main)', marginBottom: '6px' }}>
               Fim:
             </label>
             <div style={{
               position: 'relative',
-              background: '#0c071a',
-              border: '1.5px solid #2e1065',
+              background: inputBg,
+              border: `1.5px solid ${inputBorder}`,
               borderRadius: '14px',
               padding: '8px 16px',
               display: 'flex',
@@ -405,7 +426,7 @@ export default function EditSlotModal({
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  color: '#ffffff',
+                  color: inputColor,
                   fontSize: '1.25rem',
                   fontWeight: 700,
                   width: '100%',
@@ -413,13 +434,12 @@ export default function EditSlotModal({
                   cursor: isAllowedToEdit ? 'pointer' : 'default'
                 }}
               />
-              <Clock size={16} style={{ color: 'rgba(255, 255, 255, 0.25)', pointerEvents: 'none', flexShrink: 0 }} />
             </div>
           </div>
 
           {/* Linha da Duração */}
-          <div style={{ fontSize: '0.84rem', color: '#94a3b8', marginBottom: '16px' }}>
-            Duração: <strong style={{ color: '#ffffff' }}>{duration} min</strong> (Automático ou editável livremente)
+          <div style={{ fontSize: '0.84rem', color: textSub, marginBottom: '16px' }}>
+            Duração: <strong style={{ color: isDark ? '#ffffff' : 'var(--text-main)' }}>{duration} min</strong> (Automático ou editável livremente)
           </div>
 
           {/* Mensagens de Alerta ou Sucesso */}
@@ -444,19 +464,19 @@ export default function EditSlotModal({
               display: 'flex',
               alignItems: 'flex-start',
               gap: '12px',
-              background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.07)',
+              background: cardBg,
+              border: `1px solid ${cardBorder}`,
               padding: '12px 16px',
               borderRadius: '14px',
               fontSize: '0.82rem',
-              color: '#cbd5e1',
+              color: isDark ? '#cbd5e1' : 'var(--text-main)',
               marginBottom: '20px'
             }}>
               <Users size={18} style={{ color: '#a855f7', marginTop: '2px', flexShrink: 0 }} />
               <div style={{ lineHeight: 1.45 }}>
                 {sharedShiftNames.length > 0 ? (
                   <>
-                    Almoçando no mesmo turno com: <strong style={{ color: '#ffffff' }}>{sharedShiftNames.join(', ')}</strong>.
+                    Almoçando no mesmo turno com: <strong style={{ color: isDark ? '#ffffff' : 'var(--text-main)' }}>{sharedShiftNames.join(', ')}</strong>.
                     <br />
                     Atendimento aos clientes garantido pelos colegas de plantão!
                   </>
@@ -475,7 +495,7 @@ export default function EditSlotModal({
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingTop: '16px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+            borderTop: `1px solid ${footerBorder}`
           }}>
             {slot && isAllowedToEdit ? (
               <button
@@ -488,9 +508,9 @@ export default function EditSlotModal({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: '#ffffff',
+                  background: deleteBtnBg,
                   color: '#e11d48',
-                  border: 'none',
+                  border: isDark ? 'none' : '1px solid #fecdd3',
                   borderRadius: '9999px',
                   padding: '9px 18px',
                   fontSize: '0.84rem',
@@ -509,9 +529,9 @@ export default function EditSlotModal({
                 type="button"
                 onClick={onClose}
                 style={{
-                  background: '#1c1136',
-                  color: '#ffffff',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  background: cancelBg,
+                  color: cancelColor,
+                  border: `1px solid ${cancelBorder}`,
                   borderRadius: '9999px',
                   padding: '9px 22px',
                   fontSize: '0.84rem',
