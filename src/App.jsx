@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { Sparkles } from 'lucide-react';
 import Navbar from './components/Navbar';
@@ -44,7 +44,16 @@ export default function App() {
   const [isAuthLoading, setIsAuthLoading] = useState(() => authService.isLoading());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const isAdmin = Boolean(currentUser && currentUser.role === 'admin');
-  const currentUserEmployeeId = currentUser?.employeeId || null;
+  const currentUserEmployeeId = useMemo(() => {
+    if (currentUser?.employeeId) return currentUser.employeeId;
+    if (currentUser?.email && employees?.length > 0) {
+      const match = employees.find(
+        (e) => e.email && e.email.trim().toLowerCase() === currentUser.email.trim().toLowerCase()
+      );
+      if (match) return match.id;
+    }
+    return null;
+  }, [currentUser, employees]);
 
   const [toastNotification, setToastNotification] = useState(null);
 
@@ -176,41 +185,47 @@ export default function App() {
   const currentTimeMinutes = isSimulatingTime ? simulatedMinutes : systemTimeMinutes;
 
   // Disparo de notificação sonora pontual nos marcos de 10, 5 e 1 minuto antes do almoço
-  const firedSoundAlertsRef = useRef(new Set());
+  const lastActiveAlertKeyRef = useRef(null);
 
   useEffect(() => {
+    // Alarme sonoro restrito exclusivamente ao próprio colaborador autenticado
+    if (!currentUserEmployeeId) {
+      lastActiveAlertKeyRef.current = null;
+      return;
+    }
+
     const todayStr = toISODateString(new Date());
     const activeDate = currentDate || todayStr;
     const slots = ensureArray(allSchedules[activeDate]);
-    if (slots.length === 0) return;
+    if (slots.length === 0) {
+      lastActiveAlertKeyRef.current = null;
+      return;
+    }
 
-    // Prioriza o slot do próprio colaborador logado se houver, ou o próximo slot da escala
-    const ownSlot = currentUserEmployeeId
-      ? slots.find((s) => s.employeeId === currentUserEmployeeId)
-      : null;
+    // Apenas a notificação do próprio usuário deve sinalizar o alarme sonoro
+    const ownSlot = slots.find((s) => s.employeeId === currentUserEmployeeId);
 
-    const upcoming = [...slots]
-      .filter((s) => timeToMinutes(s.startTime) > currentTimeMinutes)
-      .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+    if (!ownSlot) {
+      lastActiveAlertKeyRef.current = null;
+      return;
+    }
 
-    const targetSlot = (ownSlot && timeToMinutes(ownSlot.startTime) > currentTimeMinutes)
-      ? ownSlot
-      : upcoming[0];
-
-    if (!targetSlot) return;
-
-    const startMin = timeToMinutes(targetSlot.startTime);
+    const startMin = timeToMinutes(ownSlot.startTime);
     const minutesRemaining = startMin - currentTimeMinutes;
 
-    // Dispara apenas quando atingir exatamente 10, 5 ou 1 minuto antes
+    // Dispara apenas quando atingir exatamente 10, 5 ou 1 minuto antes do almoço do próprio usuário
     if (shouldTriggerLunchAlert(minutesRemaining)) {
-      const alertOccurrenceKey = `${activeDate}_${targetSlot.id || targetSlot.employeeId}_${targetSlot.startTime}_${minutesRemaining}min`;
-      if (!firedSoundAlertsRef.current.has(alertOccurrenceKey)) {
-        firedSoundAlertsRef.current.add(alertOccurrenceKey);
+      const alertOccurrenceKey = `${activeDate}_${ownSlot.id || ownSlot.employeeId}_${ownSlot.startTime}_${minutesRemaining}min`;
+      if (lastActiveAlertKeyRef.current !== alertOccurrenceKey) {
+        lastActiveAlertKeyRef.current = alertOccurrenceKey;
         if (soundEnabled) {
           playLunchNotificationSound();
         }
       }
+    } else {
+      // Quando o horário sair do marco (ex: usuário recuou o ponteiro no simulador ou tempo avançou),
+      // desarma o alerta para tocar novamente caso o marco seja atingido de novo
+      lastActiveAlertKeyRef.current = null;
     }
   }, [currentTimeMinutes, currentDate, allSchedules, currentUserEmployeeId, soundEnabled]);
 

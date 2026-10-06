@@ -33,7 +33,7 @@ export default function TimeSimulatorBar({
             type="range"
             min={11 * 60} // 11:00 = 660
             max={14 * 60 + 30} // 14:30 = 870
-            step={5}
+            step={1}
             value={currentTimeMinutes}
             onChange={(e) => onChangeTime(Number(e.target.value))}
             className="simulator-slider"

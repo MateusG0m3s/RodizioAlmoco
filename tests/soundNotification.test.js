@@ -66,8 +66,8 @@ test('SUÍTE NOTIFICAÇÃO SONORA 2: Validação dos marcos de aviso (10, 5 e 1 
   assert.equal(shouldTriggerLunchAlert(-5), false, 'Não deve disparar após o horário do almoço');
 });
 
-test('SUÍTE NOTIFICAÇÃO SONORA 3: Lógica de deduplicação estrita de ocorrência', () => {
-  const firedAlerts = new Set();
+test('SUÍTE NOTIFICAÇÃO SONORA 3: Lógica de deduplicação e rearme ao mover o ponteiro', () => {
+  let lastActiveAlertKey = null;
   let soundPlayCount = 0;
 
   function simulateTick(slot, currentDate, currentMinutes, soundEnabled) {
@@ -76,13 +76,15 @@ test('SUÍTE NOTIFICAÇÃO SONORA 3: Lógica de deduplicação estrita de ocorr�
 
     if (shouldTriggerLunchAlert(minutesRemaining)) {
       const alertKey = `${currentDate}_${slot.id}_${slot.startTime}_${minutesRemaining}min`;
-      if (!firedAlerts.has(alertKey)) {
-        firedAlerts.add(alertKey);
+      if (lastActiveAlertKey !== alertKey) {
+        lastActiveAlertKey = alertKey;
         if (soundEnabled) {
           soundPlayCount++;
         }
         return { fired: true, soundPlayed: soundEnabled };
       }
+    } else {
+      lastActiveAlertKey = null;
     }
     return { fired: false, soundPlayed: false };
   }
@@ -99,27 +101,46 @@ test('SUÍTE NOTIFICAÇÃO SONORA 3: Lógica de deduplicação estrita de ocorr�
   // 2. Re-renderizações ou ticks subsequentes no mesmo minuto (ex: 10s depois ainda é 11:50)
   for (let i = 0; i < 5; i++) {
     const reRenderRes = simulateTick(slot, date, 710, true);
-    assert.equal(reRenderRes.fired, false, 'Re-renderização NÃO deve disparar novamente');
+    assert.equal(reRenderRes.fired, false, 'Re-renderização NÃO deve disparar novamente no mesmo minuto');
     assert.equal(reRenderRes.soundPlayed, false, 'Re-renderização NÃO deve tocar som duplicado');
   }
   assert.equal(soundPlayCount, 1, 'Contador de sons deve continuar em 1');
 
-  // 3. Minuto 11:51 (9 min antes)
-  const res9m = simulateTick(slot, date, 711, true);
-  assert.equal(res9m.fired, false);
+  // 3. Voltar o ponteiro para 11:40 (20 min antes)
+  const resVoltar = simulateTick(slot, date, 700, true);
+  assert.equal(resVoltar.fired, false, 'Não dispara fora dos marcos');
   assert.equal(soundPlayCount, 1);
 
-  // 4. Minuto 11:55 (5 min antes) com som ativado
+  // 4. Passar novamente por 11:50 (10 min antes) após ter voltado o ponteiro
+  const resReentrada = simulateTick(slot, date, 710, true);
+  assert.equal(resReentrada.fired, true, 'DEVE disparar novamente após voltar o ponteiro e passar pelo marco!');
+  assert.equal(resReentrada.soundPlayed, true, 'DEVE reproduzir o som novamente!');
+  assert.equal(soundPlayCount, 2, 'Contador de sons agora é 2');
+
+  // 5. Minuto 11:51 (9 min antes)
+  const res9m = simulateTick(slot, date, 711, true);
+  assert.equal(res9m.fired, false);
+  assert.equal(soundPlayCount, 2);
+
+  // 6. Minuto 11:55 (5 min antes) com som ativado
   const res5m = simulateTick(slot, date, 715, true);
   assert.equal(res5m.fired, true);
   assert.equal(res5m.soundPlayed, true);
-  assert.equal(soundPlayCount, 2);
+  assert.equal(soundPlayCount, 3);
 
-  // 5. Minuto 11:59 (1 min antes) com usuário no modo Mudo (soundEnabled = false)
+  // 7. Voltar o ponteiro direto de 11:55 para 11:50
+  const resVoltarPara10m = simulateTick(slot, date, 710, true);
+  assert.equal(resVoltarPara10m.fired, true, 'Deve disparar ao transitar entre marcos diferentes');
+  assert.equal(resVoltarPara10m.soundPlayed, true);
+  assert.equal(soundPlayCount, 4);
+
+  // 8. Minuto 11:59 (1 min antes) com usuário no modo Mudo (soundEnabled = false)
+  // Primeiro recuamos para 11:58
+  simulateTick(slot, date, 718, false);
   const res1mMudo = simulateTick(slot, date, 719, false);
-  assert.equal(res1mMudo.fired, true, 'Ocorrência registrada');
+  assert.equal(res1mMudo.fired, true, 'Ocorrência registrada aos 1 min');
   assert.equal(res1mMudo.soundPlayed, false, 'No modo Mudo o som NÃO é reproduzido');
-  assert.equal(soundPlayCount, 2, 'Contador de sons continua em 2');
+  assert.equal(soundPlayCount, 4, 'Contador de sons continua em 4');
 });
 
 test('SUÍTE NOTIFICAÇÃO SONORA 4: Segurança em ambiente sem AudioContext (Node/SSR/Restrições)', () => {
@@ -127,3 +148,57 @@ test('SUÍTE NOTIFICAÇÃO SONORA 4: Segurança em ambiente sem AudioContext (No
   const result = playLunchNotificationSound();
   assert.equal(result, false, 'Deve retornar false com segurança sem lançar exceções');
 });
+
+test('SUÍTE NOTIFICAÇÃO SONORA 5: Restrição exclusiva ao próprio colaborador autenticado', () => {
+  let lastActiveAlertKey = null;
+  let soundPlayCount = 0;
+
+  function evaluateAlertForUser(currentUserId, slots, currentMinutes, soundEnabled) {
+    if (!currentUserId) {
+      lastActiveAlertKey = null;
+      return { triggered: false };
+    }
+
+    const ownSlot = slots.find(s => s.employeeId === currentUserId);
+    if (!ownSlot) {
+      lastActiveAlertKey = null;
+      return { triggered: false };
+    }
+
+    const startMin = 12 * 60; // 12:00 = 720
+    const minutesRemaining = startMin - currentMinutes;
+
+    if (shouldTriggerLunchAlert(minutesRemaining)) {
+      const alertKey = `2026-10-06_${ownSlot.id}_${ownSlot.startTime}_${minutesRemaining}min`;
+      if (lastActiveAlertKey !== alertKey) {
+        lastActiveAlertKey = alertKey;
+        if (soundEnabled) soundPlayCount++;
+        return { triggered: true };
+      }
+    } else {
+      lastActiveAlertKey = null;
+    }
+    return { triggered: false };
+  }
+
+  const slots = [
+    { id: 'slot-outro', employeeId: 'colaborador-2', startTime: '12:00' },
+    { id: 'slot-meu', employeeId: 'meu-id-1', startTime: '12:00' }
+  ];
+
+  // 1. Usuário não autenticado no horário de 11:50
+  const resAnon = evaluateAlertForUser(null, slots, 710, true);
+  assert.equal(resAnon.triggered, false, 'Usuário anônimo não deve acionar alarme');
+  assert.equal(soundPlayCount, 0);
+
+  // 2. Colaborador-3 (não tem slot escalado)
+  const resSemSlot = evaluateAlertForUser('colaborador-3', slots, 710, true);
+  assert.equal(resSemSlot.triggered, false, 'Colaborador sem slot não deve acionar som para almoço alheio');
+  assert.equal(soundPlayCount, 0);
+
+  // 3. Colaborador-2 tem almoço às 12:00. O usuário logado é 'colaborador-2'. Faltam 10 minutos (11:50).
+  const resProprio = evaluateAlertForUser('colaborador-2', slots, 710, true);
+  assert.equal(resProprio.triggered, true, 'Deve acionar som quando for o almoço do próprio usuário!');
+  assert.equal(soundPlayCount, 1);
+});
+
