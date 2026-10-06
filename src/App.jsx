@@ -202,24 +202,35 @@ export default function App() {
       return;
     }
 
-    // Apenas a notificação do próprio usuário deve sinalizar o alarme sonoro
-    const ownSlot = slots.find((s) => s.employeeId === currentUserEmployeeId);
+    // Apenas os slots de almoço vinculados ao próprio colaborador logado
+    const ownSlots = slots.filter((s) => s.employeeId === currentUserEmployeeId);
 
-    if (!ownSlot) {
+    if (ownSlots.length === 0) {
       lastActiveAlertKeyRef.current = null;
       return;
     }
 
-    const startMin = timeToMinutes(ownSlot.startTime);
-    const minutesRemaining = startMin - currentTimeMinutes;
+    // Verifica se algum dos slots do próprio usuário atingiu os marcos de 10, 5 ou 1 minuto
+    let matchingSlot = null;
+    let matchingRemaining = null;
 
-    // Dispara apenas quando atingir exatamente 10, 5 ou 1 minuto antes do almoço do próprio usuário
-    if (shouldTriggerLunchAlert(minutesRemaining)) {
-      const alertOccurrenceKey = `${activeDate}_${ownSlot.id || ownSlot.employeeId}_${ownSlot.startTime}_${minutesRemaining}min`;
+    for (const slot of ownSlots) {
+      const startMin = timeToMinutes(slot.startTime);
+      const remaining = startMin - currentTimeMinutes;
+      if (shouldTriggerLunchAlert(remaining)) {
+        matchingSlot = slot;
+        matchingRemaining = remaining;
+        break;
+      }
+    }
+
+    if (matchingSlot && matchingRemaining !== null) {
+      const alertOccurrenceKey = `${activeDate}_${matchingSlot.id || matchingSlot.employeeId}_${matchingSlot.startTime}_${matchingRemaining}min`;
       if (lastActiveAlertKeyRef.current !== alertOccurrenceKey) {
         lastActiveAlertKeyRef.current = alertOccurrenceKey;
         if (soundEnabled) {
           playLunchNotificationSound();
+          console.info(`[Notificação Almoço] Alerta sonoro disparado para o seu horário: ${matchingRemaining} min antes (${matchingSlot.startTime})`);
         }
       }
     } else {

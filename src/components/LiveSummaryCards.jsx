@@ -64,11 +64,11 @@ export default function LiveSummaryCards({
   }
 
   // Notificação de almoço próximo (< 10 min)
-  // Prioriza o slot do próprio colaborador logado se houver, ou o próximo slot geral da escala
+  // Restrita exclusivamente ao próprio colaborador logado
   const ownUpcomingSlot = currentUserEmployeeId
     ? upcomingSlots.find((s) => s.employeeId === currentUserEmployeeId)
     : null;
-  const slotForAlert = ownUpcomingSlot || nextSlot;
+  const slotForAlert = ownUpcomingSlot;
 
   let alertUpcoming = null;
   if (slotForAlert) {
