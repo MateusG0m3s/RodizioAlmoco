@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "test": "node --test tests/scheduler.test.js tests/rbac_security.test.js",
+    "test": "node --test tests/scheduler.test.js tests/rbac_security.test.js tests/soundNotification.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

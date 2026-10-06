@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Users, BarChart3, Settings, Play, RefreshCw, Clock, ShieldCheck, Sun, Moon, LogOut } from 'lucide-react';
+import { Calendar, Users, BarChart3, Settings, Play, RefreshCw, Clock, ShieldCheck, Sun, Moon, LogOut, Volume2, VolumeX } from 'lucide-react';
 import { minutesToTime } from '../utils/timeUtils';
 
 export default function Navbar({
@@ -13,6 +13,8 @@ export default function Navbar({
   _isCloudConnected,
   theme,
   toggleTheme,
+  soundEnabled = true,
+  toggleSound,
   currentUser,
   isAdmin,
   onOpenAuthModal,
@@ -148,6 +150,26 @@ export default function Navbar({
               {theme === 'dark' ? 'Claro' : 'Escuro'}
             </span>
           </button>
+
+          {/* Botão de Notificações Sonoras (Tocar / Mudo) */}
+          {toggleSound && (
+            <button
+              type="button"
+              className="theme-toggle-btn"
+              title={soundEnabled ? 'Notificações sonoras: Tocar (Clique para silenciar)' : 'Notificações sonoras: Mudo (Clique para ativar)'}
+              onClick={toggleSound}
+              aria-label="Alternar notificações sonoras"
+            >
+              {soundEnabled ? (
+                <Volume2 size={15} className="theme-icon" style={{ color: 'var(--scada-cyan, #06b6d4)' }} />
+              ) : (
+                <VolumeX size={15} className="theme-icon" style={{ opacity: 0.65 }} />
+              )}
+              <span className="theme-btn-text">
+                {soundEnabled ? 'Tocar' : 'Mudo'}
+              </span>
+            </button>
+          )}
 
           {/* Controle do Relógio / Simulador */}
           <div className={`time-pill ${isSimulatingTime ? 'simulating' : ''}`}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Sparkles } from 'lucide-react';
 import Navbar from './components/Navbar';
@@ -17,6 +17,7 @@ import { firebaseService } from './services/firebaseService';
 import { authService } from './services/authService';
 import { toISODateString, timeToMinutes, getWorkDaysOfWeek } from './utils/timeUtils';
 import { detectConflicts, calculateBalanceMetrics, checkAttendanceCoverage, generateAutoSchedule, ensureArray } from './utils/scheduler';
+import { getUserSoundPreference, setUserSoundPreference, playLunchNotificationSound, shouldTriggerLunchAlert } from './services/soundService';
 
 export default function App() {
   const [currentDate, setCurrentDate] = useState(() => {
@@ -100,6 +101,24 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // Notificações sonoras individuais por usuário (salvas no localStorage do navegador)
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    return getUserSoundPreference(authService.getCurrentUser());
+  });
+
+  // Sincroniza a preferência sonora quando o usuário logado mudar (login/logout/troca de perfil)
+  useEffect(() => {
+    setSoundEnabled(getUserSoundPreference(currentUser));
+  }, [currentUser?.email, currentUser?.uid, currentUser?.employeeId]);
+
+  const toggleSound = () => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      setUserSoundPreference(currentUser, next);
+      return next;
+    });
+  };
+
   const getNowMinutes = () => {
     const d = new Date();
     return d.getHours() * 60 + d.getMinutes();
@@ -155,6 +174,45 @@ export default function App() {
   }, []);
 
   const currentTimeMinutes = isSimulatingTime ? simulatedMinutes : systemTimeMinutes;
+
+  // Disparo de notificação sonora pontual nos marcos de 10, 5 e 1 minuto antes do almoço
+  const firedSoundAlertsRef = useRef(new Set());
+
+  useEffect(() => {
+    const todayStr = toISODateString(new Date());
+    const activeDate = currentDate || todayStr;
+    const slots = ensureArray(allSchedules[activeDate]);
+    if (slots.length === 0) return;
+
+    // Prioriza o slot do próprio colaborador logado se houver, ou o próximo slot da escala
+    const ownSlot = currentUserEmployeeId
+      ? slots.find((s) => s.employeeId === currentUserEmployeeId)
+      : null;
+
+    const upcoming = [...slots]
+      .filter((s) => timeToMinutes(s.startTime) > currentTimeMinutes)
+      .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+
+    const targetSlot = (ownSlot && timeToMinutes(ownSlot.startTime) > currentTimeMinutes)
+      ? ownSlot
+      : upcoming[0];
+
+    if (!targetSlot) return;
+
+    const startMin = timeToMinutes(targetSlot.startTime);
+    const minutesRemaining = startMin - currentTimeMinutes;
+
+    // Dispara apenas quando atingir exatamente 10, 5 ou 1 minuto antes
+    if (shouldTriggerLunchAlert(minutesRemaining)) {
+      const alertOccurrenceKey = `${activeDate}_${targetSlot.id || targetSlot.employeeId}_${targetSlot.startTime}_${minutesRemaining}min`;
+      if (!firedSoundAlertsRef.current.has(alertOccurrenceKey)) {
+        firedSoundAlertsRef.current.add(alertOccurrenceKey);
+        if (soundEnabled) {
+          playLunchNotificationSound();
+        }
+      }
+    }
+  }, [currentTimeMinutes, currentDate, allSchedules, currentUserEmployeeId, soundEnabled]);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
@@ -584,6 +642,8 @@ export default function App() {
         isCloudConnected={isCloudConnected}
         theme={theme}
         toggleTheme={toggleTheme}
+        soundEnabled={soundEnabled}
+        toggleSound={toggleSound}
         currentUser={currentUser}
         isAdmin={isAdmin}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}

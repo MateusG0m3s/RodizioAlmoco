@@ -135,6 +135,7 @@ export default function DashboardView({
         settings={settings}
         balanceStatus={balanceStatus}
         balanceScore={balanceScore}
+        currentUserEmployeeId={currentUserEmployeeId}
       />
 
       {/* Área da Escala (Timeline Fixa com RBAC) */}
