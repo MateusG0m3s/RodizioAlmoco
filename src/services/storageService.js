@@ -58,7 +58,9 @@ export const storageService = {
 
   saveEmployees: (employees) => {
     try {
-      localStorage.setItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(employees));
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(employees));
+      }
     } catch (e) {
       console.error('Erro ao salvar funcionários:', e);
     }

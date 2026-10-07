@@ -194,9 +194,9 @@ class AuthService {
         employeeId,
         avatar: name.substring(0, 2).toUpperCase()
       };
+      this.currentUser = userToSet;
       // Micro-atraso para permitir que o navegador processe a API de credenciais / salvar senha
       setTimeout(() => {
-        this.currentUser = userToSet;
         this.authLoading = false;
         this.notifySubscribers();
       }, 120);
@@ -210,7 +210,10 @@ class AuthService {
                (cleanEmail === 'mateus.gomes@scadahub.io' && acc.employeeId === 'emp-2') ||
                (cleanEmail === 'mateus.silva@scadahub.io' && acc.employeeId === 'emp-1') ||
                (cleanEmail === 'mateus.oliveira@scadahub.io' && acc.employeeId === 'emp-1') ||
-               (cleanEmail === 'mateus.oliveira@scadahub.com' && acc.employeeId === 'emp-1')
+               (cleanEmail === 'mateus.oliveira@scadahub.com' && acc.employeeId === 'emp-1') ||
+               (cleanEmail === 'monique.hilleshein@scadahub.io' && acc.employeeId === 'emp-3') ||
+               (cleanEmail === 'monique@scadahub.io' && acc.employeeId === 'emp-3') ||
+               (cleanEmail === 'samara.revoredo@scadahub.io' && acc.employeeId === 'emp-4')
     );
 
     let matchedEmp = null;
@@ -300,8 +303,8 @@ class AuthService {
 
       if (isPasswordValid) {
         const userToSet = { ...knownAccount };
+        this.currentUser = userToSet;
         setTimeout(() => {
-          this.currentUser = userToSet;
           this.authLoading = false;
           this.notifySubscribers();
         }, 120);
