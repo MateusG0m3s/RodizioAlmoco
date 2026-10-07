@@ -63,21 +63,24 @@ export default function LiveSummaryCards({
     progressPercent = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
   }
 
-  // Notificação de almoço próximo (< 10 min)
-  // Restrita exclusivamente ao próprio colaborador logado
+  // Notificação visual de almoço próximo (< 10 min)
+  // Prioriza o slot do próprio colaborador logado se ele estiver próximo de almoçar,
+  // ou exibe o próximo almoço da escala para acompanhamento de toda a equipe
   const ownUpcomingSlot = currentUserEmployeeId
     ? upcomingSlots.find((s) => s.employeeId === currentUserEmployeeId)
     : null;
-  const slotForAlert = ownUpcomingSlot;
+  const slotForAlert = ownUpcomingSlot || nextSlot;
 
   let alertUpcoming = null;
   if (slotForAlert) {
     const minutesToNext = timeToMinutes(slotForAlert.startTime) - currentTimeMinutes;
     if (minutesToNext > 0 && minutesToNext <= 10) {
+      const isOwn = Boolean(currentUserEmployeeId && slotForAlert.employeeId === currentUserEmployeeId);
       alertUpcoming = {
         employee: empMap[slotForAlert.employeeId],
         minutes: minutesToNext,
-        time: slotForAlert.startTime
+        time: slotForAlert.startTime,
+        isOwn
       };
     }
   }
@@ -110,7 +113,8 @@ export default function LiveSummaryCards({
           <div className="alert-content">
             <span className="alert-emp-name">{alertUpcoming.employee?.name || 'Funcionário'}:</span>
             <span className="alert-text">
-              Seu almoço começa em <strong>{alertUpcoming.minutes} minutos</strong> ({alertUpcoming.time}).
+              {alertUpcoming.isOwn ? 'Seu almoço começa em ' : 'O almoço começa em '}
+              <strong>{alertUpcoming.minutes} minutos</strong> ({alertUpcoming.time}).
             </span>
           </div>
           <span className="alert-badge">Prepare-se</span>

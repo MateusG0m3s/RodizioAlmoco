@@ -202,3 +202,49 @@ test('SUÍTE NOTIFICAÇÃO SONORA 5: Restrição exclusiva ao próprio colaborad
   assert.equal(soundPlayCount, 1);
 });
 
+test('SUÍTE NOTIFICAÇÃO 6: Alerta Visual da Equipe e Visibilidade de Horários (Samara e Colegas)', () => {
+  function getVisualAlert(currentUserEmployeeId, upcomingSlots) {
+    const nextSlot = upcomingSlots[0] || null;
+    const ownUpcomingSlot = currentUserEmployeeId
+      ? upcomingSlots.find((s) => s.employeeId === currentUserEmployeeId)
+      : null;
+    const slotForAlert = ownUpcomingSlot || nextSlot;
+
+    if (!slotForAlert) return null;
+    const isOwn = Boolean(currentUserEmployeeId && slotForAlert.employeeId === currentUserEmployeeId);
+    return {
+      slot: slotForAlert,
+      isOwn,
+      messagePrefix: isOwn ? 'Seu almoço começa em ' : 'O almoço começa em '
+    };
+  }
+
+  const upcomingSlots = [
+    { id: 'slot-mateus', employeeId: 'emp-1', startTime: '12:00' },
+    { id: 'slot-samara', employeeId: 'emp-4', startTime: '12:30' }
+  ];
+
+  // Cenário 1: Samara logada (emp-4) quando o próximo almoço é de Mateus (emp-1)
+  // Samara DEVE conseguir ver o horário do Mateus no alerta visual
+  const alertParaSamara = getVisualAlert('emp-4', upcomingSlots);
+  assert.ok(alertParaSamara, 'Samara deve receber alerta visual da escala');
+  assert.equal(alertParaSamara.slot.employeeId, 'emp-4', 'Se Samara tem slot próximo, prioriza o dela');
+
+  // Caso Samara NÃO tenha slot próximo e outro colega tenha:
+  const slotsSemSamara = [{ id: 'slot-mateus', employeeId: 'emp-1', startTime: '12:00' }];
+  const alertSamaraVeColega = getVisualAlert('emp-4', slotsSemSamara);
+  assert.ok(alertSamaraVeColega, 'Samara deve ver o almoço do colega na escala');
+  assert.equal(alertSamaraVeColega.slot.employeeId, 'emp-1');
+  assert.equal(alertSamaraVeColega.isOwn, false);
+  assert.equal(alertSamaraVeColega.messagePrefix, 'O almoço começa em ');
+
+  // Cenário 2: Outros usuários logados (ex: emp-1 ou emp-2) quando o próximo almoço é da Samara
+  // Os colegas DEVEM conseguir ver o almoço da Samara no alerta visual
+  const slotsSoSamara = [{ id: 'slot-samara', employeeId: 'emp-4', startTime: '12:30' }];
+  const alertColegasVeemSamara = getVisualAlert('emp-1', slotsSoSamara);
+  assert.ok(alertColegasVeemSamara, 'Colegas devem ver o almoço da Samara no banner');
+  assert.equal(alertColegasVeemSamara.slot.employeeId, 'emp-4');
+  assert.equal(alertColegasVeemSamara.isOwn, false);
+  assert.equal(alertColegasVeemSamara.messagePrefix, 'O almoço começa em ');
+});
+
