@@ -385,11 +385,8 @@ export default function App() {
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
 
-    // Gravação granular protegida compatível com as regras de segurança do Firebase
+    // Gravação granular (apenas o slot alterado) para nunca sobrescrever horários de outros colaboradores
     firebaseService.pushSlot(targetDate, slotData);
-    if (isAdmin) {
-      firebaseService.pushDaySchedule(targetDate, updatedDayList);
-    }
   };
 
   // Excluir Slot com Validação de Autorização por Propriedade da Escala
@@ -409,11 +406,8 @@ export default function App() {
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
 
-    // Remoção granular protegida
+    // Remoção granular (apenas o slot excluído)
     firebaseService.deleteSlot(targetDate, slotId);
-    if (isAdmin) {
-      firebaseService.pushDaySchedule(targetDate, updatedDayList);
-    }
   };
 
   // Atualizar Horários via Arraste (Timeline)
@@ -454,9 +448,6 @@ export default function App() {
     if (modifiedSlot) {
       firebaseService.pushSlot(currentDate, modifiedSlot);
     }
-    if (isAdmin) {
-      firebaseService.pushDaySchedule(currentDate, updatedDayList);
-    }
   };
 
   // Aplicação de escala gerada (Exclusivo Administrador)
@@ -487,7 +478,10 @@ export default function App() {
     const updatedAll = { ...allSchedules, ...normalizedWeek };
     setAllSchedules(updatedAll);
     storageService.saveAllSchedules(updatedAll);
-    firebaseService.pushAllSchedules(updatedAll);
+    // Envia somente os dias gerados (não sobrescreve dias que outros colaboradores já ajustaram)
+    Object.keys(normalizedWeek).forEach((dateKey) => {
+      firebaseService.pushDaySchedule(dateKey, normalizedWeek[dateKey]);
+    });
   };
 
   // Gerenciamento de Funcionários (Salvar com RBAC)
@@ -552,10 +546,8 @@ export default function App() {
     setEmployees(updated);
     storageService.saveEmployees(updated);
 
+    // Gravação pontual do colaborador alterado (não substitui a lista inteira da equipe)
     firebaseService.pushEmployee(finalEmpData.id, finalEmpData);
-    if (isAdmin) {
-      firebaseService.pushEmployees(updated);
-    }
   };
 
   // Excluir Funcionário (Exclusivo Administrador)
@@ -569,18 +561,18 @@ export default function App() {
     setEmployees(updated);
     storageService.saveEmployees(updated);
     firebaseService.deleteEmployee(empId);
-    firebaseService.pushEmployees(updated);
 
     // Remove slots do funcionário excluído de todos os dias
     const cleanedSchedules = {};
     Object.keys(allSchedules).forEach((dateKey) => {
-      cleanedSchedules[dateKey] = ensureArray(allSchedules[dateKey]).filter(
-        (s) => s.employeeId !== empId
-      );
+      const dayList = ensureArray(allSchedules[dateKey]);
+      cleanedSchedules[dateKey] = dayList.filter((s) => s.employeeId !== empId);
+      dayList
+        .filter((s) => s.employeeId === empId)
+        .forEach((s) => firebaseService.deleteSlot(dateKey, s.id || s.employeeId));
     });
     setAllSchedules(cleanedSchedules);
     storageService.saveAllSchedules(cleanedSchedules);
-    firebaseService.pushAllSchedules(cleanedSchedules);
   };
 
   // Salvar Configurações (Exclusivo Administrador)
