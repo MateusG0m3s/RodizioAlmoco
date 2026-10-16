@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import confetti from 'canvas-confetti';
-import { Sparkles } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, AlertTriangle, Info } from 'lucide-react';
 import Navbar from './components/Navbar';
 import TimeSimulatorBar from './components/TimeSimulatorBar';
 import DashboardView from './components/DashboardView';
@@ -16,8 +16,24 @@ import { storageService } from './services/storageService';
 import { firebaseService } from './services/firebaseService';
 import { authService } from './services/authService';
 import { toISODateString, timeToMinutes, getWorkDaysOfWeek } from './utils/timeUtils';
-import { detectConflicts, calculateBalanceMetrics, checkAttendanceCoverage, generateAutoSchedule, ensureArray } from './utils/scheduler';
+import { detectConflicts, checkAttendanceCoverage, generateAutoSchedule, ensureArray } from './utils/scheduler';
 import { getUserSoundPreference, setUserSoundPreference, playLunchNotificationSound, shouldTriggerLunchAlert } from './services/soundService';
+
+const TOAST_VARIANT_BY_TITLE = {
+  'Acesso Negado': 'error',
+  'Permissão Negada': 'error',
+  'Conflito de Regras': 'warning',
+  'Horário Inválido': 'warning',
+  'Até logo!': 'info',
+  'Identidade Atualizada': 'info'
+};
+
+const TOAST_ICONS = {
+  success: CheckCircle2,
+  error: ShieldAlert,
+  warning: AlertTriangle,
+  info: Info
+};
 
 export default function App() {
   const [currentDate, setCurrentDate] = useState(() => {
@@ -57,8 +73,10 @@ export default function App() {
 
   const [toastNotification, setToastNotification] = useState(null);
 
-  const showToast = (message, title = 'Sucesso!') => {
-    setToastNotification({ title, message });
+  // variant: 'success' | 'error' | 'warning' | 'info'. Sem variant, deduz pelo título
+  // para que bloqueios ("Acesso Negado") não pareçam confirmações.
+  const showToast = (message, title = 'Sucesso!', variant) => {
+    setToastNotification({ title, message, variant: variant || TOAST_VARIANT_BY_TITLE[title] || 'success' });
     setTimeout(() => {
       setToastNotification(null);
     }, 4500);
@@ -277,7 +295,7 @@ export default function App() {
         particleCount: 85,
         spread: 75,
         origin: { y: 0.6 },
-        colors: ['#2D0C5E', '#7c3aed', '#0284c7', '#38bdf8']
+        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
       });
     } catch {
       // Ignora erro de confetti
@@ -331,7 +349,7 @@ export default function App() {
         particleCount: 110,
         spread: 85,
         origin: { y: 0.6 },
-        colors: ['#2D0C5E', '#7c3aed', '#0284c7', '#38bdf8']
+        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
       });
     } catch {
       // Ignora erro de confetti
@@ -348,9 +366,6 @@ export default function App() {
   // Validação de Cobertura de Atendimento (11:30 - 13:30)
   const coverageReport = checkAttendanceCoverage(employees, currentDaySlots, settings);
   const conflictReport = detectConflicts(currentDaySlots, settings, employees);
-
-  // Métricas de Equilíbrio
-  const balanceInfo = calculateBalanceMetrics(employees, allSchedules, historyData);
 
   // Salvar Slot com Validação de Autorização por Propriedade da Escala
   const handleSaveSlot = (slotData) => {
@@ -520,7 +535,7 @@ export default function App() {
           employeeId: finalEmpData.id,
           role: isAdminEmp ? 'admin' : 'user',
           avatar: finalEmpData.avatar || finalEmpData.name.substring(0, 2).toUpperCase(),
-          color: finalEmpData.color || '#7c3aed'
+          color: finalEmpData.color || '#6e2b90'
         };
         localStorage.setItem('scadahub_account_directory', JSON.stringify(directory));
 
@@ -696,8 +711,6 @@ export default function App() {
             conflictSlotIds={conflictReport.conflictSlotIds}
             _hasConflicts={conflictReport.hasConflicts}
             coverage={coverageReport}
-            balanceStatus={balanceInfo.balanceStatus}
-            balanceScore={balanceInfo.balanceScore}
             onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
             onQuickGenerateToday={handleQuickGenerateToday}
             onOpenEditModal={(slot, emp) => handleOpenEditModal(slot, emp, currentDate)}
@@ -832,50 +845,25 @@ export default function App() {
       </footer>
 
       {/* Toast Flutuante de Confirmação Instantânea */}
-      {toastNotification && (
-        <div
-          className="scadahub-floating-toast animate-scale-up"
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            background: '#240a42',
-            color: '#ffffff',
-            padding: '14px 22px',
-            borderRadius: '9999px',
-            boxShadow: '0 10px 25px rgba(36, 10, 66, 0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            zIndex: 9999,
-            border: '1.5px solid #7c3aed',
-            maxWidth: '90vw'
-          }}
-        >
+      {toastNotification && (() => {
+        const ToastIcon = TOAST_ICONS[toastNotification.variant] || CheckCircle2;
+        const isError = toastNotification.variant === 'error';
+        return (
           <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: 'rgba(2, 132, 199, 0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}
+            className={`scadahub-floating-toast is-${toastNotification.variant} animate-scale-up`}
+            role={isError ? 'alert' : 'status'}
+            aria-live={isError ? 'assertive' : 'polite'}
           >
-            <Sparkles size={18} color="#38bdf8" />
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>
-              {toastNotification.title}
+            <div className="toast-icon">
+              <ToastIcon size={18} />
             </div>
-            <div style={{ fontSize: '0.78rem', color: '#e0f2fe' }}>
-              {toastNotification.message}
+            <div className="toast-text">
+              <div className="toast-title">{toastNotification.title}</div>
+              <div className="toast-message">{toastNotification.message}</div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

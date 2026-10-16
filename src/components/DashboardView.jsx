@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Sparkles, Info } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Calendar, CalendarDays, ChevronLeft, ChevronRight, Sparkles, Info } from 'lucide-react';
 import LiveSummaryCards from './LiveSummaryCards';
 import TimelineView from './TimelineView';
 import { formatDateBR, toISODateString, parseISODate } from '../utils/timeUtils';
@@ -14,8 +14,6 @@ export default function DashboardView({
   conflictSlotIds,
   _hasConflicts,
   coverage,
-  balanceStatus,
-  balanceScore,
   onOpenGenerateModal,
   onQuickGenerateToday,
   onOpenEditModal,
@@ -50,6 +48,19 @@ export default function DashboardView({
   const [todayStr] = useState(() => toISODateString(new Date()));
   const isToday = currentDate === todayStr;
 
+  const datePickerRef = useRef(null);
+  const openDatePicker = () => {
+    const input = datePickerRef.current;
+    if (!input) return;
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
+  };
+
+  const ownEmployee = employees.find((e) => e.id === currentUserEmployeeId);
+
   return (
     <div className="dashboard-container animate-fade-in">
       {/* Topo do Dashboard */}
@@ -64,28 +75,44 @@ export default function DashboardView({
                 {formattedDate.day} de {formattedDate.month} de {formattedDate.year}
               </span>
             </div>
-            {isToday && <span className="today-chip">Hoje</span>}
           </div>
 
+          {/* A data já aparece no título ao lado; aqui só navegação. "Hoje" destacado = dia atual */}
           <div className="date-buttons-cluster">
-            <button className="btn-date-step" onClick={handlePrevDay} title="Dia anterior">
+            <button type="button" className="btn-date-step" onClick={handlePrevDay} title="Dia útil anterior" aria-label="Dia útil anterior">
               <ChevronLeft size={16} />
             </button>
             <button
+              type="button"
               className={`btn-today-step ${isToday ? 'is-current' : ''}`}
               onClick={handleToday}
+              aria-pressed={isToday}
             >
               Hoje
             </button>
-            <button className="btn-date-step" onClick={handleNextDay} title="Próximo dia">
+            <button type="button" className="btn-date-step" onClick={handleNextDay} title="Próximo dia útil" aria-label="Próximo dia útil">
               <ChevronRight size={16} />
             </button>
-            <input
-              type="date"
-              className="date-picker-inline"
-              value={currentDate}
-              onChange={(e) => e.target.value && setCurrentDate(e.target.value)}
-            />
+            <span className="date-picker-trigger">
+              <button
+                type="button"
+                className="btn-date-step"
+                onClick={openDatePicker}
+                title="Escolher outra data"
+                aria-label="Escolher outra data"
+              >
+                <CalendarDays size={16} />
+              </button>
+              <input
+                ref={datePickerRef}
+                type="date"
+                className="date-picker-native"
+                tabIndex={-1}
+                aria-hidden="true"
+                value={currentDate}
+                onChange={(e) => e.target.value && setCurrentDate(e.target.value)}
+              />
+            </span>
           </div>
         </div>
 
@@ -101,7 +128,7 @@ export default function DashboardView({
                 title="Gera e alterna imediatamente os turnos de hoje, garantindo atendimento contínuo (Admin)"
               >
                 <Sparkles size={16} />
-                <span>Gerar Rodízio</span>
+                <span>Gerar rodízio</span>
               </button>
 
               {onOpenGenerateModal && (
@@ -111,9 +138,10 @@ export default function DashboardView({
                   style={{ borderRadius: '9999px' }}
                   onClick={onOpenGenerateModal}
                   title="Opções avançadas de sorteio e geração para a semana toda (Admin)"
+                  aria-label="Opções de geração"
                 >
                   <Calendar size={15} />
-                  <span className="hidden-mobile">Opções / Semana</span>
+                  <span className="hidden-mobile">Opções de geração</span>
                 </button>
               )}
             </>
@@ -133,9 +161,9 @@ export default function DashboardView({
         currentTimeMinutes={currentTimeMinutes}
         coverage={coverage}
         settings={settings}
-        balanceStatus={balanceStatus}
-        balanceScore={balanceScore}
         currentUserEmployeeId={currentUserEmployeeId}
+        isToday={isToday}
+        onAddOwnSlot={ownEmployee ? () => onAddSlotForEmployee(ownEmployee) : null}
       />
 
       {/* Área da Escala (Timeline Fixa com RBAC) */}

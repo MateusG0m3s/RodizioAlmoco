@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Sparkles, Clock, Plus, Lock } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { getWorkDaysOfWeek, toISODateString, parseISODate } from '../utils/timeUtils';
 
 export default function WeekView({
@@ -204,7 +205,7 @@ export default function WeekView({
                         <div
                           className="matrix-avatar"
                           style={{
-                            backgroundColor: emp.color || '#381267',
+                            backgroundColor: emp.color || '#4f1f66',
                             width: '32px',
                             height: '32px',
                             minWidth: '32px',
@@ -219,7 +220,7 @@ export default function WeekView({
                             flexShrink: 0
                           }}
                         >
-                          {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+                          {getInitials(emp.name)}
                         </div>
                         <div className="matrix-emp-text">
                           <span className="matrix-emp-name">
@@ -244,7 +245,7 @@ export default function WeekView({
                             <div
                               className="week-slot-pill"
                               style={{
-                                borderLeftColor: emp.color || '#3b82f6',
+                                borderLeftColor: emp.color || '#1a87cc',
                                 cursor: canManageThisEmp ? 'pointer' : 'default',
                                 opacity: canManageThisEmp ? 1 : 0.85
                               }}

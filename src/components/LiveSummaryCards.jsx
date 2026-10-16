@@ -1,6 +1,49 @@
 import React from 'react';
 import { Utensils, Users, Clock, ShieldCheck, AlertTriangle, Hourglass, Headset, CheckCircle2 } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { timeToMinutes } from '../utils/timeUtils';
+
+const SOON_THRESHOLD_MIN = 10;   // a partir daqui o aviso vira "Prepare-se"
+const COUNTDOWN_WINDOW_MIN = 60; // o anel enche durante a última hora antes do almoço
+
+const formatDuration = (minutes) => {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`;
+};
+
+// Estado do almoço do usuário logado: o que o anel mostra e o que o texto diz
+function getMyLunchState(slot, nowMin, isToday) {
+  if (!slot) return { key: 'none', status: isToday ? 'Você ainda não tem horário hoje.' : 'Você não tem horário neste dia.' };
+  const start = timeToMinutes(slot.startTime);
+  const end = timeToMinutes(slot.endTime);
+  const range = `${slot.startTime} – ${slot.endTime}`;
+  if (!isToday) return { key: 'scheduled', range, status: 'Horário marcado para este dia.' };
+
+  if (nowMin < start) {
+    const minutes = start - nowMin;
+    const soon = minutes <= SOON_THRESHOLD_MIN;
+    return {
+      key: soon ? 'soon' : 'upcoming',
+      range,
+      ring: Math.round((1 - Math.min(minutes, COUNTDOWN_WINDOW_MIN) / COUNTDOWN_WINDOW_MIN) * 100),
+      ringLabel: formatDuration(minutes),
+      status: soon ? `Começa em ${formatDuration(minutes)}. Prepare-se!` : `Começa em ${formatDuration(minutes)}.`
+    };
+  }
+  if (nowMin < end) {
+    const remaining = end - nowMin;
+    return {
+      key: 'lunching',
+      range,
+      ring: Math.round(((nowMin - start) / (end - start)) * 100),
+      ringLabel: formatDuration(remaining),
+      status: `Você está almoçando. Volta às ${slot.endTime}.`
+    };
+  }
+  return { key: 'done', range, ring: 100, status: `Almoço concluído às ${slot.endTime}.` };
+}
 
 export default function LiveSummaryCards({
   employees = [],
@@ -8,9 +51,9 @@ export default function LiveSummaryCards({
   currentTimeMinutes,
   coverage,
   settings = {},
-  balanceStatus,
-  balanceScore,
-  currentUserEmployeeId = null
+  currentUserEmployeeId = null,
+  isToday = true,
+  onAddOwnSlot = null
 }) {
   const empMap = Object.fromEntries(employees.map((e) => [e.id, e]));
   const activeEmployees = employees.filter((e) => e.active);
@@ -63,27 +106,15 @@ export default function LiveSummaryCards({
     progressPercent = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
   }
 
-  // Notificação visual de almoço próximo (< 10 min)
-  // Prioriza o slot do próprio colaborador logado se ele estiver próximo de almoçar,
-  // ou exibe o próximo almoço da escala para acompanhamento de toda a equipe
-  const ownUpcomingSlot = currentUserEmployeeId
-    ? upcomingSlots.find((s) => s.employeeId === currentUserEmployeeId)
-    : null;
-  const slotForAlert = ownUpcomingSlot || nextSlot;
-
-  let alertUpcoming = null;
-  if (slotForAlert) {
-    const minutesToNext = timeToMinutes(slotForAlert.startTime) - currentTimeMinutes;
-    if (minutesToNext > 0 && minutesToNext <= 10) {
-      const isOwn = Boolean(currentUserEmployeeId && slotForAlert.employeeId === currentUserEmployeeId);
-      alertUpcoming = {
-        employee: empMap[slotForAlert.employeeId],
-        minutes: minutesToNext,
-        time: slotForAlert.startTime,
-        isOwn
-      };
-    }
-  }
+  // "Seu almoço": o horário do colaborador logado é o destaque principal do dashboard.
+  // O card "Próximo almoço" passa a mostrar só a equipe, para não repetir a mesma informação.
+  const ownEmployee = currentUserEmployeeId ? empMap[currentUserEmployeeId] : null;
+  const ownSlot = ownEmployee ? sortedSlots.find((s) => s.employeeId === currentUserEmployeeId) : null;
+  const myLunch = ownEmployee ? getMyLunchState(ownSlot, currentTimeMinutes, isToday) : null;
+  const nextTeamSlot = ownEmployee
+    ? upcomingSlots.find((s) => s.employeeId !== currentUserEmployeeId) || null
+    : nextSlot;
+  const minutesToNextTeam = nextTeamSlot ? timeToMinutes(nextTeamSlot.startTime) - currentTimeMinutes : null;
 
   return (
     <div className="summary-section">
@@ -94,7 +125,7 @@ export default function LiveSummaryCards({
             <AlertTriangle size={22} />
           </div>
           <div className="critical-gap-text">
-            <strong>⚠️ ATENÇÃO: Risco de Clientes sem Atendimento!</strong>
+            <strong>Atenção: risco de clientes sem atendimento</strong>
             <p>
               Existem horários com menos de {settings?.minWorkingDuringCritical || 1} atendente(s) trabalhando entre {settings?.criticalStart || '11:30'} e {settings?.criticalEnd || '13:30'}:{' '}
               <strong>
@@ -106,18 +137,35 @@ export default function LiveSummaryCards({
         </div>
       )}
 
-      {/* Aviso de Almoço Próximo */}
-      {alertUpcoming && (
-        <div className="live-alert-banner animate-fade-in">
-          <div className="alert-pulse-icon">🔔</div>
-          <div className="alert-content">
-            <span className="alert-emp-name">{alertUpcoming.employee?.name || 'Funcionário'}:</span>
-            <span className="alert-text">
-              {alertUpcoming.isOwn ? 'Seu almoço começa em ' : 'O almoço começa em '}
-              <strong>{alertUpcoming.minutes} minutos</strong> ({alertUpcoming.time}).
-            </span>
+      {/* Seu almoço: destaque pessoal do colaborador logado */}
+      {myLunch && (
+        <div className={`my-lunch-strip is-${myLunch.key}`} aria-live="polite">
+          {myLunch.ring !== undefined ? (
+            <div
+              className="my-lunch-ring"
+              style={{ '--ring': myLunch.ring }}
+              role="img"
+              aria-label={myLunch.ringLabel ? `Faltam ${myLunch.ringLabel}` : 'Almoço concluído'}
+            >
+              {myLunch.key === 'done' ? <CheckCircle2 size={22} /> : <span>{myLunch.ringLabel}</span>}
+            </div>
+          ) : (
+            <div className="my-lunch-ring is-empty" aria-hidden="true">
+              <Utensils size={20} />
+            </div>
+          )}
+
+          <div className="my-lunch-text">
+            <span className="my-lunch-label">{isToday ? 'Seu almoço hoje' : 'Seu almoço neste dia'}</span>
+            {myLunch.range && <strong className="my-lunch-time">{myLunch.range}</strong>}
+            <span className="my-lunch-status">{myLunch.status}</span>
           </div>
-          <span className="alert-badge">Prepare-se</span>
+
+          {myLunch.key === 'none' && onAddOwnSlot && (
+            <button type="button" className="btn-primary my-lunch-action" onClick={onAddOwnSlot}>
+              Definir meu almoço
+            </button>
+          )}
         </div>
       )}
 
@@ -128,7 +176,7 @@ export default function LiveSummaryCards({
           <div className="card-top-header">
             <div className="card-tag">
               <Utensils size={14} />
-              <span>ALMOÇANDO AGORA</span>
+              <span>Almoçando agora</span>
             </div>
             {activeLunchSlots.length > 0 && (
               <span className="live-pulsing-badge">
@@ -148,9 +196,9 @@ export default function LiveSummaryCards({
                     <div key={slot.id} className="hero-emp-info-compact">
                       <div
                         className="hero-avatar"
-                        style={{ backgroundColor: emp.color || '#381267' }}
+                        style={{ backgroundColor: emp.color || '#4f1f66' }}
                       >
-                        {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+                        {getInitials(emp.name)}
                       </div>
                       <div className="hero-emp-names">
                         <span className="hero-emp-name">{emp.name}</span>
@@ -201,7 +249,7 @@ export default function LiveSummaryCards({
           <div className="card-top-header">
             <div className="card-tag">
               <Headset size={14} />
-              <span>ATENDIMENTO AO CLIENTE</span>
+              <span>Atendimento ao cliente</span>
             </div>
           </div>
           <div className="stat-body">
@@ -240,24 +288,24 @@ export default function LiveSummaryCards({
           <div className="card-top-header">
             <div className="card-tag">
               <Clock size={14} />
-              <span>PRÓXIMO ALMOÇO</span>
+              <span>Próximo almoço</span>
             </div>
           </div>
           <div className="stat-body">
-            {nextSlot && empMap[nextSlot.employeeId] ? (
+            {nextTeamSlot && empMap[nextTeamSlot.employeeId] ? (
               <>
-                <div className="stat-main-number">{nextSlot.startTime}</div>
+                <div className="stat-main-number">{nextTeamSlot.startTime}</div>
                 <div className="stat-subtext-emp">
                   <div
                     className="stat-avatar-mini"
-                    style={{ backgroundColor: empMap[nextSlot.employeeId].color }}
+                    style={{ backgroundColor: empMap[nextTeamSlot.employeeId].color }}
                   >
-                    {empMap[nextSlot.employeeId].avatar}
+                    {getInitials(empMap[nextTeamSlot.employeeId].name)}
                   </div>
-                  <span className="stat-next-emp-name">{empMap[nextSlot.employeeId].name}</span>
+                  <span className="stat-next-emp-name">{empMap[nextTeamSlot.employeeId].name}</span>
                 </div>
-                <div className="stat-badge-in">
-                  Em {timeToMinutes(nextSlot.startTime) - currentTimeMinutes} min
+                <div className={`stat-badge-in ${minutesToNextTeam <= SOON_THRESHOLD_MIN ? 'is-soon' : ''}`}>
+                  Em {formatDuration(minutesToNextTeam)}
                 </div>
               </>
             ) : (
@@ -274,7 +322,7 @@ export default function LiveSummaryCards({
           <div className="card-top-header">
             <div className="card-tag">
               <Users size={14} />
-              <span>EQUIPE HOJE</span>
+              <span>Equipe hoje</span>
             </div>
             <span className="stat-total-badge">{totalSlotsCount} no total</span>
           </div>

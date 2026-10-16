@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, X, Calendar, RefreshCw, ShieldCheck, ArrowRight, Shuffle, AlertTriangle } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import confetti from 'canvas-confetti';
 import { generateAutoSchedule } from '../utils/scheduler';
 import { getWorkDaysOfWeek } from '../utils/timeUtils';
@@ -67,7 +68,7 @@ export default function GenerateModal({
         particleCount: 90,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#2D0C5E', '#7c3aed', '#0284c7', '#38bdf8']
+        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
       });
     } catch (e) {
       // Ignora erro de confetti
@@ -161,9 +162,9 @@ export default function GenerateModal({
                   <div key={slot.employeeId} className="preview-slot-item">
                     <div
                       className="preview-emp-avatar"
-                      style={{ backgroundColor: emp?.color || '#381267' }}
+                      style={{ backgroundColor: emp?.color || '#4f1f66' }}
                     >
-                      {emp?.avatar || emp?.name.slice(0, 2).toUpperCase()}
+                      {getInitials(emp?.name)}
                     </div>
                     <span className="preview-emp-name">{emp?.name}</span>
                     <ArrowRight size={14} className="text-slate-400" />

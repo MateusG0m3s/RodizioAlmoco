@@ -1,5 +1,6 @@
 import React from 'react';
 import { BarChart3, TrendingUp, Sparkles, AlertCircle, CheckCircle, Info, RotateCcw } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { calculateBalanceMetrics } from '../utils/scheduler';
 
 export default function HistoryView({ employees, allSchedules, historyData, onOpenGenerateModal, onResetHistory }) {
@@ -114,7 +115,7 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
                         <div
                           className="history-avatar"
                           style={{
-                            backgroundColor: employee.color || '#381267',
+                            backgroundColor: employee.color || '#4f1f66',
                             width: '36px',
                             height: '36px',
                             minWidth: '36px',
@@ -129,7 +130,7 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
                             flexShrink: 0
                           }}
                         >
-                          {employee.avatar || employee.name.slice(0, 2).toUpperCase()}
+                          {getInitials(employee.name)}
                         </div>
                         <div>
                           <span className="history-emp-name">{employee.name}</span>

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Clock, Plus, Edit2, AlertCircle, Check, GripHorizontal, Headset, X, ArrowRight, Lock } from 'lucide-react';
+import { getInitials, getShortName } from '../utils/nameUtils';
 import { timeToMinutes, minutesToTime, snapToInterval } from '../utils/timeUtils';
 
 export default function TimelineView({
@@ -15,7 +16,7 @@ export default function TimelineView({
   isAdmin = true,
   currentUserEmployeeId = null
 }) {
-  const timelineRef = useRef(null);
+  const rulerTrackRef = useRef(null);
   const [draggingSlot, setDraggingSlot] = useState(null);
   const [dragPreviewStartMin, setDragPreviewStartMin] = useState(null);
   const [pendingMove, setPendingMove] = useState(null);
@@ -72,7 +73,7 @@ export default function TimelineView({
     isDraggingRef.current = false;
 
     const handleMove = (moveEvent) => {
-      if (!timelineRef.current) return;
+      if (!rulerTrackRef.current) return;
       const currentX = moveEvent.type.includes('touch') ? moveEvent.touches[0].clientX : moveEvent.clientX;
       const deltaX = currentX - clientX;
       dragDistanceRef.current += Math.abs(deltaX);
@@ -80,7 +81,8 @@ export default function TimelineView({
         isDraggingRef.current = true;
       }
 
-      const rect = timelineRef.current.getBoundingClientRect();
+      // Largura só da faixa de horários (sem a coluna de nomes) para o arraste seguir o cursor
+      const rect = rulerTrackRef.current.getBoundingClientRect();
       const deltaMinutes = (deltaX / rect.width) * totalTimelineMinutes;
 
       const rawNewStart = timeToMinutes(slot.startTime) + deltaMinutes;
@@ -113,7 +115,7 @@ export default function TimelineView({
           setPendingMove({
             slotId: slot.id,
             slot,
-            employee: emp || { name: 'Colaborador', color: '#7c3aed' },
+            employee: emp || { name: 'Colaborador', color: '#6e2b90' },
             originalStartTime: slot.startTime,
             originalEndTime: slot.endTime,
             newStartTime,
@@ -163,13 +165,13 @@ export default function TimelineView({
 
       {/* Contêiner com Scroll da Linha do Tempo */}
       <div className="timeline-scroll-container">
-        <div className="timeline-inner" ref={timelineRef}>
+        <div className="timeline-inner">
           {/* Régua de Horários Superior */}
           <div className="timeline-time-ruler">
             <div className="employee-column-header">
-              <span>EQUIPE SCADA</span>
+              <span>Equipe</span>
             </div>
-            <div className="ruler-track">
+            <div className="ruler-track" ref={rulerTrackRef}>
               {/* Faixa destacada da Janela Crítica */}
               <div
                 className="critical-zone-indicator"
@@ -180,10 +182,10 @@ export default function TimelineView({
               />
 
               {/* Marcadores de Horas */}
-              {hourMarkers.map((marker) => (
+              {hourMarkers.map((marker, idx) => (
                 <div
                   key={marker.minute}
-                  className="ruler-mark"
+                  className={`ruler-mark ${idx === 0 ? 'is-first' : ''} ${idx === hourMarkers.length - 1 ? 'is-last' : ''}`}
                   style={{ left: `${marker.percent}%` }}
                 >
                   <span className="ruler-label">{marker.label}</span>
@@ -200,7 +202,7 @@ export default function TimelineView({
               {gridLines.map((line) => (
                 <div
                   key={line.minute}
-                  className={`grid-line ${line.isHour ? 'grid-hour' : ''}`}
+                  className={`grid-line ${line.isHour ? 'grid-hour' : ''} ${line.minute === endHourMin ? 'is-last' : ''}`}
                   style={{ left: `${line.percent}%` }}
                 />
               ))}
@@ -221,7 +223,7 @@ export default function TimelineView({
                   style={{ left: `${currentTimePercent}%` }}
                 >
                   <div className="time-marker-badge">
-                    Agora ({minutesToTime(currentTimeMinutes)})
+                    Agora {minutesToTime(currentTimeMinutes)}
                   </div>
                   <div className="time-marker-line" />
                 </div>
@@ -269,14 +271,14 @@ export default function TimelineView({
                   <div className="employee-info-cell">
                     <div
                       className="emp-avatar"
-                      style={{ backgroundColor: emp.color || '#381267' }}
+                      style={{ backgroundColor: emp.color || '#4f1f66' }}
                     >
-                      {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+                      {getInitials(emp.name)}
                     </div>
                     <div className="emp-text-details">
                       <div className="emp-name-row">
                         <span className="emp-name" title={emp.name}>
-                          {emp.name} {emp.id === currentUserEmployeeId ? ' (Você)' : ''}
+                          {getShortName(emp.name)}{emp.id === currentUserEmployeeId ? ' (você)' : ''}
                         </span>
                         {!emp.active && <span className="inactive-pill">Inativo</span>}
                       </div>
@@ -307,7 +309,7 @@ export default function TimelineView({
                         style={{
                           left: `${leftPercent}%`,
                           width: `${widthPercent}%`,
-                          '--emp-accent': emp.color || '#381267',
+                          '--emp-accent': emp.color || '#4f1f66',
                           cursor: isEditable ? 'pointer' : 'default'
                         }}
                         onClick={(e) => {
@@ -342,7 +344,7 @@ export default function TimelineView({
 
                         <div className="slot-block-content">
                           <span className="slot-badge-label">
-                            {isPendingThisSlot ? 'NOVO HORÁRIO' : 'ALMOÇO'}
+                            {isPendingThisSlot ? 'Novo horário' : 'Almoço'}
                           </span>
                           <span className="slot-time-range">
                             {isBeingDragged
