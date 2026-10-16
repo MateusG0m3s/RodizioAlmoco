@@ -24,7 +24,7 @@ export default function Navbar({
 }) {
   // Rótulos curtos para caber em uma linha; o nome completo fica no title
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', title: 'Dashboard do dia', icon: BarChart3 },
+    { id: 'dashboard', label: 'Dashboard', mobileLabel: 'Painel', title: 'Dashboard do dia', icon: BarChart3 },
     { id: 'week', label: 'Semana', title: 'Rodízio semanal', icon: Calendar },
     { id: 'team', label: 'Equipe', title: 'Gestão da equipe', icon: Users },
     { id: 'history', label: 'Histórico', title: 'Histórico e equilíbrio', icon: ShieldCheck },
@@ -100,7 +100,7 @@ export default function Navbar({
           {onLogout && (
             <button
               type="button"
-              className="theme-toggle-btn navbar-icon-btn"
+              className="theme-toggle-btn navbar-icon-btn navbar-logout-btn"
               style={{
                 color: '#f87171',
                 borderColor: 'rgba(239, 68, 68, 0.35)',

@@ -1673,7 +1673,7 @@ body {
 /* Grade de Cards dos Dias da Semana */
 .weekdays-nav-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -1865,6 +1865,11 @@ body {
   background: #ffffff;
   box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
+}
+
+/* Nome completo no desktop, primeiro + último no celular */
+.name-short {
+  display: none;
 }
 
 .btn-matrix-add {
@@ -2374,7 +2379,7 @@ body {
 
 .settings-title-group {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
@@ -2392,7 +2397,7 @@ body {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 20px;
 }
 
@@ -2453,8 +2458,177 @@ body {
   flex-wrap: wrap;
 }
 
+/* Utilitários no estilo Tailwind que os componentes usam, mas que nunca tiveram CSS
+   (o projeto não usa Tailwind). Mapeados para os tokens da marca. */
+.text-xs { font-size: 0.78rem; }
+.font-semibold { font-weight: 600; }
+.shrink-0 { flex-shrink: 0; }
+.text-slate-400 { color: var(--text-light); }
+.text-slate-500 { color: var(--text-muted); }
+.text-scada-cyan,
+.text-cyan-bright { color: var(--scada-cyan); }
+.text-primary-500,
+.text-purple-scada,
+.text-purple-400 { color: var(--scada-purple-mid); }
+.text-emerald-600,
+.text-emerald-700 { color: var(--working-text); }
+.text-rose-500,
+.text-rose-600 { color: var(--conflict-text); }
+.text-amber-400,
+.text-amber-500,
+.text-amber-600 { color: var(--warning-text); }
+
+.matrix-card-header > span {
+  display: block;
+  margin-top: 2px;
+}
+
+/* Cabeçalho, corpo e formulário dos modais (Equipe e Gerador) */
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.modal-subtitle {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.modal-body-pad,
+.modal-form {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-form .modal-footer {
+  margin: 6px -24px -20px;
+}
+
+/* Todo modal cabe na tela: rola por dentro e mantém o rodapé (Salvar/Cancelar) visível */
+.modal-backdrop > * {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+.modal-backdrop .modal-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  gap: 10px;
+}
+
+.form-group > .form-label {
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+
+/* Paleta de cor do colaborador e status no modal de Equipe */
+.color-palette-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.color-choice-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.color-choice-btn.selected {
+  box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--scada-purple-mid);
+}
+
+.color-choice-btn:focus-visible {
+  outline: 2px solid var(--scada-cyan);
+  outline-offset: 3px;
+}
+
+.switch-status-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+.radio-label input {
+  accent-color: var(--scada-purple-mid);
+  width: 16px;
+  height: 16px;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.btn-icon:hover {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+/* Utilitários de formulário usados em Configurações e Equipe (antes sem CSS) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.form-group .form-input {
+  width: 100%;
+}
+
+.form-group-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 14px;
+}
+
+.flex-1 {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.mt-2 {
+  margin-top: 12px;
+}
+
+.settings-title-group > svg {
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.duration-buttons-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .btn-duration-choice {
   flex: 1;
+  white-space: nowrap;
   padding: 8px 14px;
   border: 1.5px solid var(--border-color);
   background: var(--bg-card);
@@ -2592,6 +2766,8 @@ body {
   background: var(--bg-card);
   outline: none;
   transition: border-color 0.15s ease;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .form-input:focus {
@@ -2744,10 +2920,10 @@ body {
     grid-template-columns: 1fr 1fr;
   }
   .settings-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .weekdays-nav-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
@@ -3067,6 +3243,285 @@ body {
     display: none;
   }
 
+  /* Respiro lateral menor: 16px de margem útil em vez de 48px somados */
+  .main-content {
+    padding: 16px 12px 32px;
+  }
+
+  /* Configurações */
+  .settings-card {
+    padding: 18px 16px;
+  }
+  .settings-main-title {
+    font-size: 1.25rem;
+  }
+  .card-section-title {
+    font-size: 1.05rem;
+  }
+  .btn-duration-choice {
+    padding: 8px 2px;
+    font-size: 0.78rem;
+  }
+  .backup-action-item,
+  .settings-submit-row {
+    flex-wrap: wrap;
+  }
+  .backup-action-item > button,
+  .settings-submit-row > button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modais viram "bottom sheet": largura total, presos à base da tela */
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal-backdrop > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0 !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .modal-header {
+    padding: 16px;
+  }
+  .modal-body-pad,
+  .modal-form {
+    padding: 16px;
+  }
+  .modal-form .modal-footer {
+    margin: 6px -16px -16px;
+  }
+  .modal-footer {
+    padding: 12px 16px;
+  }
+  .modal-footer > button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Gerador: prévia em uma linha por pessoa */
+  .preview-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .preview-slot-item {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .preview-slot-item > svg,
+  .preview-duration-tag {
+    display: none;
+  }
+  .preview-emp-avatar {
+    flex-shrink: 0;
+  }
+  .preview-emp-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .preview-slot-time {
+    white-space: nowrap;
+    font-size: 0.82rem;
+  }
+
+  /* Títulos das abas */
+  .week-main-title,
+  .settings-main-title,
+  .team-main-title,
+  .history-main-title {
+    font-size: 1.25rem;
+  }
+
+  /* Histórico: índice em uma faixa, ações lado a lado, linhas viram cartões */
+  .history-actions-group {
+    width: 100%;
+    gap: 10px !important;
+  }
+  .history-actions-group > button {
+    flex: 1;
+    justify-content: center;
+    white-space: nowrap;
+  }
+  .balance-score-card {
+    order: -1;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  .balance-score-number {
+    font-size: 1.5rem;
+  }
+  .bands-info-banner {
+    gap: 6px;
+  }
+  .band-chip {
+    padding: 6px 12px;
+    font-size: 0.74rem;
+    gap: 6px;
+  }
+  .history-card-header {
+    padding: 14px 16px !important;
+  }
+  .history-data-table {
+    min-width: 0;
+  }
+  .history-data-table thead {
+    display: none;
+  }
+  .history-data-table,
+  .history-data-table tbody {
+    display: block;
+  }
+  .history-data-table tr {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px 6px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .history-data-table td {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+  .history-data-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .history-data-table .td-emp-profile,
+  .history-data-table .td-proportion {
+    grid-column: 1 / -1;
+    align-items: stretch;
+  }
+  .history-data-table .proportion-bar {
+    width: 100%;
+  }
+  .history-emp-name .name-full {
+    display: none;
+  }
+  .history-emp-name .name-short {
+    display: inline;
+  }
+
+  /* Semana: navegação só com ícones; gerar ocupa a segunda linha */
+  .week-nav-controls {
+    width: 100%;
+  }
+  .week-nav-label {
+    display: none;
+  }
+  .btn-week-nav {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+  .week-nav-controls .btn-primary {
+    flex: 1;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  /* Semana: os 5 dias cabem na tela, sem rolagem lateral */
+  .weekdays-nav-grid {
+    gap: 6px;
+  }
+  .weekday-card {
+    padding: 10px 4px;
+    min-width: 0;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+  }
+  .weekday-card-header {
+    justify-content: center;
+  }
+  .weekday-status-dot,
+  .weekday-card .today-badge {
+    display: none;
+  }
+  .weekday-number {
+    font-size: 1.35rem;
+  }
+  .weekday-footer {
+    justify-content: center;
+    margin-top: 0;
+  }
+  .weekday-slots-count {
+    font-size: 0.66rem;
+  }
+
+  /* Semana: grade com coluna de nomes fixa e células compactas */
+  .matrix-card-header {
+    padding: 14px 16px;
+  }
+  .week-matrix-table {
+    min-width: 560px;
+  }
+  .week-matrix-table th,
+  .week-matrix-table td {
+    padding: 10px 8px;
+  }
+  .week-matrix-table .th-employee,
+  .week-matrix-table .td-employee {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    width: 132px;
+    max-width: 132px;
+    background: var(--bg-card);
+    box-shadow: 1px 0 0 var(--border-color);
+  }
+  .week-matrix-table .th-employee {
+    background: var(--bg-subtle);
+  }
+  .matrix-emp-info {
+    gap: 8px;
+  }
+  .matrix-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+    font-size: 0.7rem;
+  }
+  .matrix-emp-name {
+    font-size: 0.8rem;
+    line-height: 1.25;
+  }
+  .matrix-emp-name .name-full {
+    display: none;
+  }
+  .matrix-emp-name .name-short {
+    display: inline;
+  }
+  .week-slot-pill {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    border-radius: var(--radius-md);
+  }
+  .week-slot-pill > svg {
+    display: none;
+  }
+  .week-slot-pill .slot-hours {
+    white-space: normal;
+    line-height: 1.2;
+  }
+
   .my-lunch-strip {
     flex-wrap: wrap;
     gap: 14px;
@@ -3091,13 +3546,37 @@ body {
   }
 }
 
+/* Celulares estreitos (iPhone SE, Galaxy A0x): a navbar perde o que existe em outro lugar.
+   "Sair" continua no menu da conta; o banner do simulador tem "Hora real". */
+@media (max-width: 370px) {
+  .scadahub-logo-wrap {
+    font-size: 1.2rem;
+  }
+  .navbar-container {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .navbar-logout-btn,
+  .btn-pill-simulate,
+  .btn-pill-reset {
+    display: none !important;
+  }
+  .theme-toggle-btn.navbar-icon-btn,
+  .user-auth-btn {
+    width: 30px;
+    height: 30px;
+  }
+  .time-pill {
+    padding: 4px 10px;
+  }
+}
+
 @media (max-width: 768px) {
   .summary-cards-grid {
     grid-template-columns: 1fr;
   }
   .weekdays-nav-grid {
-    grid-template-columns: repeat(5, 1fr);
-    overflow-x: auto;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
   .dashboard-top-bar {
     flex-direction: column;
