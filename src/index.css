@@ -408,7 +408,7 @@ body {
 
 /* Simulador de Horário Banner */
 .simulator-banner {
-  background: linear-gradient(90deg, var(--scada-purple-dark), #22102e);
+  background: linear-gradient(90deg, #3a1650, #22102e); /* fixo: no escuro --scada-purple-dark vira cor de texto */
   color: #ffffff;
   padding: 10px 24px;
   border-bottom: 2px solid var(--scada-cyan);
@@ -459,6 +459,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .quick-time-btn {
@@ -4922,3 +4923,109 @@ input[type="date"] {
 
 
 
+/* Timeline compacta no celular: só os avatares na coluna de pessoas e a faixa de horários
+   ocupa a largura toda, sem rolagem lateral. O nome completo fica no title do avatar. */
+@media (max-width: 640px) {
+  .timeline-inner {
+    --emp-col: 52px;
+    --ruler-h: 52px;
+    min-width: 0;
+  }
+  .employee-column-header {
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+  .employee-info-cell {
+    padding: 0;
+    justify-content: center;
+  }
+  .employee-info-cell .emp-text-details {
+    display: none;
+  }
+  .employee-info-cell .emp-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.72rem;
+  }
+  .emp-avatar.is-you {
+    box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--scada-purple-mid);
+  }
+  .timeline-employee-row {
+    height: 56px;
+  }
+  .ruler-label {
+    font-size: 0.66rem;
+  }
+  .time-marker-badge {
+    font-size: 0.62rem;
+    padding: 2px 7px;
+  }
+  .working-background-bar {
+    top: 10px;
+    bottom: 10px;
+  }
+
+  /* Bloco de almoço: só o horário; tocar abre a edição */
+  .lunch-slot-block {
+    top: 8px;
+    bottom: 8px;
+    padding: 0 4px;
+    border-left-width: 3px;
+    justify-content: center;
+  }
+  .lunch-slot-block > :not(.slot-block-content) {
+    display: none;
+  }
+  .slot-block-content {
+    margin: 0;
+    align-items: center;
+  }
+  .slot-time-range {
+    font-size: 0.66rem;
+    line-height: 1.15;
+    white-space: normal;
+    text-align: center;
+  }
+
+  /* "Definir almoço" vira só o "+" */
+  .btn-add-slot-label {
+    display: none;
+  }
+  .empty-slot-area {
+    padding-left: 8px !important;
+  }
+  .btn-add-slot-row {
+    padding: 6px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Cor do bloco já diz que é almoço; a legenda de cores continua logo acima */
+  .lunch-slot-block .slot-badge-label,
+  .timeline-caption {
+    display: none;
+  }
+  .timeline-title {
+    font-size: 1rem;
+  }
+  .timeline-legend {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Simulador de horário: slider em largura total e horários rápidos em grade */
+  .simulator-banner {
+    padding: 10px 12px;
+  }
+  .simulator-slider-group {
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .simulator-quick-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex-basis: 100%;
+  }
+}
