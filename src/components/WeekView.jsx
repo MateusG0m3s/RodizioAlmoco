@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Sparkles, Clock, Plus, Lock } from 'lucide-react';
-import { getInitials } from '../utils/nameUtils';
+import { getInitials, getShortName } from '../utils/nameUtils';
 import { getWorkDaysOfWeek, toISODateString, parseISODate } from '../utils/timeUtils';
 
 export default function WeekView({
@@ -66,9 +66,10 @@ export default function WeekView({
             style={{ borderRadius: '9999px' }}
             onClick={handlePrevWeek}
             title="Semana anterior"
+            aria-label="Semana anterior"
           >
             <ChevronLeft size={16} />
-            <span>Semana Anterior</span>
+            <span className="week-nav-label">Semana anterior</span>
           </button>
           <button
             type="button"
@@ -84,8 +85,9 @@ export default function WeekView({
             style={{ borderRadius: '9999px' }}
             onClick={handleNextWeek}
             title="Próxima semana"
+            aria-label="Próxima semana"
           >
-            <span>Próxima Semana</span>
+            <span className="week-nav-label">Próxima semana</span>
             <ChevronRight size={16} />
           </button>
 
@@ -100,7 +102,7 @@ export default function WeekView({
                 title="Gera automaticamente a escala da semana inteira alternando turnos (Admin)"
               >
                 <Sparkles size={16} />
-                <span>Gerar Escala da Semana</span>
+                <span>Gerar escala da semana</span>
               </button>
               {onOpenGenerateModal && (
                 <button
@@ -124,7 +126,7 @@ export default function WeekView({
       </div>
 
       {/* Cartões dos Dias da Semana (SEG - SEX) */}
-      <div className="weekdays-nav-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+      <div className="weekdays-nav-grid">
         {workdays.map((day) => {
           const isSelected = day.date === currentDate;
           const status = getDayStatus(day.date);
@@ -224,7 +226,9 @@ export default function WeekView({
                         </div>
                         <div className="matrix-emp-text">
                           <span className="matrix-emp-name">
-                            {emp.name} {isOwnEmployee ? ' (Você)' : ''}
+                            <span className="name-full">{emp.name}</span>
+                            <span className="name-short">{getShortName(emp.name)}</span>
+                            {isOwnEmployee ? ' (você)' : ''}
                           </span>
                           {!emp.active && <span className="matrix-inactive-tag">Inativo</span>}
                         </div>

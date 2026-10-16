@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, X, Calendar, RefreshCw, ShieldCheck, ArrowRight, Shuffle, AlertTriangle } from 'lucide-react';
-import { getInitials } from '../utils/nameUtils';
+import { getInitials, getShortName } from '../utils/nameUtils';
 import confetti from 'canvas-confetti';
 import { generateAutoSchedule } from '../utils/scheduler';
 import { getWorkDaysOfWeek } from '../utils/timeUtils';
@@ -151,7 +151,7 @@ export default function GenerateModal({
                 title="Sortear outra combinação de duplas"
               >
                 <Shuffle size={13} />
-                <span>Girar / Alternar Duplas</span>
+                <span>Sortear de novo</span>
               </button>
             </div>
 
@@ -166,7 +166,7 @@ export default function GenerateModal({
                     >
                       {getInitials(emp?.name)}
                     </div>
-                    <span className="preview-emp-name">{emp?.name}</span>
+                    <span className="preview-emp-name" title={emp?.name}>{getShortName(emp?.name)}</span>
                     <ArrowRight size={14} className="text-slate-400" />
                     <span className="preview-slot-time">
                       <strong>{slot.startTime}</strong> — <strong>{slot.endTime}</strong>

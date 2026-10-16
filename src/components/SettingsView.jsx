@@ -272,8 +272,8 @@ export default function SettingsView({
                   value={formData.minWorkingDuringCritical || 1}
                   onChange={(e) => handleChange('minWorkingDuringCritical', Number(e.target.value))}
                 >
-                  <option value={1}>No mínimo 1 atendente ativo (Garante atendimento)</option>
-                  <option value={2}>No mínimo 2 atendentes ativos (Recomendado para dias de pico)</option>
+                  <option value={1}>1 atendente (padrão)</option>
+                  <option value={2}>2 atendentes (dias de pico)</option>
                 </select>
               </div>
             </div>

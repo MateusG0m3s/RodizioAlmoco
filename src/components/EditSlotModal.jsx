@@ -343,7 +343,7 @@ export default function EditSlotModal({
             </div>
             <div>
               <span style={{ fontSize: '0.78rem', color: textSub, fontWeight: 700 }}>
-                FUNCIONÁRIO
+                Funcionário
               </span>
               <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: isDark ? '#b47ad6' : 'var(--scada-purple-dark)', margin: '2px 0 0 0' }}>
                 {employee?.name} {isOwner ? ' (Você)' : ''}

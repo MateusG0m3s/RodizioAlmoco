@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart3, TrendingUp, Sparkles, AlertCircle, CheckCircle, Info, RotateCcw } from 'lucide-react';
-import { getInitials } from '../utils/nameUtils';
+import { getInitials, getShortName } from '../utils/nameUtils';
 import { calculateBalanceMetrics } from '../utils/scheduler';
 
 export default function HistoryView({ employees, allSchedules, historyData, onOpenGenerateModal, onResetHistory }) {
@@ -35,7 +35,7 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
               title="Zera o histórico anterior acumulado, mantendo apenas as escalas atuais"
             >
               <RotateCcw size={14} />
-              <span>Zerar Histórico Acumulado</span>
+              <span>Zerar histórico</span>
             </button>
           )}
 
@@ -47,7 +47,7 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
               title="Abre o gerador para recalcular e equilibrar a distribuição de turnos"
             >
               <Sparkles size={16} />
-              <span>Ajustar Rotação</span>
+              <span>Ajustar rotação</span>
             </button>
           )}
 
@@ -133,7 +133,10 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
                           {getInitials(employee.name)}
                         </div>
                         <div>
-                          <span className="history-emp-name">{employee.name}</span>
+                          <span className="history-emp-name">
+                            <span className="name-full">{employee.name}</span>
+                            <span className="name-short">{getShortName(employee.name)}</span>
+                          </span>
                           {!employee.active && (
                             <span className="badge-inactive-sub">Inativo</span>
                           )}
@@ -141,17 +144,17 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
                       </div>
                     </td>
 
-                    <td className="td-count count-early">
+                    <td className="td-count count-early" data-label="Cedo">
                       <span className="count-badge early">{counts['11h-12h']}</span>
                     </td>
-                    <td className="td-count count-mid">
+                    <td className="td-count count-mid" data-label="Meio">
                       <span className="count-badge mid">{counts['12h-13h']}</span>
                     </td>
-                    <td className="td-count count-late">
+                    <td className="td-count count-late" data-label="Tarde">
                       <span className="count-badge late">{counts['13h-14h']}</span>
                     </td>
 
-                    <td className="td-total">
+                    <td className="td-total" data-label="Total">
                       <strong>{total}</strong>
                     </td>
 
