@@ -270,7 +270,8 @@ export default function TimelineView({
                   {/* Informações do Colaborador (Coluna Fixa) */}
                   <div className="employee-info-cell">
                     <div
-                      className="emp-avatar"
+                      className={`emp-avatar ${emp.id === currentUserEmployeeId ? 'is-you' : ''}`}
+                      title={emp.id === currentUserEmployeeId ? `${emp.name} (você)` : emp.name}
                       style={{ backgroundColor: emp.color || '#4f1f66' }}
                     >
                       {getInitials(emp.name)}
@@ -397,9 +398,10 @@ export default function TimelineView({
                             }}
                             onClick={() => onAddSlotForEmployee(emp)}
                             title="Definir horário de almoço para este colaborador"
+                            aria-label={`Definir almoço de ${emp.name}`}
                           >
                             <Plus size={13} />
-                            <span>Definir almoço</span>
+                            <span className="btn-add-slot-label">Definir almoço</span>
                           </button>
                         )}
                       </div>
