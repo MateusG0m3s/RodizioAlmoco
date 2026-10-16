@@ -45,7 +45,7 @@ export default function CardsView({
                   letterSpacing: '0.04em'
                 }}
               >
-                VOCÊ
+                Você
               </div>
             )}
 
@@ -53,7 +53,7 @@ export default function CardsView({
             <div className="card-person-header">
               <div
                 className="person-avatar"
-                style={{ backgroundColor: emp.color || '#3b82f6' }}
+                style={{ backgroundColor: emp.color || '#1a87cc' }}
               >
                 {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
               </div>

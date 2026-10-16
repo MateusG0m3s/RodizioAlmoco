@@ -114,7 +114,7 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
                         <div
                           className="history-avatar"
                           style={{
-                            backgroundColor: employee.color || '#381267',
+                            backgroundColor: employee.color || '#4f1f66',
                             width: '36px',
                             height: '36px',
                             minWidth: '36px',

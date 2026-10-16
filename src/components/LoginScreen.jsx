@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Shield, Lock, Mail, Eye, EyeOff, LogIn, AlertCircle, Sparkles, Sun, Moon } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle, Sparkles, Sun, Moon } from 'lucide-react';
 import ChangePasswordModal from './ChangePasswordModal';
+import BrandLogo from './BrandLogo';
 
 export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
   const [email, setEmail] = useState('');
@@ -80,12 +81,9 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
       <div className="login-card-container animate-fade-in">
         {/* Topo do Card com Identidade scadahub */}
         <div className="login-brand-header">
-          <div className="login-icon-box">
-            <Shield size={32} className="login-shield-icon" />
-          </div>
-          <h1 className="login-title">RODÍZIO DE ALMOÇO</h1>
-          <span className="login-scadahub-tag">scadahub • Atendimento Contínuo</span>
-          <p className="login-subtitle">Entre para acessar o sistema</p>
+          <BrandLogo className="login-logo" />
+          <h1 className="login-title">Rodízio de almoço</h1>
+          <p className="login-subtitle">Entre com seu e-mail da scadahub para ver a escala da equipe.</p>
         </div>
 
         {/* Mensagem de Erro Amigável */}
@@ -111,7 +109,7 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
                 autoComplete="username"
                 required
                 className="login-input"
-                placeholder="seu.email@scadahub.com"
+                placeholder="seu.nome@scadahub.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSubmitting}
@@ -162,7 +160,7 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
             ) : (
               <>
                 <LogIn size={18} />
-                <span>ENTRAR</span>
+                <span>Entrar</span>
               </>
             )}
           </button>
@@ -184,7 +182,7 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
                 fontSize: '0.8rem'
               }}
             >
-              Alterar Senha
+              Alterar senha
             </button>
           </div>
         </form>

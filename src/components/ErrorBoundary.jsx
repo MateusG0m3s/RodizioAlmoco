@@ -31,24 +31,24 @@ export class ErrorBoundary extends React.Component {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#0c0817',
-          color: '#f8fafc',
+          background: '#08060c',
+          color: '#f8f5fa',
           fontFamily: 'system-ui, sans-serif',
           padding: '20px'
         }}>
           <div style={{
             maxWidth: '500px',
-            background: '#150e26',
-            border: '1.5px solid #7c3aed',
+            background: '#120d18',
+            border: '1.5px solid #6e2b90',
             borderRadius: '16px',
             padding: '30px',
             textAlign: 'center',
             boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
           }}>
-            <h2 style={{ fontSize: '1.4rem', color: '#c084fc', marginBottom: '10px' }}>
+            <h2 style={{ fontSize: '1.4rem', color: '#b47ad6', marginBottom: '10px' }}>
               scadahub — Escala de Almoço
             </h2>
-            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '20px' }}>
+            <p style={{ color: '#d6cfdd', fontSize: '0.9rem', marginBottom: '20px' }}>
               Ocorreu uma inconsistência temporária de carregamento.
             </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component {
                   padding: '10px 20px',
                   borderRadius: '9999px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #7c3aed, #0284c7)',
+                  background: 'linear-gradient(135deg, #6e2b90, #1a87cc)',
                   color: '#ffffff',
                   fontWeight: 600,
                   cursor: 'pointer'
@@ -71,8 +71,8 @@ export class ErrorBoundary extends React.Component {
                 style={{
                   padding: '10px 20px',
                   borderRadius: '9999px',
-                  border: '1px solid #381f5e',
-                  background: '#1c1333',
+                  border: '1px solid #3a2a4a',
+                  background: '#1a1322',
                   color: '#f87171',
                   fontWeight: 600,
                   cursor: 'pointer'

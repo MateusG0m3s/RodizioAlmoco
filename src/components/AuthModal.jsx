@@ -66,12 +66,12 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
                 width: '36px',
                 height: '36px',
                 borderRadius: '10px',
-                background: isAdmin ? 'rgba(56, 18, 103, 0.4)' : 'rgba(2, 132, 199, 0.2)',
+                background: isAdmin ? 'rgba(56, 18, 103, 0.4)' : 'rgba(26, 135, 204, 0.2)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: isAdmin ? '#c084fc' : '#38bdf8',
-                border: `1px solid ${isAdmin ? '#7c3aed' : '#0284c7'}`
+                color: isAdmin ? '#b47ad6' : '#4fb3ee',
+                border: `1px solid ${isAdmin ? '#6e2b90' : '#1a87cc'}`
               }}
             >
               {isAdmin ? <ShieldCheck size={20} /> : <User size={20} />}
@@ -106,7 +106,7 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
                 width: '42px',
                 height: '42px',
                 borderRadius: '50%',
-                background: currentUser?.color || '#381267',
+                background: currentUser?.color || '#4f1f66',
                 color: '#ffffff',
                 fontWeight: 700,
                 fontSize: '0.95rem',
@@ -129,11 +129,9 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
                     fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    background: isAdmin ? 'rgba(124, 58, 237, 0.2)' : 'rgba(2, 132, 199, 0.2)',
-                    color: isAdmin ? '#c084fc' : '#38bdf8',
-                    border: `1px solid ${isAdmin ? 'rgba(124, 58, 237, 0.4)' : 'rgba(2, 132, 199, 0.4)'}`
+                    background: isAdmin ? 'rgba(110, 43, 144, 0.2)' : 'rgba(26, 135, 204, 0.2)',
+                    color: isAdmin ? '#b47ad6' : '#4fb3ee',
+                    border: `1px solid ${isAdmin ? 'rgba(110, 43, 144, 0.4)' : 'rgba(26, 135, 204, 0.4)'}`
                   }}
                 >
                   {isAdmin ? '👑 Admin' : '👤 Usuário Normal'}
@@ -153,8 +151,8 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
               style={{
                 padding: '8px 12px',
                 borderRadius: '8px',
-                background: 'rgba(124, 58, 237, 0.1)',
-                border: '1px solid rgba(124, 58, 237, 0.3)',
+                background: 'rgba(110, 43, 144, 0.1)',
+                border: '1px solid rgba(110, 43, 144, 0.3)',
                 color: 'var(--primary-400)',
                 cursor: 'pointer',
                 display: 'flex',
@@ -219,7 +217,7 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
               gap: '8px'
             }}
           >
-            <Sparkles size={15} color="#c084fc" />
+            <Sparkles size={15} color="#b47ad6" />
             <span>Contas de Teste & Auditoria</span>
           </button>
           <button
@@ -241,7 +239,7 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
               gap: '8px'
             }}
           >
-            <Mail size={15} color="#38bdf8" />
+            <Mail size={15} color="#4fb3ee" />
             <span>Login com E-mail</span>
           </button>
         </div>
@@ -265,8 +263,8 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
                   style={{
                     padding: '12px 14px',
                     borderRadius: '10px',
-                    background: isSelected ? 'rgba(124, 58, 237, 0.12)' : 'var(--bg-subtle)',
-                    border: `1.5px solid ${isSelected ? '#7c3aed' : 'var(--border-subtle)'}`,
+                    background: isSelected ? 'rgba(110, 43, 144, 0.12)' : 'var(--bg-subtle)',
+                    border: `1.5px solid ${isSelected ? '#6e2b90' : 'var(--border-subtle)'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -302,8 +300,8 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
                             borderRadius: '9999px',
                             fontSize: '0.68rem',
                             fontWeight: 700,
-                            background: isAccAdmin ? 'rgba(124, 58, 237, 0.25)' : 'rgba(2, 132, 199, 0.2)',
-                            color: isAccAdmin ? '#c084fc' : '#38bdf8'
+                            background: isAccAdmin ? 'rgba(110, 43, 144, 0.25)' : 'rgba(26, 135, 204, 0.2)',
+                            color: isAccAdmin ? '#b47ad6' : '#4fb3ee'
                           }}
                         >
                           {key} ({isAccAdmin ? 'Admin' : 'Usuário'})
@@ -316,7 +314,7 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
                   </div>
 
                   {isSelected && (
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#6e2b90', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Check size={14} color="#ffffff" />
                     </div>
                   )}

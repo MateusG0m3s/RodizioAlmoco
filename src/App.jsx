@@ -277,7 +277,7 @@ export default function App() {
         particleCount: 85,
         spread: 75,
         origin: { y: 0.6 },
-        colors: ['#2D0C5E', '#7c3aed', '#0284c7', '#38bdf8']
+        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
       });
     } catch {
       // Ignora erro de confetti
@@ -331,7 +331,7 @@ export default function App() {
         particleCount: 110,
         spread: 85,
         origin: { y: 0.6 },
-        colors: ['#2D0C5E', '#7c3aed', '#0284c7', '#38bdf8']
+        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
       });
     } catch {
       // Ignora erro de confetti
@@ -520,7 +520,7 @@ export default function App() {
           employeeId: finalEmpData.id,
           role: isAdminEmp ? 'admin' : 'user',
           avatar: finalEmpData.avatar || finalEmpData.name.substring(0, 2).toUpperCase(),
-          color: finalEmpData.color || '#7c3aed'
+          color: finalEmpData.color || '#6e2b90'
         };
         localStorage.setItem('scadahub_account_directory', JSON.stringify(directory));
 
@@ -839,16 +839,16 @@ export default function App() {
             position: 'fixed',
             bottom: '24px',
             right: '24px',
-            background: '#240a42',
+            background: '#3a1650',
             color: '#ffffff',
             padding: '14px 22px',
             borderRadius: '9999px',
-            boxShadow: '0 10px 25px rgba(36, 10, 66, 0.45)',
+            boxShadow: '0 10px 25px rgba(58, 22, 80, 0.45)',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
             zIndex: 9999,
-            border: '1.5px solid #7c3aed',
+            border: '1.5px solid #6e2b90',
             maxWidth: '90vw'
           }}
         >
@@ -857,20 +857,20 @@ export default function App() {
               width: '32px',
               height: '32px',
               borderRadius: '50%',
-              background: 'rgba(2, 132, 199, 0.25)',
+              background: 'rgba(26, 135, 204, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0
             }}
           >
-            <Sparkles size={18} color="#38bdf8" />
+            <Sparkles size={18} color="#4fb3ee" />
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>
               {toastNotification.title}
             </div>
-            <div style={{ fontSize: '0.78rem', color: '#e0f2fe' }}>
+            <div style={{ fontSize: '0.78rem', color: '#e6f3fb' }}>
               {toastNotification.message}
             </div>
           </div>

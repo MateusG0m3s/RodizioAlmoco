@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Users, UserPlus, Edit2, Trash2, Clock, ShieldAlert, X, Lock, Mail } from 'lucide-react';
 
 const COLOR_PALETTE = [
-  '#3b82f6', // Azul
-  '#8b5cf6', // Violeta
+  '#1a87cc', // Azul
+  '#8a44b0', // Violeta
   '#ec4899', // Rosa
   '#f59e0b', // Âmbar
   '#10b981', // Esmeralda
-  '#06b6d4', // Ciano
+  '#4fb3ee', // Ciano
   '#f97316', // Laranja
   '#6366f1'  // Índigo
 ];
@@ -168,7 +168,7 @@ export default function TeamView({
                     letterSpacing: '0.04em'
                   }}
                 >
-                  SEU PERFIL
+                  Seu perfil
                 </div>
               )}
 
@@ -176,7 +176,7 @@ export default function TeamView({
                 <div
                   className="member-avatar"
                   style={{
-                    backgroundColor: emp.color || '#381267',
+                    backgroundColor: emp.color || '#4f1f66',
                     width: '48px',
                     height: '48px',
                     minWidth: '48px',

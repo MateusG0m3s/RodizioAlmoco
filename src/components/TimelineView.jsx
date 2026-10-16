@@ -120,7 +120,7 @@ export default function TimelineView({
           setPendingMove({
             slotId: slot.id,
             slot,
-            employee: emp || { name: 'Colaborador', color: '#7c3aed' },
+            employee: emp || { name: 'Colaborador', color: '#6e2b90' },
             originalStartTime: slot.startTime,
             originalEndTime: slot.endTime,
             newStartTime,
@@ -174,7 +174,7 @@ export default function TimelineView({
           {/* Régua de Horários Superior */}
           <div className="timeline-time-ruler">
             <div className="employee-column-header">
-              <span>EQUIPE SCADA</span>
+              <span>Equipe</span>
             </div>
             <div className="ruler-track" ref={rulerTrackRef}>
               {/* Faixa destacada da Janela Crítica */}
@@ -276,7 +276,7 @@ export default function TimelineView({
                   <div className="employee-info-cell">
                     <div
                       className="emp-avatar"
-                      style={{ backgroundColor: emp.color || '#381267' }}
+                      style={{ backgroundColor: emp.color || '#4f1f66' }}
                     >
                       {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
                     </div>
@@ -314,7 +314,7 @@ export default function TimelineView({
                         style={{
                           left: `${leftPercent}%`,
                           width: `${widthPercent}%`,
-                          '--emp-accent': emp.color || '#381267',
+                          '--emp-accent': emp.color || '#4f1f66',
                           cursor: isEditable ? 'pointer' : 'default'
                         }}
                         onClick={(e) => {
@@ -349,7 +349,7 @@ export default function TimelineView({
 
                         <div className="slot-block-content">
                           <span className="slot-badge-label">
-                            {isPendingThisSlot ? 'NOVO HORÁRIO' : 'ALMOÇO'}
+                            {isPendingThisSlot ? 'Novo horário' : 'Almoço'}
                           </span>
                           <span className="slot-time-range">
                             {isBeingDragged

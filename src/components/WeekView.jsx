@@ -204,7 +204,7 @@ export default function WeekView({
                         <div
                           className="matrix-avatar"
                           style={{
-                            backgroundColor: emp.color || '#381267',
+                            backgroundColor: emp.color || '#4f1f66',
                             width: '32px',
                             height: '32px',
                             minWidth: '32px',
@@ -244,7 +244,7 @@ export default function WeekView({
                             <div
                               className="week-slot-pill"
                               style={{
-                                borderLeftColor: emp.color || '#3b82f6',
+                                borderLeftColor: emp.color || '#1a87cc',
                                 cursor: canManageThisEmp ? 'pointer' : 'default',
                                 opacity: canManageThisEmp ? 1 : 0.85
                               }}

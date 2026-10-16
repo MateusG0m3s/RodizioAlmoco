@@ -94,7 +94,7 @@ export default function LiveSummaryCards({
             <AlertTriangle size={22} />
           </div>
           <div className="critical-gap-text">
-            <strong>⚠️ ATENÇÃO: Risco de Clientes sem Atendimento!</strong>
+            <strong>Atenção: risco de clientes sem atendimento</strong>
             <p>
               Existem horários com menos de {settings?.minWorkingDuringCritical || 1} atendente(s) trabalhando entre {settings?.criticalStart || '11:30'} e {settings?.criticalEnd || '13:30'}:{' '}
               <strong>
@@ -128,7 +128,7 @@ export default function LiveSummaryCards({
           <div className="card-top-header">
             <div className="card-tag">
               <Utensils size={14} />
-              <span>ALMOÇANDO AGORA</span>
+              <span>Almoçando agora</span>
             </div>
             {activeLunchSlots.length > 0 && (
               <span className="live-pulsing-badge">
@@ -148,7 +148,7 @@ export default function LiveSummaryCards({
                     <div key={slot.id} className="hero-emp-info-compact">
                       <div
                         className="hero-avatar"
-                        style={{ backgroundColor: emp.color || '#381267' }}
+                        style={{ backgroundColor: emp.color || '#4f1f66' }}
                       >
                         {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
                       </div>
@@ -201,7 +201,7 @@ export default function LiveSummaryCards({
           <div className="card-top-header">
             <div className="card-tag">
               <Headset size={14} />
-              <span>ATENDIMENTO AO CLIENTE</span>
+              <span>Atendimento ao cliente</span>
             </div>
           </div>
           <div className="stat-body">
@@ -240,7 +240,7 @@ export default function LiveSummaryCards({
           <div className="card-top-header">
             <div className="card-tag">
               <Clock size={14} />
-              <span>PRÓXIMO ALMOÇO</span>
+              <span>Próximo almoço</span>
             </div>
           </div>
           <div className="stat-body">
@@ -274,7 +274,7 @@ export default function LiveSummaryCards({
           <div className="card-top-header">
             <div className="card-tag">
               <Users size={14} />
-              <span>EQUIPE HOJE</span>
+              <span>Equipe hoje</span>
             </div>
             <span className="stat-total-badge">{totalSlotsCount} no total</span>
           </div>

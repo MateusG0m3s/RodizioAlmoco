@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, Users, BarChart3, Settings, Play, RefreshCw, Clock, ShieldCheck, Sun, Moon, LogOut, Volume2, VolumeX } from 'lucide-react';
 import { minutesToTime } from '../utils/timeUtils';
+import BrandLogo from './BrandLogo';
 
 export default function Navbar({
   activeTab,
@@ -37,10 +38,7 @@ export default function Navbar({
       <div className="navbar-container">
         {/* Logo Oficial scadahub */}
         <div className="brand" onClick={() => setActiveTab('dashboard')} role="button">
-          <div className="scadahub-logo-wrap">
-            <span className="scada-part">scada</span>
-            <span className="hub-part">hub</span>
-          </div>
+          <BrandLogo />
           <div className="brand-divider-vertical" />
           <div className="brand-sub-badge">
             <span className="brand-dept-tag">Escala de Almoço</span>
@@ -80,18 +78,18 @@ export default function Navbar({
             title={`Conectado como ${currentUser?.name || 'Usuário'} (${isAdmin ? 'Administrador' : 'Usuário Normal'}). Clique para alternar conta ou autenticar.`}
             aria-label={`Conta: ${currentUser?.name || 'Usuário'}`}
             style={{
-              borderColor: isAdmin ? 'rgba(124, 58, 237, 0.45)' : 'rgba(2, 132, 199, 0.35)'
+              borderColor: isAdmin ? 'rgba(110, 43, 144, 0.45)' : 'rgba(26, 135, 204, 0.35)'
             }}
           >
             <div
               className="user-auth-avatar"
-              style={{ background: currentUser?.color || (isAdmin ? '#381267' : '#0284c7') }}
+              style={{ background: currentUser?.color || (isAdmin ? '#4f1f66' : '#1a87cc') }}
             >
               {userInitial}
             </div>
             <div className="user-auth-text">
               <span className="user-auth-name">{userShortName}</span>
-              <span className="user-auth-role" style={{ color: isAdmin ? '#c084fc' : '#38bdf8' }}>
+              <span className="user-auth-role" style={{ color: isAdmin ? '#b47ad6' : '#4fb3ee' }}>
                 {isAdmin ? '👑 Admin' : '👤 Normal'}
               </span>
             </div>
@@ -147,7 +145,7 @@ export default function Navbar({
               aria-pressed={soundEnabled}
             >
               {soundEnabled ? (
-                <Volume2 size={15} className="theme-icon" style={{ color: 'var(--scada-cyan, #06b6d4)' }} />
+                <Volume2 size={15} className="theme-icon" style={{ color: 'var(--scada-cyan, #4fb3ee)' }} />
               ) : (
                 <VolumeX size={15} className="theme-icon" style={{ opacity: 0.65 }} />
               )}

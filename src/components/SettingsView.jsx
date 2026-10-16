@@ -192,7 +192,7 @@ export default function SettingsView({
                   transition: 'all 0.2s ease'
                 }}
               >
-                <Sun size={16} color={theme !== 'dark' ? '#d97706' : '#94a3b8'} />
+                <Sun size={16} color={theme !== 'dark' ? '#d97706' : '#9a93a3'} />
                 <span>Modo Claro</span>
               </button>
 
@@ -209,13 +209,13 @@ export default function SettingsView({
                   fontSize: '0.84rem',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  border: theme === 'dark' ? '2px solid #7c3aed' : '1px solid var(--border-color)',
-                  background: theme === 'dark' ? 'rgba(124, 58, 237, 0.25)' : 'var(--bg-card)',
-                  color: theme === 'dark' ? '#e9d5ff' : 'var(--text-muted)',
+                  border: theme === 'dark' ? '2px solid #6e2b90' : '1px solid var(--border-color)',
+                  background: theme === 'dark' ? 'rgba(110, 43, 144, 0.25)' : 'var(--bg-card)',
+                  color: theme === 'dark' ? '#ebdcf4' : 'var(--text-muted)',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <Moon size={16} color={theme === 'dark' ? '#c084fc' : '#94a3b8'} />
+                <Moon size={16} color={theme === 'dark' ? '#b47ad6' : '#9a93a3'} />
                 <span>Modo Escuro</span>
               </button>
             </div>
@@ -618,9 +618,9 @@ export default function SettingsView({
                     className="btn-secondary"
                     style={{
                       borderRadius: '9999px',
-                      borderColor: '#7c3aed',
-                      color: theme === 'dark' ? '#c4b5fd' : '#6b21a8',
-                      background: theme === 'dark' ? 'rgba(124, 58, 237, 0.2)' : '#f5f3ff',
+                      borderColor: '#6e2b90',
+                      color: theme === 'dark' ? '#cdb2e2' : '#5e2580',
+                      background: theme === 'dark' ? 'rgba(110, 43, 144, 0.2)' : '#f7f2fa',
                       fontWeight: 600,
                       fontSize: '0.82rem',
                       padding: '6px 16px'
@@ -633,7 +633,7 @@ export default function SettingsView({
                     disabled={isSyncingCloud}
                     title="Envia a lista de funcionários, regras e escalas locais atuais para o Firebase"
                   >
-                    <UploadCloud size={15} color="#7c3aed" />
+                    <UploadCloud size={15} color="#6e2b90" />
                     <span>{isSyncingCloud ? 'Sincronizando...' : 'Subir Dados Locais para Nuvem'}</span>
                   </button>
                 )}
