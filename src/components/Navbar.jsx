@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Users, BarChart3, Settings, Play, RefreshCw, Clock, ShieldCheck, Sun, Moon, LogOut, Volume2, VolumeX } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { minutesToTime } from '../utils/timeUtils';
 import BrandLogo from './BrandLogo';
 
@@ -30,7 +31,7 @@ export default function Navbar({
     ...(isAdmin ? [{ id: 'settings', label: 'Configurações', mobileLabel: 'Config.', title: 'Configurações', icon: Settings }] : [])
   ];
 
-  const userInitial = currentUser?.avatar || (currentUser?.name ? currentUser.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : 'US');
+  const userInitial = getInitials(currentUser?.name || 'Usuário');
   const userShortName = currentUser?.name ? currentUser.name.split(' ')[0] : 'Usuário';
 
   return (

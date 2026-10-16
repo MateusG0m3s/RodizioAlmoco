@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, Edit2, Trash2, Clock, ShieldAlert, X, Lock, Mail } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 
 const COLOR_PALETTE = [
   '#1a87cc', // Azul
@@ -191,7 +192,7 @@ export default function TeamView({
                     flexShrink: 0
                   }}
                 >
-                  {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+                  {getInitials(emp.name)}
                 </div>
 
                 <div className="member-status-pill">
@@ -244,7 +245,7 @@ export default function TeamView({
                     title={isOwn ? 'Editar seus dados' : 'Editar funcionário (Admin)'}
                   >
                     <Edit2 size={14} />
-                    <span>Editar {isOwn ? 'Meus Dados' : ''}</span>
+                    <span>{isOwn ? 'Editar meus dados' : 'Editar'}</span>
                   </button>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-muted)', padding: '6px 0' }}>
@@ -257,17 +258,16 @@ export default function TeamView({
                 {isAdmin && (
                   <button
                     type="button"
-                    className="btn-member-action delete"
-                    style={{ borderRadius: '9999px' }}
+                    className="btn-member-action delete is-icon-only"
                     onClick={() => {
                       if (window.confirm(`Deseja remover ${emp.name} da equipe?`)) {
                         onDeleteEmployee(emp.id);
                       }
                     }}
-                    title="Excluir funcionário (Exclusivo Administrador)"
+                    title={`Excluir ${emp.name} da equipe`}
+                    aria-label={`Excluir ${emp.name} da equipe`}
                   >
-                    <Trash2 size={14} />
-                    <span>Excluir</span>
+                    <Trash2 size={15} />
                   </button>
                 )}
               </div>

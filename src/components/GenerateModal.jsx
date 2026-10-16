@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, X, Calendar, RefreshCw, ShieldCheck, ArrowRight, Shuffle, AlertTriangle } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import confetti from 'canvas-confetti';
 import { generateAutoSchedule } from '../utils/scheduler';
 import { getWorkDaysOfWeek } from '../utils/timeUtils';
@@ -163,7 +164,7 @@ export default function GenerateModal({
                       className="preview-emp-avatar"
                       style={{ backgroundColor: emp?.color || '#4f1f66' }}
                     >
-                      {emp?.avatar || emp?.name.slice(0, 2).toUpperCase()}
+                      {getInitials(emp?.name)}
                     </div>
                     <span className="preview-emp-name">{emp?.name}</span>
                     <ArrowRight size={14} className="text-slate-400" />

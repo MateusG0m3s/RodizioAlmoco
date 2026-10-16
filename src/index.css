@@ -674,14 +674,6 @@ body {
   color: var(--text-muted);
 }
 
-.today-chip {
-  font-size: 0.7rem;
-  font-weight: 700;
-  background: var(--scada-cyan-light);
-  color: var(--scada-cyan);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-}
 
 .date-buttons-cluster {
   display: flex;
@@ -728,17 +720,6 @@ body {
   color: var(--scada-purple-deep);
 }
 
-.date-picker-inline {
-  border: 1px solid var(--border-color);
-  background: var(--bg-card);
-  padding: 4px 10px;
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  border-radius: var(--radius-full);
-  color: var(--text-main);
-  outline: none;
-  cursor: pointer;
-}
 
 .dashboard-action-buttons {
   display: flex;
@@ -826,35 +807,9 @@ body {
 }
 
 /* Live Alert */
-.live-alert-banner {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: var(--radius-lg);
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
 
-.alert-pulse-icon {
-  font-size: 1.25rem;
-}
 
-.alert-content {
-  flex: 1;
-  font-size: 0.88rem;
-  color: #92400e;
-}
 
-.alert-badge {
-  background: #f59e0b;
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-}
 
 /* CARDS DO DASHBOARD */
 .summary-cards-grid {
@@ -2130,6 +2085,37 @@ body {
   background: #fee2e2;
 }
 
+/* Excluir é ação rara e destrutiva: só ícone, neutro até o hover */
+.btn-member-action.delete.is-icon-only {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border-color);
+}
+
+.btn-member-action.delete.is-icon-only:hover,
+.btn-member-action.delete.is-icon-only:focus-visible {
+  background: #fff1f2;
+  color: #dc2626;
+  border-color: #fecdd3;
+}
+
+[data-theme="dark"] .btn-member-action.delete.is-icon-only {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-member-action.delete.is-icon-only:hover,
+[data-theme="dark"] .btn-member-action.delete.is-icon-only:focus-visible {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
 /* ========================================================================= */
 /* ABA 4: HISTÓRICO & EQUILÍBRIO (HISTORY VIEW) */
 /* ========================================================================= */
@@ -2765,6 +2751,202 @@ body {
   }
 }
 
+/* Seletor de data: o input nativo fica escondido e abre pelo botão de calendário */
+.date-picker-trigger {
+  position: relative;
+  display: inline-flex;
+}
+
+.date-picker-native {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.btn-date-step:focus-visible,
+.btn-today-step:focus-visible {
+  outline: 2px solid var(--scada-cyan);
+  outline-offset: 2px;
+}
+
+/* "Seu almoço": o destaque pessoal do dashboard. O anel enche em direção ao horário */
+.my-lunch-strip {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 20px;
+  padding: 16px 22px 16px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.my-lunch-strip.is-soon,
+.my-lunch-strip.is-lunching {
+  border-color: var(--scada-purple-light);
+  box-shadow: 0 6px 20px rgba(110, 43, 144, 0.18);
+}
+
+.my-lunch-ring {
+  --ring-track: var(--border-color);
+  position: relative;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--scada-purple-deep);
+}
+
+.my-lunch-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(#7a2e98 0%, #1a87cc calc(var(--ring, 0) * 1%), var(--ring-track) calc(var(--ring, 0) * 1%));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+}
+
+.my-lunch-ring > * {
+  position: relative;
+}
+
+.my-lunch-ring.is-empty {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
+
+.my-lunch-ring.is-empty::before {
+  display: none;
+}
+
+.my-lunch-strip.is-done .my-lunch-ring {
+  color: var(--scada-cyan);
+}
+
+.my-lunch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.my-lunch-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.my-lunch-time {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-main);
+}
+
+.my-lunch-status {
+  font-size: 0.88rem;
+  color: var(--text-body);
+}
+
+.my-lunch-strip.is-soon .my-lunch-status {
+  font-weight: 700;
+  color: var(--scada-purple-deep);
+}
+
+.my-lunch-action {
+  flex-shrink: 0;
+}
+
+.stat-badge-in.is-soon {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  border-color: var(--warning-border);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Toast: superfície escura da marca nos dois temas; a cor da variante fica no ícone e na borda */
+.scadahub-floating-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(440px, calc(100vw - 24px));
+  padding: 12px 18px 12px 12px;
+  border-radius: var(--radius-lg);
+  background: #22102e;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid var(--toast-accent);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  --toast-accent: #4fb3ee;
+  --toast-accent-bg: rgba(26, 135, 204, 0.22);
+}
+
+.scadahub-floating-toast.is-error {
+  --toast-accent: #f87171;
+  --toast-accent-bg: rgba(239, 68, 68, 0.2);
+}
+
+.scadahub-floating-toast.is-warning {
+  --toast-accent: #fbbf24;
+  --toast-accent-bg: rgba(245, 158, 11, 0.2);
+}
+
+.scadahub-floating-toast.is-info {
+  --toast-accent: #b47ad6;
+  --toast-accent-bg: rgba(110, 43, 144, 0.3);
+}
+
+.toast-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--toast-accent);
+  background: var(--toast-accent-bg);
+}
+
+.toast-title {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.toast-message {
+  font-size: 0.8rem;
+  color: #e7e1ec;
+  line-height: 1.4;
+}
+
 /* Navbar responsiva:
    <=1320px some o subtítulo da marca;
    <=1100px as abas descem para uma segunda linha rolável;
@@ -2881,9 +3063,30 @@ body {
   .app-container {
     padding-bottom: calc(64px + env(safe-area-inset-bottom));
   }
+  .hidden-mobile {
+    display: none;
+  }
+
+  .my-lunch-strip {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 14px;
+  }
+  .my-lunch-ring {
+    width: 58px;
+    height: 58px;
+    font-size: 0.82rem;
+  }
+  .my-lunch-time {
+    font-size: 1.35rem;
+  }
+  .my-lunch-action {
+    width: 100%;
+  }
+
   .scadahub-floating-toast {
-    bottom: calc(76px + env(safe-area-inset-bottom)) !important;
-    right: 12px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    right: 12px;
     left: 12px;
   }
 }
@@ -2901,6 +3104,13 @@ body {
     align-items: stretch;
   }
   .dashboard-action-buttons {
+    justify-content: space-between;
+  }
+  .dashboard-action-buttons .btn-generate-hero {
+    flex: 1;
+    white-space: nowrap;
+  }
+  .date-navigation-group {
     justify-content: space-between;
   }
 
@@ -3465,11 +3675,6 @@ body {
 }
 
 /* Controles de Data e Duração */
-[data-theme="dark"] .date-picker-inline {
-  background: #15101c;
-  border-color: #3a2a4a;
-  color: #f8f5fa;
-}
 
 [data-theme="dark"] .view-mode-toggle {
   background: #15101c;
@@ -3644,12 +3849,6 @@ body {
   color: #9a93a3 !important;
 }
 
-[data-theme="dark"] .date-picker-inline {
-  background: #15101c !important;
-  border-color: #3a2a4a !important;
-  color: #f8f5fa !important;
-  color-scheme: dark !important;
-}
 
 /* 3. Botão "Hoje" e Badges de Data (Imagem 4) */
 [data-theme="dark"] .btn-week-today {
@@ -3695,12 +3894,6 @@ body {
   font-weight: 700 !important;
 }
 
-[data-theme="dark"] .today-chip {
-  background: rgba(26, 135, 204, 0.22) !important;
-  color: #4fb3ee !important;
-  border: 1px solid rgba(79, 179, 238, 0.4) !important;
-  font-weight: 700 !important;
-}
 
 .today-badge {
   display: inline-flex;

@@ -1,12 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Clock, Plus, Edit2, AlertCircle, Check, GripHorizontal, Headset, X, ArrowRight, Lock } from 'lucide-react';
+import { getInitials, getShortName } from '../utils/nameUtils';
 import { timeToMinutes, minutesToTime, snapToInterval } from '../utils/timeUtils';
-
-// Primeiro + último nome para caber na coluna; o nome completo fica no title
-const getShortName = (name = '') => {
-  const parts = name.trim().split(/\s+/);
-  return parts.length <= 2 ? parts.join(' ') : `${parts[0]} ${parts[parts.length - 1]}`;
-};
 
 export default function TimelineView({
   employees,
@@ -278,7 +273,7 @@ export default function TimelineView({
                       className="emp-avatar"
                       style={{ backgroundColor: emp.color || '#4f1f66' }}
                     >
-                      {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+                      {getInitials(emp.name)}
                     </div>
                     <div className="emp-text-details">
                       <div className="emp-name-row">

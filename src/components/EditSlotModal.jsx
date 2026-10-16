@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, AlertTriangle, Check, Trash2, Wand2, Lock, Users } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { timeToMinutes, minutesToTime, addMinutesToTime, snapToInterval } from '../utils/timeUtils';
 import { findNextAvailableSlot } from '../utils/scheduler';
 
@@ -338,7 +339,7 @@ export default function EditSlotModal({
                 flexShrink: 0
               }}
             >
-              {employee?.avatar || employee?.name?.slice(0, 2).toUpperCase()}
+              {getInitials(employee?.name)}
             </div>
             <div>
               <span style={{ fontSize: '0.78rem', color: textSub, fontWeight: 700 }}>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, KeyRound, User, Mail, LogOut, Check, X, Sparkles, RefreshCw, Lock } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { authService, TEST_ACCOUNTS } from '../services/authService';
 import ChangePasswordModal from './ChangePasswordModal';
 
@@ -116,7 +117,7 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
                 boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
               }}
             >
-              {currentUser?.avatar || 'US'}
+              {getInitials(currentUser?.name)}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -287,7 +288,7 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
                         justifyContent: 'center'
                       }}
                     >
-                      {acc.avatar}
+                      {getInitials(acc.name)}
                     </div>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

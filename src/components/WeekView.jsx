@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Sparkles, Clock, Plus, Lock } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { getWorkDaysOfWeek, toISODateString, parseISODate } from '../utils/timeUtils';
 
 export default function WeekView({
@@ -219,7 +220,7 @@ export default function WeekView({
                             flexShrink: 0
                           }}
                         >
-                          {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+                          {getInitials(emp.name)}
                         </div>
                         <div className="matrix-emp-text">
                           <span className="matrix-emp-name">

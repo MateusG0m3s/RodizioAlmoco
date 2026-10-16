@@ -1,5 +1,6 @@
 import React from 'react';
 import { BarChart3, TrendingUp, Sparkles, AlertCircle, CheckCircle, Info, RotateCcw } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { calculateBalanceMetrics } from '../utils/scheduler';
 
 export default function HistoryView({ employees, allSchedules, historyData, onOpenGenerateModal, onResetHistory }) {
@@ -129,7 +130,7 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
                             flexShrink: 0
                           }}
                         >
-                          {employee.avatar || employee.name.slice(0, 2).toUpperCase()}
+                          {getInitials(employee.name)}
                         </div>
                         <div>
                           <span className="history-emp-name">{employee.name}</span>

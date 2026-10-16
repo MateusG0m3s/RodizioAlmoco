@@ -1,5 +1,6 @@
 import React from 'react';
 import { Utensils, Clock, CheckCircle2, Briefcase, Edit2, AlertTriangle, Plus, Lock } from 'lucide-react';
+import { getInitials } from '../utils/nameUtils';
 import { getEmployeeLunchStatus } from '../utils/timeUtils';
 
 export default function CardsView({
@@ -55,7 +56,7 @@ export default function CardsView({
                 className="person-avatar"
                 style={{ backgroundColor: emp.color || '#1a87cc' }}
               >
-                {emp.avatar || emp.name.slice(0, 2).toUpperCase()}
+                {getInitials(emp.name)}
               </div>
               <div className="person-titles">
                 <h4 className="person-name">{emp.name}</h4>
