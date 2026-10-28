@@ -1,17 +1,9 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, Edit2, Trash2, Clock, ShieldAlert, X, Lock, Mail } from 'lucide-react';
 import { getInitials } from '../utils/nameUtils';
+import { AVATAR_PALETTE, resolveAvatarColor } from '../utils/avatarColors';
 
-const COLOR_PALETTE = [
-  '#1a87cc', // Azul
-  '#8a44b0', // Violeta
-  '#ec4899', // Rosa
-  '#f59e0b', // Âmbar
-  '#10b981', // Esmeralda
-  '#4fb3ee', // Ciano
-  '#f97316', // Laranja
-  '#6366f1'  // Índigo
-];
+const COLOR_PALETTE = AVATAR_PALETTE;
 
 export default function TeamView({
   employees,
@@ -64,7 +56,7 @@ export default function TeamView({
     setFormShortName(emp.shortName || '');
     setFormEmail(emp.email || '');
     setFormRole(emp.role || 'Equipe');
-    setFormColor(emp.color || COLOR_PALETTE[0]);
+    setFormColor(resolveAvatarColor(emp.color, emp.id));
     setFormActive(emp.active !== false);
     setFormPreferredTime(emp.preferredTime || '');
     setFormRestrictions(emp.restrictions || '');
@@ -115,15 +107,9 @@ export default function TeamView({
     <div className="team-view-container animate-fade-in">
       {/* Topo da Seção de Equipe */}
       <div className="team-header-bar">
-        <div className="team-title-group">
-          <Users size={22} className="text-primary-500" />
-          <div>
-            <h2 className="team-main-title">Gestão da Equipe</h2>
-            <p className="team-sub-title">
-              {employees.length} membros cadastrados • {employees.filter((e) => e.active).length} ativos no rodízio
-            </p>
-          </div>
-        </div>
+        <p className="ui-label team-count">
+          {employees.length} membros cadastrados • {employees.filter((e) => e.active).length} ativos no rodízio
+        </p>
 
         {/* Botão Novo Funcionário (Exclusivo Administrador) */}
         {isAdmin ? (
@@ -177,7 +163,7 @@ export default function TeamView({
                 <div
                   className="member-avatar"
                   style={{
-                    backgroundColor: emp.color || '#4f1f66',
+                    backgroundColor: resolveAvatarColor(emp.color, emp.id),
                     width: '48px',
                     height: '48px',
                     minWidth: '48px',

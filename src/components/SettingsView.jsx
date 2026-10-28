@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Wifi, Sun, Moon, ChevronDown, ChevronUp, RefreshCw, Lock, UploadCloud } from 'lucide-react';
+import { FlaskConical, Play, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Wifi, ChevronDown, ChevronUp, RefreshCw, Lock, UploadCloud } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { firebaseService } from '../services/firebaseService';
 
@@ -12,7 +12,10 @@ export default function SettingsView({
   onSyncAllToCloud,
   theme,
   onToggleTheme,
-  isAdmin = true
+  isAdmin = true,
+  isSimulatingTime = false,
+  onStartSimulation,
+  onStopSimulation
 }) {
   const [formData, setFormData] = useState({ ...settings });
   const [importText, setImportText] = useState('');
@@ -146,80 +149,62 @@ export default function SettingsView({
 
   return (
     <div className="settings-view-container animate-fade-in">
-      <div className="settings-header-bar">
-        <div className="settings-title-group">
-          <Settings size={22} className="text-scada-cyan" />
-          <div>
-            <h2 className="settings-main-title">Configurações & Regras scadahub</h2>
-            <p className="settings-sub-title">
-              Defina a janela de atendimento ao cliente, duração dos almoços e parâmetros operacionais
-            </p>
+      <div className="settings-grid">
+        {/* Aparência: o mesmo controle da sidebar, salvo por navegador */}
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <h3 className="card-section-title">Aparência</h3>
+            <span className="card-section-caption">
+              Tema salvo individualmente no seu navegador
+            </span>
+          </div>
+          <div className="ui-segmented" role="radiogroup" aria-label="Tema">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme !== 'dark'}
+              className={theme !== 'dark' ? 'is-on' : ''}
+              onClick={() => theme === 'dark' && onToggleTheme && onToggleTheme()}
+            >
+              Claro
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme === 'dark'}
+              className={theme === 'dark' ? 'is-on' : ''}
+              onClick={() => theme !== 'dark' && onToggleTheme && onToggleTheme()}
+            >
+              Escuro
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="settings-grid">
-        {/* Card 0: Preferência Visual do Usuário (Tema Claro / Escuro) */}
-        <div className="settings-card" style={{ gridColumn: '1 / -1' }}>
-          <div className="settings-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <h3 className="card-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {theme === 'dark' ? <Moon size={18} className="text-purple-400" /> : <Sun size={18} className="text-amber-500" />}
-                <span>Aparência & Modo de Exibição</span>
-              </h3>
-              <span className="card-section-caption">
-                Escolha o tema visual que preferir (salvo individualmente no seu navegador)
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <button
-                type="button"
-                className={`theme-pill-choice ${theme !== 'dark' ? 'active' : ''}`}
-                onClick={() => theme === 'dark' && onToggleTheme && onToggleTheme()}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 18px',
-                  borderRadius: '9999px',
-                  fontSize: '0.84rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: theme !== 'dark' ? '2px solid var(--scada-purple-mid)' : '1px solid var(--border-color)',
-                  background: theme !== 'dark' ? 'var(--scada-purple-tint)' : 'var(--bg-card)',
-                  color: theme !== 'dark' ? 'var(--scada-purple-dark)' : 'var(--text-muted)',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <Sun size={16} color={theme !== 'dark' ? '#d97706' : '#9a93a3'} />
-                <span>Modo Claro</span>
-              </button>
-
-              <button
-                type="button"
-                className={`theme-pill-choice ${theme === 'dark' ? 'active' : ''}`}
-                onClick={() => theme !== 'dark' && onToggleTheme && onToggleTheme()}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 18px',
-                  borderRadius: '9999px',
-                  fontSize: '0.84rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: theme === 'dark' ? '2px solid #6e2b90' : '1px solid var(--border-color)',
-                  background: theme === 'dark' ? 'rgba(110, 43, 144, 0.25)' : 'var(--bg-card)',
-                  color: theme === 'dark' ? '#ebdcf4' : 'var(--text-muted)',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <Moon size={16} color={theme === 'dark' ? '#b47ad6' : '#9a93a3'} />
-                <span>Modo Escuro</span>
-              </button>
-            </div>
+        {/* Ferramentas de teste: o simulador de horário saiu da barra principal */}
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <h3 className="card-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FlaskConical size={18} aria-hidden="true" />
+              <span>Ferramentas de teste</span>
+            </h3>
+            <span className="card-section-caption">
+              Simule outro horário para conferir avisos, contagem do almoço e cobertura sem esperar o relógio.
+            </span>
           </div>
+          {isSimulatingTime ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span className="ui-chip warn">Simulador ativo</span>
+              <button type="button" className="ui-btn secondary sm" onClick={onStopSimulation}>
+                <RotateCcw size={15} />
+                Voltar ao horário real
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="ui-btn secondary sm" onClick={onStartSimulation} disabled={!onStartSimulation}>
+              <Play size={15} />
+              Abrir simulador de horário
+            </button>
+          )}
         </div>
 
         {/* Card 1: Janela Crítica de Atendimento & Horários */}
@@ -547,7 +532,7 @@ export default function SettingsView({
                   fontSize: '0.8rem',
                   fontWeight: 700,
                   background: isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.15)' : '#fefce8'),
-                  color: isFirebaseConnected ? (theme === 'dark' ? '#34d399' : '#059669') : (theme === 'dark' ? '#fbbf24' : '#b45309'),
+                  color: isFirebaseConnected ? (theme === 'dark' ? '#34d399' : '#1E7A4C') : (theme === 'dark' ? '#fbbf24' : '#8A5300'),
                   border: `1.5px solid ${isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.3)' : '#fef08a')}`
                 }}
               >
@@ -618,9 +603,9 @@ export default function SettingsView({
                     className="btn-secondary"
                     style={{
                       borderRadius: '9999px',
-                      borderColor: '#6e2b90',
-                      color: theme === 'dark' ? '#cdb2e2' : '#5e2580',
-                      background: theme === 'dark' ? 'rgba(110, 43, 144, 0.2)' : '#f7f2fa',
+                      borderColor: '#62257A',
+                      color: theme === 'dark' ? '#cdb2e2' : '#62257A',
+                      background: theme === 'dark' ? 'rgba(110, 43, 144, 0.2)' : '#F1E9F5',
                       fontWeight: 600,
                       fontSize: '0.82rem',
                       padding: '6px 16px'
@@ -633,7 +618,7 @@ export default function SettingsView({
                     disabled={isSyncingCloud}
                     title="Envia a lista de funcionários, regras e escalas locais atuais para o Firebase"
                   >
-                    <UploadCloud size={15} color="#6e2b90" />
+                    <UploadCloud size={15} color="#62257A" />
                     <span>{isSyncingCloud ? 'Sincronizando...' : 'Subir Dados Locais para Nuvem'}</span>
                   </button>
                 )}

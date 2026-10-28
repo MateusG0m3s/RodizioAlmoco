@@ -1,7 +1,8 @@
 import React from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Sparkles, Clock, Plus, Lock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Clock, Plus, Lock } from 'lucide-react';
 import { getInitials, getShortName } from '../utils/nameUtils';
 import { getWorkDaysOfWeek, toISODateString, parseISODate } from '../utils/timeUtils';
+import { resolveAvatarColor } from '../utils/avatarColors';
 
 export default function WeekView({
   currentDate,
@@ -51,14 +52,6 @@ export default function WeekView({
     <div className="week-view-container animate-fade-in">
       {/* Barra de Navegação Semanal */}
       <div className="week-header-bar">
-        <div className="week-title-group">
-          <Calendar size={22} className="text-scada-cyan header-calendar-icon" />
-          <div>
-            <h2 className="week-main-title">Visão Semanal do Rodízio</h2>
-            <p className="week-sub-title">Planejamento e acompanhamento dos 5 dias úteis</p>
-          </div>
-        </div>
-
         <div className="week-nav-controls" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"
@@ -207,7 +200,7 @@ export default function WeekView({
                         <div
                           className="matrix-avatar"
                           style={{
-                            backgroundColor: emp.color || '#4f1f66',
+                            backgroundColor: resolveAvatarColor(emp.color, emp.id),
                             width: '32px',
                             height: '32px',
                             minWidth: '32px',
@@ -249,7 +242,6 @@ export default function WeekView({
                             <div
                               className="week-slot-pill"
                               style={{
-                                borderLeftColor: emp.color || '#1a87cc',
                                 cursor: canManageThisEmp ? 'pointer' : 'default',
                                 opacity: canManageThisEmp ? 1 : 0.85
                               }}

@@ -1,7 +1,8 @@
 import React from 'react';
-import { BarChart3, TrendingUp, Sparkles, AlertCircle, CheckCircle, Info, RotateCcw } from 'lucide-react';
+import { TrendingUp, Sparkles, AlertCircle, CheckCircle, Info, RotateCcw } from 'lucide-react';
 import { getInitials, getShortName } from '../utils/nameUtils';
 import { calculateBalanceMetrics } from '../utils/scheduler';
+import { resolveAvatarColor } from '../utils/avatarColors';
 
 export default function HistoryView({ employees, allSchedules, historyData, onOpenGenerateModal, onResetHistory }) {
   const { employeeStats, balanceScore, balanceStatus, balanceBadgeClass, bands } =
@@ -11,16 +12,6 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
     <div className="history-view-container animate-fade-in">
       {/* Topo da Seção */}
       <div className="history-header-bar">
-        <div className="history-title-group">
-          <BarChart3 size={22} className="text-primary-500" />
-          <div>
-            <h2 className="history-main-title">Histórico & Análise de Equilíbrio</h2>
-            <p className="history-sub-title">
-              Distribuição justa dos horários baseada nas escalas ativas salvas
-            </p>
-          </div>
-        </div>
-
         <div className="history-actions-group" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
           {onResetHistory && (
             <button
@@ -115,7 +106,7 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
                         <div
                           className="history-avatar"
                           style={{
-                            backgroundColor: employee.color || '#4f1f66',
+                            backgroundColor: resolveAvatarColor(employee.color, employee.id),
                             width: '36px',
                             height: '36px',
                             minWidth: '36px',

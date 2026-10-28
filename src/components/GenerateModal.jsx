@@ -4,6 +4,7 @@ import { getInitials, getShortName } from '../utils/nameUtils';
 import confetti from 'canvas-confetti';
 import { generateAutoSchedule } from '../utils/scheduler';
 import { getWorkDaysOfWeek } from '../utils/timeUtils';
+import { resolveAvatarColor } from '../utils/avatarColors';
 
 export default function GenerateModal({
   isOpen,
@@ -68,7 +69,7 @@ export default function GenerateModal({
         particleCount: 90,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
+        colors: ['#4A1C5C', '#62257A', '#005E8E', '#5CB3E8']
       });
     } catch (e) {
       // Ignora erro de confetti
@@ -162,7 +163,7 @@ export default function GenerateModal({
                   <div key={slot.employeeId} className="preview-slot-item">
                     <div
                       className="preview-emp-avatar"
-                      style={{ backgroundColor: emp?.color || '#4f1f66' }}
+                      style={{ backgroundColor: resolveAvatarColor(emp?.color, emp?.id) }}
                     >
                       {getInitials(emp?.name)}
                     </div>

@@ -3,6 +3,7 @@ import { X, Clock, AlertTriangle, Check, Trash2, Wand2, Lock, Users } from 'luci
 import { getInitials } from '../utils/nameUtils';
 import { timeToMinutes, minutesToTime, addMinutesToTime, snapToInterval } from '../utils/timeUtils';
 import { findNextAvailableSlot } from '../utils/scheduler';
+import { resolveAvatarColor } from '../utils/avatarColors';
 
 export default function EditSlotModal({
   isOpen,
@@ -325,7 +326,7 @@ export default function EditSlotModal({
           }}>
             <div
               style={{
-                backgroundColor: employee?.color || '#4f1f66',
+                backgroundColor: resolveAvatarColor(employee?.color, employee?.id),
                 width: '46px',
                 height: '46px',
                 minWidth: '46px',
@@ -345,7 +346,7 @@ export default function EditSlotModal({
               <span style={{ fontSize: '0.78rem', color: textSub, fontWeight: 700 }}>
                 Funcionário
               </span>
-              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: isDark ? '#b47ad6' : 'var(--scada-purple-dark)', margin: '2px 0 0 0' }}>
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: isDark ? '#C08BDD' : 'var(--scada-purple-dark)', margin: '2px 0 0 0' }}>
                 {employee?.name} {isOwner ? ' (Você)' : ''}
               </h4>
             </div>
@@ -372,8 +373,8 @@ export default function EditSlotModal({
                       fontSize: '0.85rem',
                       fontWeight: 700,
                       cursor: isAllowedToEdit ? 'pointer' : 'default',
-                      border: isSelected ? '1.5px solid #8a44b0' : `1px solid ${pillInactiveBorder}`,
-                      background: isSelected ? '#6e2b90' : pillInactiveBg,
+                      border: isSelected ? '1.5px solid #71298D' : `1px solid ${pillInactiveBorder}`,
+                      background: isSelected ? '#62257A' : pillInactiveBg,
                       color: isSelected ? '#ffffff' : pillInactiveColor,
                       boxShadow: isSelected ? '0 0 14px rgba(110, 43, 144, 0.45)' : 'none',
                       transition: 'all 0.15s ease'
@@ -619,7 +620,7 @@ export default function EditSlotModal({
                   style={{
                     background: isDurationInvalid
                       ? (isDark ? 'rgba(110, 43, 144, 0.25)' : '#d6cfdd')
-                      : 'linear-gradient(135deg, #6e2b90 0%, #1a87cc 100%)',
+                      : 'linear-gradient(135deg, #62257A 0%, #005E8E 100%)',
                     color: isDurationInvalid ? (isDark ? '#6b6475' : '#9a93a3') : '#ffffff',
                     border: 'none',
                     borderRadius: '9999px',

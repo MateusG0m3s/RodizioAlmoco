@@ -1,7 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { Clock, Plus, Edit2, AlertCircle, Check, GripHorizontal, Headset, X, ArrowRight, Lock } from 'lucide-react';
+import { Plus, CircleAlert, Check, GripVertical, ChartGantt, X, ArrowRight, Utensils, Clock } from 'lucide-react';
 import { getInitials, getShortName } from '../utils/nameUtils';
 import { timeToMinutes, minutesToTime, snapToInterval } from '../utils/timeUtils';
+import { resolveAvatarColor } from '../utils/avatarColors';
+
+// Largura da coluna de pessoas; a faixa de horários ocupa o resto
+const PEOPLE_COLUMN = '208px';
 
 export default function TimelineView({
   employees,
@@ -9,12 +13,13 @@ export default function TimelineView({
   settings,
   currentTimeMinutes,
   conflictSlotIds,
-  coverage,
   onEditSlot,
   onAddSlotForEmployee,
   onUpdateSlotTimes,
   isAdmin = true,
-  currentUserEmployeeId = null
+  currentUserEmployeeId = null,
+  isToday = true,
+  headerActions = null
 }) {
   const rulerTrackRef = useRef(null);
   const [draggingSlot, setDraggingSlot] = useState(null);
@@ -26,41 +31,29 @@ export default function TimelineView({
   const canEditSlot = (slot) => isAdmin || (slot && slot.employeeId === currentUserEmployeeId);
   const canAddForEmp = (emp) => isAdmin || (emp && emp.id === currentUserEmployeeId);
 
-  const startHourMin = timeToMinutes(settings?.startHour || '11:00'); // 660
-  const endHourMin = timeToMinutes(settings?.endHour || '14:00');     // 840
-  const totalTimelineMinutes = endHourMin - startHourMin;            // 180 min
+  const startHourMin = timeToMinutes(settings?.startHour || '11:00');
+  const endHourMin = timeToMinutes(settings?.endHour || '14:00');
+  const totalTimelineMinutes = endHourMin - startHourMin;
+  const toPercent = (minute) => ((minute - startHourMin) / totalTimelineMinutes) * 100;
 
-  // Janela crítica de atendimento aos clientes (11:30 às 13:30)
+  // Janela crítica de atendimento aos clientes
   const critStartMin = timeToMinutes(settings?.criticalStart || '11:30');
   const critEndMin = timeToMinutes(settings?.criticalEnd || '13:30');
-  const critLeftPercent = Math.max(0, ((critStartMin - startHourMin) / totalTimelineMinutes) * 100);
-  const critWidthPercent = Math.min(100, ((critEndMin - critStartMin) / totalTimelineMinutes) * 100);
+  const critLeftPercent = Math.max(0, toPercent(critStartMin));
+  const critWidthPercent = Math.min(100 - critLeftPercent, ((critEndMin - critStartMin) / totalTimelineMinutes) * 100);
+  const minWorking = Number(settings?.minWorkingDuringCritical) || 1;
 
-  // Marcadores de hora para a régua
   const hourMarkers = [];
   for (let m = startHourMin; m <= endHourMin; m += 30) {
-    hourMarkers.push({
-      minute: m,
-      label: minutesToTime(m),
-      percent: ((m - startHourMin) / totalTimelineMinutes) * 100
-    });
+    hourMarkers.push({ minute: m, label: minutesToTime(m), percent: toPercent(m) });
   }
 
-  // Linhas de grade de 15 em 15 minutos
-  const gridLines = [];
-  for (let m = startHourMin; m <= endHourMin; m += 15) {
-    gridLines.push({
-      minute: m,
-      percent: ((m - startHourMin) / totalTimelineMinutes) * 100,
-      isHour: m % 60 === 0
-    });
-  }
-
-  // Posição percentual da agulha de horário atual
-  const currentTimePercent = Math.max(0, Math.min(100, ((currentTimeMinutes - startHourMin) / totalTimelineMinutes) * 100));
+  const currentTimePercent = Math.max(0, Math.min(100, toPercent(currentTimeMinutes)));
   const isCurrentTimeInRange = currentTimeMinutes >= startHourMin && currentTimeMinutes <= endHourMin;
+  // O rótulo da janela fica no fim da faixa; se o "Agora" estiver perto do fim, vai para o início
+  const bandLabelAtStart = isCurrentTimeInRange && currentTimePercent > critLeftPercent + critWidthPercent * 0.55;
 
-  // Iniciar Drag and Drop (Autorização por propriedade da escala)
+  // Arrastar para reposicionar (só quem pode editar a própria escala, ou admin)
   const handleDragStart = (e, slot) => {
     if (!canEditSlot(slot)) {
       return;
@@ -115,7 +108,7 @@ export default function TimelineView({
           setPendingMove({
             slotId: slot.id,
             slot,
-            employee: emp || { name: 'Colaborador', color: '#6e2b90' },
+            employee: emp || { name: 'Colaborador' },
             originalStartTime: slot.startTime,
             originalEndTime: slot.endTime,
             newStartTime,
@@ -137,328 +130,236 @@ export default function TimelineView({
   };
 
   return (
-    <div className="timeline-card animate-fade-in">
-      {/* Barra Superior da Timeline com Legenda e Janela Crítica */}
-      <div className="timeline-header-bar">
-        <div className="timeline-title-wrap">
-          <Headset size={18} color="var(--scada-purple-light)" />
-          <h3 className="timeline-title">Timeline de Atendimento &amp; Rodízio</h3>
-          <span className="timeline-caption">
-            Janela Crítica: {settings?.criticalStart || '11:30'}h às {settings?.criticalEnd || '13:30'}h • Mínimo de 1 atendente sempre trabalhando
-          </span>
+    <section className="ui-card tl-card animate-fade-in" aria-label="Timeline do dia">
+      <div className="ui-card-head tl-head">
+        <div className="ui-card-title">
+          <span className="ui-icon-circle" aria-hidden="true"><ChartGantt size={16} /></span>
+          <div>
+            {isToday ? 'Timeline de hoje' : 'Timeline do dia'}
+            <small>
+              Janela crítica {settings?.criticalStart || '11:30'}–{settings?.criticalEnd || '13:30'} · mínimo {minWorking} no posto
+            </small>
+          </div>
         </div>
-        <div className="timeline-legend">
-          <div className="legend-item">
-            <span className="legend-dot dot-critical-zone"></span>
-            <span>Janela Crítica de Atendimento</span>
+        <div className="tl-head-side">
+          <div className="tl-legend" aria-hidden="true">
+            <span className="ui-chip">Concluído</span>
+            <span className="ui-chip now">Almoçando</span>
+            <span className="ui-chip next">A seguir</span>
           </div>
-          <div className="legend-item">
-            <span className="legend-dot dot-work"></span>
-            <span>Trabalhando</span>
-          </div>
-          <div className="legend-item">
-            <span className="legend-dot dot-lunch"></span>
-            <span>Almoço</span>
-          </div>
+          {headerActions}
         </div>
       </div>
 
-      {/* Contêiner com Scroll da Linha do Tempo */}
-      <div className="timeline-scroll-container">
-        <div className="timeline-inner">
-          {/* Régua de Horários Superior */}
-          <div className="timeline-time-ruler">
-            <div className="employee-column-header">
-              <span>Equipe</span>
+      <div className="tl-scroll">
+        <div className="tl-grid" style={{ '--tl-people': PEOPLE_COLUMN }}>
+          {/* Sobreposição da faixa de horários: grade, janela crítica e agulha do "Agora" */}
+          <div className="tl-overlay" aria-hidden="true">
+            {hourMarkers.filter((m) => m.minute % 60 === 0).map((m) => (
+              <span key={m.minute} className="tl-gridline" style={{ left: `${m.percent}%` }} />
+            ))}
+            <div className="tl-band" style={{ left: `${critLeftPercent}%`, width: `${critWidthPercent}%` }}>
+              <span className={`tl-band-label ${bandLabelAtStart ? 'at-start' : ''}`}>Janela crítica</span>
             </div>
-            <div className="ruler-track" ref={rulerTrackRef}>
-              {/* Faixa destacada da Janela Crítica */}
-              <div
-                className="critical-zone-indicator"
-                style={{
-                  left: `${critLeftPercent}%`,
-                  width: `${critWidthPercent}%`
-                }}
-              />
+            {isCurrentTimeInRange && (
+              <div className="tl-now" style={{ left: `${currentTimePercent}%` }}>
+                <span>Agora {minutesToTime(currentTimeMinutes)}</span>
+              </div>
+            )}
+          </div>
 
-              {/* Marcadores de Horas */}
+          {/* Régua de horários */}
+          <div className="tl-axis">
+            <div className="tl-axis-people">Equipe</div>
+            <div className="tl-axis-track" ref={rulerTrackRef}>
               {hourMarkers.map((marker, idx) => (
-                <div
+                <span
                   key={marker.minute}
-                  className={`ruler-mark ${idx === 0 ? 'is-first' : ''} ${idx === hourMarkers.length - 1 ? 'is-last' : ''}`}
+                  className={`tl-axis-label ${idx === 0 ? 'is-first' : ''} ${idx === hourMarkers.length - 1 ? 'is-last' : ''}`}
                   style={{ left: `${marker.percent}%` }}
                 >
-                  <span className="ruler-label">{marker.label}</span>
-                  <div className="ruler-tick" />
-                </div>
+                  {marker.label}
+                </span>
               ))}
             </div>
           </div>
 
-          {/* Área Principal de Linhas */}
-          <div className="timeline-rows-container">
-            {/* Grade de Fundo Vertical */}
-            <div className="timeline-grid-overlay">
-              {gridLines.map((line) => (
-                <div
-                  key={line.minute}
-                  className={`grid-line ${line.isHour ? 'grid-hour' : ''} ${line.minute === endHourMin ? 'is-last' : ''}`}
-                  style={{ left: `${line.percent}%` }}
-                />
-              ))}
+          {/* Uma linha por colaborador */}
+          {employees.map((emp) => {
+            const slot = daySlots.find((s) => s.employeeId === emp.id);
+            const isYou = emp.id === currentUserEmployeeId;
+            const isSlotInConflict = slot && conflictSlotIds.includes(slot.id);
+            const isBeingDragged = draggingSlot && draggingSlot.id === slot?.id;
+            const isPendingThisSlot = pendingMove && pendingMove.slotId === slot?.id;
+            const isEditable = canEditSlot(slot);
+            const canAdd = canAddForEmp(emp);
 
-              {/* Destaque Vertical da Janela Crítica */}
+            let blockStartMin = slot ? timeToMinutes(slot.startTime) : 0;
+            let blockEndMin = slot ? timeToMinutes(slot.endTime) : 0;
+            let duration = slot ? blockEndMin - blockStartMin : 30;
+
+            if (isBeingDragged && dragPreviewStartMin !== null) {
+              blockStartMin = dragPreviewStartMin;
+              blockEndMin = blockStartMin + duration;
+            } else if (isPendingThisSlot) {
+              blockStartMin = pendingMove.newStartMin;
+              duration = pendingMove.duration;
+              blockEndMin = blockStartMin + duration;
+            }
+
+            const leftPercent = slot ? Math.max(0, toPercent(blockStartMin)) : 0;
+            const widthPercent = slot ? Math.max(3, (duration / totalTimelineMinutes) * 100) : 0;
+
+            const isCurrentlyLunching = slot && currentTimeMinutes >= blockStartMin && currentTimeMinutes < blockEndMin;
+            const hasFinishedLunch = slot && currentTimeMinutes >= blockEndMin;
+            const phase = isCurrentlyLunching ? 'is-now' : hasFinishedLunch ? 'is-done' : 'is-next';
+            // Blocos curtos (<= 20 min) mostram só o início para o horário não ser cortado
+            const isNarrow = duration <= 20;
+
+            const rangeLabel = isBeingDragged || isPendingThisSlot
+              ? `${minutesToTime(blockStartMin)}–${minutesToTime(blockEndMin)}`
+              : slot
+              ? `${slot.startTime}–${slot.endTime}`
+              : '';
+
+            return (
               <div
-                className="critical-zone-background"
-                style={{
-                  left: `${critLeftPercent}%`,
-                  width: `${critWidthPercent}%`
-                }}
-              />
-
-              {/* Agulha de Horário Atual */}
-              {isCurrentTimeInRange && (
-                <div
-                  className="current-time-marker"
-                  style={{ left: `${currentTimePercent}%` }}
-                >
-                  <div className="time-marker-badge">
-                    Agora {minutesToTime(currentTimeMinutes)}
+                key={emp.id}
+                className={`tl-row ${isYou ? 'is-you' : ''} ${!emp.active ? 'is-inactive' : ''}`}
+              >
+                <div className="tl-who">
+                  <span
+                    className={`ui-avatar ${isYou ? 'is-you' : ''}`}
+                    style={{ background: resolveAvatarColor(emp.color, emp.id) }}
+                    title={isYou ? `${emp.name} (você)` : emp.name}
+                    aria-hidden="true"
+                  >
+                    {getInitials(emp.name)}
+                  </span>
+                  <div className="tl-who-text">
+                    <b title={emp.name}>
+                      {getShortName(emp.name)}
+                      {isYou && <span className="tl-you-tag">você</span>}
+                      {!emp.active && <span className="tl-inactive-tag">inativo</span>}
+                    </b>
+                    <span className={isCurrentlyLunching ? 'is-now' : isPendingThisSlot ? 'is-pending' : ''}>
+                      {isPendingThisSlot
+                        ? `Alteração pendente (${pendingMove.newStartTime})`
+                        : isCurrentlyLunching
+                        ? `Almoçando · volta ${minutesToTime(blockEndMin)}`
+                        : hasFinishedLunch
+                        ? `Concluído às ${slot.endTime}`
+                        : slot
+                        ? `Às ${slot.startTime}`
+                        : 'Sem horário'}
+                    </span>
                   </div>
-                  <div className="time-marker-line" />
                 </div>
-              )}
-            </div>
 
-            {/* Linhas dos Colaboradores */}
-            {employees.map((emp) => {
-              const slot = daySlots.find((s) => s.employeeId === emp.id);
-              const isSlotInConflict = slot && conflictSlotIds.includes(slot.id);
-              const isBeingDragged = draggingSlot && draggingSlot.id === slot?.id;
-              const isPendingThisSlot = pendingMove && pendingMove.slotId === slot?.id;
-              const isEditable = canEditSlot(slot);
-              const canAdd = canAddForEmp(emp);
-
-              let blockStartMin = slot ? timeToMinutes(slot.startTime) : 0;
-              let blockEndMin = slot ? timeToMinutes(slot.endTime) : 0;
-              let duration = slot ? blockEndMin - blockStartMin : 30;
-
-              if (isBeingDragged && dragPreviewStartMin !== null) {
-                blockStartMin = dragPreviewStartMin;
-                blockEndMin = blockStartMin + duration;
-              } else if (isPendingThisSlot) {
-                blockStartMin = pendingMove.newStartMin;
-                duration = pendingMove.duration;
-                blockEndMin = blockStartMin + duration;
-              }
-
-              const leftPercent = slot
-                ? Math.max(0, ((blockStartMin - startHourMin) / totalTimelineMinutes) * 100)
-                : 0;
-              const widthPercent = slot
-                ? Math.max(3, (duration / totalTimelineMinutes) * 100)
-                : 0;
-
-              const isCurrentlyLunching = slot && currentTimeMinutes >= blockStartMin && currentTimeMinutes < blockEndMin;
-              const hasFinishedLunch = slot && currentTimeMinutes >= blockEndMin;
-
-              return (
-                <div
-                  key={emp.id}
-                  className={`timeline-employee-row ${!emp.active ? 'is-inactive-row' : ''}`}
-                >
-                  {/* Informações do Colaborador (Coluna Fixa) */}
-                  <div className="employee-info-cell">
+                <div className="tl-track">
+                  {slot ? (
                     <div
-                      className={`emp-avatar ${emp.id === currentUserEmployeeId ? 'is-you' : ''}`}
-                      title={emp.id === currentUserEmployeeId ? `${emp.name} (você)` : emp.name}
-                      style={{ backgroundColor: emp.color || '#4f1f66' }}
+                      className={`tl-block ${phase} ${isYou ? 'is-you' : ''} ${isSlotInConflict ? 'is-conflict' : ''} ${isBeingDragged ? 'is-dragging' : ''} ${isPendingThisSlot ? 'is-pending' : ''} ${isEditable ? 'is-editable' : ''} ${isNarrow ? 'is-narrow' : ''}`}
+                      style={{ left: `${leftPercent}%`, width: `calc(${widthPercent}% - 4px)` }}
+                      role={isEditable ? 'button' : undefined}
+                      tabIndex={isEditable ? 0 : undefined}
+                      onClick={(e) => {
+                        if (isDraggingRef.current) {
+                          e.stopPropagation();
+                          return;
+                        }
+                        onEditSlot(slot, emp);
+                      }}
+                      onKeyDown={(e) => {
+                        if (isEditable && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          onEditSlot(slot, emp);
+                        }
+                      }}
+                      title={
+                        !isEditable
+                          ? `Escala de ${emp.name} (somente leitura)`
+                          : isPendingThisSlot
+                          ? 'Aguardando confirmação na barra inferior'
+                          : 'Clique para editar ou arraste pela alça para mudar o horário (passos de 5 min)'
+                      }
+                      aria-label={`${emp.name}: almoço ${rangeLabel}`}
                     >
-                      {getInitials(emp.name)}
-                    </div>
-                    <div className="emp-text-details">
-                      <div className="emp-name-row">
-                        <span className="emp-name" title={emp.name}>
-                          {getShortName(emp.name)}{emp.id === currentUserEmployeeId ? ' (você)' : ''}
+                      {isEditable && (
+                        <span
+                          className="tl-grip"
+                          onMouseDown={(e) => handleDragStart(e, slot)}
+                          onTouchStart={(e) => handleDragStart(e, slot)}
+                          title="Segure e arraste para alterar o horário"
+                        >
+                          <GripVertical size={14} />
                         </span>
-                        {!emp.active && <span className="inactive-pill">Inativo</span>}
-                      </div>
-                      <span className="emp-role">
-                        {isCurrentlyLunching ? (
-                          <span className="text-purple-scada font-semibold">Almoçando agora</span>
-                        ) : hasFinishedLunch ? (
-                          <span className="text-emerald-600">Almoço concluído</span>
-                        ) : isPendingThisSlot ? (
-                          <span className="text-amber-600 font-semibold">Alteração pendente ({pendingMove.newStartTime})</span>
-                        ) : slot ? (
-                          <span>Almoço às {slot.startTime}</span>
-                        ) : (
-                          <span className="text-slate-400">Sem horário hoje</span>
-                        )}
+                      )}
+                      {isSlotInConflict ? (
+                        <CircleAlert size={14} className="tl-block-icon" />
+                      ) : hasFinishedLunch && !isPendingThisSlot ? (
+                        <Check size={14} className="tl-block-icon" />
+                      ) : isCurrentlyLunching ? (
+                        <Utensils size={14} className="tl-block-icon" />
+                      ) : null}
+                      <span className="tl-block-label">
+                        {isNarrow ? minutesToTime(blockStartMin) : rangeLabel}
+                        {isPendingThisSlot && <em> · novo</em>}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Faixa da Linha do Tempo */}
-                  <div className="employee-timeline-track">
-                    <div className="working-background-bar" />
-
-                    {/* Bloco de Almoço */}
-                    {slot ? (
-                      <div
-                        className={`lunch-slot-block ${isSlotInConflict ? 'is-conflict' : ''} ${isCurrentlyLunching ? 'is-active-pulse' : ''} ${isBeingDragged ? 'is-dragging' : ''} ${isPendingThisSlot ? 'is-pending-confirm' : ''}`}
-                        style={{
-                          left: `${leftPercent}%`,
-                          width: `${widthPercent}%`,
-                          '--emp-accent': emp.color || '#4f1f66',
-                          cursor: isEditable ? 'pointer' : 'default'
-                        }}
-                        onClick={(e) => {
-                          if (isDraggingRef.current) {
-                            e.stopPropagation();
-                            return;
-                          }
-                          onEditSlot(slot, emp);
-                        }}
-                        title={
-                          !isEditable
-                            ? `Escala de ${emp.name} (Somente leitura)`
-                            : isPendingThisSlot
-                            ? "Aguardando confirmação na barra inferior"
-                            : "Clique para editar ou arraste para reposicionar (passos de 5 min)"
-                        }
+                  ) : (
+                    canAdd && (
+                      <button
+                        type="button"
+                        className="tl-add"
+                        onClick={() => onAddSlotForEmployee(emp)}
+                        title="Definir horário de almoço para este colaborador"
+                        aria-label={`Definir almoço de ${emp.name}`}
                       >
-                        {isEditable ? (
-                          <div
-                            className="drag-handle"
-                            onMouseDown={(e) => handleDragStart(e, slot)}
-                            onTouchStart={(e) => handleDragStart(e, slot)}
-                            title="Segure e arraste para alterar seu horário"
-                          >
-                            <GripHorizontal size={14} />
-                          </div>
-                        ) : (
-                          <div style={{ padding: '0 6px', opacity: 0.6 }} title="Escala pertencente a outro colaborador">
-                            <Lock size={12} />
-                          </div>
-                        )}
-
-                        <div className="slot-block-content">
-                          <span className="slot-badge-label">
-                            {isPendingThisSlot ? 'Novo horário' : 'Almoço'}
-                          </span>
-                          <span className="slot-time-range">
-                            {isBeingDragged
-                              ? `${minutesToTime(blockStartMin)} - ${minutesToTime(blockEndMin)}`
-                              : isPendingThisSlot
-                              ? `${pendingMove.newStartTime} - ${pendingMove.newEndTime}`
-                              : `${slot.startTime} - ${slot.endTime}`}
-                          </span>
-                        </div>
-
-                        {isSlotInConflict && (
-                          <div className="conflict-badge-icon" title="Atenção: Horário de atendimento ficou desguarnecido!">
-                            <AlertCircle size={15} />
-                          </div>
-                        )}
-
-                        {isEditable && (
-                          <button
-                            type="button"
-                            className="btn-quick-edit"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditSlot(slot, emp);
-                            }}
-                            title="Editar horário"
-                          >
-                            <Edit2 size={12} />
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="empty-slot-area" style={{ position: 'relative', zIndex: 10, paddingLeft: '16px' }}>
-                        {canAdd && (
-                          <button
-                            type="button"
-                            className="btn-add-slot-row"
-                            style={{
-                              borderRadius: '9999px',
-                              background: 'var(--bg-card)',
-                              border: '1.5px dashed var(--scada-cyan)',
-                              color: 'var(--scada-cyan)',
-                              padding: '6px 16px',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              cursor: 'pointer',
-                              boxShadow: 'var(--shadow-xs)'
-                            }}
-                            onClick={() => onAddSlotForEmployee(emp)}
-                            title="Definir horário de almoço para este colaborador"
-                            aria-label={`Definir almoço de ${emp.name}`}
-                          >
-                            <Plus size={13} />
-                            <span className="btn-add-slot-label">Definir almoço</span>
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                        <Plus size={14} />
+                        Definir almoço
+                      </button>
+                    )
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Caixa de Confirmação Flutuante para Reposicionamento de Horário */}
+      {/* Confirmação do reposicionamento por arraste */}
       {pendingMove && (
-        <div className="timeline-confirm-banner animate-slide-up">
-          <div className="confirm-banner-body">
-            <div className="confirm-badge-bell">
-              <Clock size={20} className="pulse-cyan" />
-            </div>
-            <div className="confirm-text-group">
-              <div className="confirm-title">
-                Confirmar alteração de horário de almoço?
-              </div>
-              <div className="confirm-subtitle">
-                <strong>{pendingMove.employee.name}</strong>:{' '}
-                <span className="time-badge old-time">{pendingMove.originalStartTime} — {pendingMove.originalEndTime}</span>
-                <ArrowRight size={14} style={{ display: 'inline', margin: '0 6px', verticalAlign: 'middle' }} />
-                <span className="time-badge new-time">{pendingMove.newStartTime} — {pendingMove.newEndTime}</span>
-              </div>
-            </div>
+        <div className="tl-confirm animate-slide-up" role="dialog" aria-label="Confirmar novo horário">
+          <span className="ui-icon-circle tl-confirm-icon" aria-hidden="true"><Clock size={18} /></span>
+          <div className="tl-confirm-text">
+            <b>Confirmar novo horário de {getShortName(pendingMove.employee.name)}?</b>
+            <span>
+              <span className="ui-chip plain">{pendingMove.originalStartTime}–{pendingMove.originalEndTime}</span>
+              <ArrowRight size={14} aria-hidden="true" />
+              <span className="ui-chip plain now">{pendingMove.newStartTime}–{pendingMove.newEndTime}</span>
+            </span>
           </div>
-
-          <div className="confirm-actions-group">
-            <button
-              type="button"
-              className="btn-timeline-cancel"
-              onClick={() => setPendingMove(null)}
-              title="Cancelar e restaurar o horário anterior"
-            >
+          <div className="tl-confirm-actions">
+            <button type="button" className="ui-btn secondary sm" onClick={() => setPendingMove(null)} title="Cancelar e restaurar o horário anterior">
               <X size={15} />
-              <span>Cancelar</span>
+              Cancelar
             </button>
             <button
               type="button"
-              className="btn-timeline-confirm"
+              className="ui-btn accent sm"
               onClick={() => {
                 onUpdateSlotTimes(pendingMove.slotId, pendingMove.newStartTime, pendingMove.newEndTime);
                 setPendingMove(null);
               }}
-              title="Confirmar e salvar o novo horário na escala"
+              title="Salvar o novo horário na escala"
             >
-              <Check size={16} />
-              <span>Salvar Alterações</span>
+              <Check size={15} />
+              Salvar horário
             </button>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

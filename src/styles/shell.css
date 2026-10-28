@@ -1,0 +1,469 @@
+/* Shell do app: sidebar (Menu + Preferências) + topo com contexto da página.
+   >= 1280px sidebar completa; 768–1279px trilho só com ícones (a timeline precisa da largura);
+   < 768px sem sidebar: topo compacto com avatar e barra inferior com os quatro destinos. */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+/* ---------- Sidebar ---------- */
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px 16px 18px;
+  border-right: 1px solid var(--line);
+  z-index: 30;
+}
+
+.sidebar-brand {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-brand .scadahub-logo-wrap {
+  font-size: 1.6rem;
+}
+
+.sidebar-dept {
+  font: var(--type-caption);
+  color: var(--ink-3);
+}
+
+.sidebar-user-wrap {
+  position: relative;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-user:hover {
+  box-shadow: 0 0 0 1px var(--line), var(--shadow-card);
+}
+
+.sidebar-user-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.sidebar-user-text b {
+  font: 600 0.84375rem/1.125rem var(--font-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-user-text span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--type-caption);
+  color: var(--ink-3);
+}
+
+.sidebar-user-text span svg {
+  color: var(--accent);
+}
+
+.sidebar-user-chevron {
+  color: var(--ink-3);
+  flex: none;
+}
+
+.sidebar-user-menu {
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  min-width: 224px;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 2px;
+}
+
+.sidebar-nav .ui-overline {
+  padding: 0 12px 6px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-2);
+  font: 500 0.875rem/1 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-link:hover {
+  background: color-mix(in srgb, var(--surface) 65%, transparent);
+  color: var(--ink);
+}
+
+.sidebar-link.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+.sidebar-link.is-active svg,
+.sidebar-link[aria-checked="true"] svg {
+  color: var(--accent);
+}
+
+.sidebar-link svg {
+  flex: none;
+}
+
+.sidebar-link .ui-switch {
+  margin-left: auto;
+}
+
+.sidebar-link:focus-visible,
+.sidebar-user:focus-visible,
+.sidebar-brand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sidebar-rule {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.sidebar-rule-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.sidebar-rule b {
+  font: 600 0.875rem/1.125rem var(--font-display);
+}
+
+.sidebar-rule p {
+  margin: 0;
+  font: 400 0.78125rem/1.125rem var(--font-body);
+  color: var(--ink-2);
+}
+
+.sidebar-rule .ui-btn {
+  width: 100%;
+}
+
+/* ---------- Área principal ---------- */
+.app-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topo, conteúdo e rodapé compartilham a mesma largura máxima para alinhar as bordas em telas largas */
+.app-topbar,
+.app-main .main-content,
+.app-main .scadahub-footer {
+  width: 100%;
+  max-width: 1480px;
+}
+
+.app-topbar {
+  padding: 26px 32px 6px;
+}
+
+.topbar-mobile-row {
+  display: none;
+}
+
+.topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.topbar-title h1 {
+  margin: 0;
+  font: var(--type-title);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.topbar-title p {
+  margin: 2px 0 0;
+  font: var(--type-label);
+  color: var(--ink-3);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.app-main .main-content {
+  flex: 1;
+  margin: 0;
+  padding: 18px 32px 40px;
+}
+
+.app-main .scadahub-footer,
+[data-theme="dark"] .app-main .scadahub-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 0;
+  padding: 0 32px 28px;
+  border-top: 0;
+  background: transparent;
+}
+
+.footer-author-brand {
+  font: var(--type-caption);
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+
+/* ---------- Barra inferior (celular) ---------- */
+.mobile-tabbar {
+  display: none;
+}
+
+/* ---------- Trilho: 768–1279px ---------- */
+@media (max-width: 1279px) {
+  .app-shell {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .app-sidebar {
+    padding: 18px 12px;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .sidebar-brand {
+    padding: 0;
+    justify-items: center;
+  }
+
+  .sidebar-brand .scadahub-logo-wrap,
+  .sidebar-dept,
+  .sidebar-user-text,
+  .sidebar-user-chevron,
+  .sidebar-link-label,
+  .sidebar-link .ui-switch,
+  .sidebar-nav .ui-overline,
+  .sidebar-rule {
+    display: none;
+  }
+
+  /* Marca compacta: o "h" do favicon */
+  .sidebar-brand::before {
+    content: "h";
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--signature);
+    color: #FFFFFF;
+    font: 700 1.375rem/1 var(--font-logo);
+  }
+
+  .sidebar-user {
+    width: auto;
+    padding: 4px;
+    border-radius: 50%;
+  }
+
+  .sidebar-user-menu {
+    left: 0;
+    width: 240px;
+  }
+
+  .sidebar-nav {
+    justify-items: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  .sidebar-link {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .app-topbar {
+    padding: 22px 24px 4px;
+  }
+
+  .app-main .main-content {
+    padding: 16px 24px 36px;
+  }
+
+  .app-main .scadahub-footer {
+    padding: 0 24px 24px;
+  }
+}
+
+/* ---------- Celular: < 768px ---------- */
+@media (max-width: 767px) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+
+  .app-topbar {
+    padding: 14px 16px 2px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .topbar-mobile-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .topbar-mobile-brand {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .topbar-mobile-brand .scadahub-logo-wrap {
+    font-size: 1.4rem;
+  }
+
+  .topbar-mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .topbar-mobile-actions .ui-clock {
+    height: 34px;
+    font-size: 0.8125rem;
+  }
+
+  .topbar-user-wrap {
+    position: relative;
+  }
+
+  .topbar-avatar-btn {
+    display: grid;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .topbar-user-menu {
+    top: calc(100% + 8px);
+    right: 0;
+    width: min(280px, calc(100vw - 32px));
+  }
+
+  .topbar-clock-desktop {
+    display: none;
+  }
+
+  .topbar-title h1 {
+    font-size: 1.25rem;
+    line-height: 1.625rem;
+  }
+
+  .app-main .main-content {
+    padding: 12px 16px 24px;
+  }
+
+  .app-main .scadahub-footer {
+    padding: 0 16px 16px;
+  }
+
+  .mobile-tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    padding: 6px 6px calc(8px + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -10px 24px -18px rgba(0, 0, 0, 0.35);
+  }
+
+  .mobile-tabbar button {
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    padding: 6px 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--ink-3);
+    font: 600 0.6875rem/1 var(--font-body);
+    cursor: pointer;
+  }
+
+  .mobile-tabbar button.is-active {
+    color: var(--accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-link {
+    transition: none;
+  }
+}
