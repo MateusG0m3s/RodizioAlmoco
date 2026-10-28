@@ -1,0 +1,686 @@
+/* Telas migradas para o design system (Configurações). Substitui as regras antigas do index.css. */
+
+/* ---------- Configurações ---------- */
+.settings-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.settings-card.is-wide {
+  grid-column: 1 / -1;
+}
+
+.settings-card-header {
+  display: grid;
+  gap: 2px;
+}
+
+.settings-card-header.is-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.card-section-title {
+  margin: 0;
+  font: var(--type-heading);
+  color: var(--ink);
+}
+
+.card-section-title.with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-section-title.with-icon svg {
+  color: var(--accent);
+}
+
+.card-section-caption {
+  font: 400 0.8125rem/1.125rem var(--font-body);
+  color: var(--ink-3);
+}
+
+/* Controles soltos no cartão mantêm a largura do conteúdo */
+.settings-card > .ui-segmented,
+.settings-card > .ui-btn {
+  align-self: flex-start;
+}
+
+.settings-help {
+  margin: 2px 0 0;
+  font: 400 0.8125rem/1.125rem var(--font-body);
+  color: var(--ink-2);
+}
+
+.settings-inline-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Janela crítica: o bloco que mais importa no formulário */
+.critical-settings-highlight-box {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--accent-tint);
+}
+
+.critical-box-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 0.9375rem/1.25rem var(--font-body);
+  color: var(--accent-strong);
+}
+
+.critical-box-header svg {
+  color: var(--accent);
+}
+
+.critical-settings-highlight-box .settings-help {
+  margin: 0;
+}
+
+.critical-settings-highlight-box .form-input {
+  background: var(--surface);
+}
+
+.duration-buttons-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.btn-duration-choice {
+  height: 38px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font: 600 0.8125rem/1 var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn-duration-choice:hover {
+  background: var(--surface-3);
+}
+
+.btn-duration-choice.active {
+  background: var(--ink);
+  box-shadow: none;
+  color: var(--on-ink);
+}
+
+.settings-submit-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.save-success-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 0.8125rem/1 var(--font-body);
+  color: var(--success);
+}
+
+/* Backup */
+.backup-actions-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.backup-action-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.backup-action-item strong,
+.reset-text strong {
+  font: 600 0.875rem/1.25rem var(--font-body);
+  color: var(--ink);
+}
+
+.backup-separator {
+  height: 1px;
+  background: var(--line);
+}
+
+.settings-upload-btn {
+  margin-bottom: 8px;
+}
+
+.import-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font: 500 0.8125rem/1.25rem ui-monospace, 'Cascadia Code', Consolas, monospace;
+  outline: none;
+  resize: vertical;
+}
+
+.import-textarea:focus {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.reset-data-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.reset-data-area.is-stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.reset-data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reset-text strong.text-danger,
+.text-danger {
+  color: var(--danger);
+}
+
+.btn-danger-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--danger-tint);
+  color: var(--danger);
+  font: 600 0.84375rem/1 var(--font-body);
+  cursor: pointer;
+}
+
+.btn-danger-outline:hover {
+  box-shadow: inset 0 0 0 1px var(--danger-line);
+}
+
+.reset-confirm-box {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--danger-tint);
+}
+
+.reset-confirm-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--danger);
+}
+
+.reset-confirm-head b {
+  font: 600 0.875rem/1.25rem var(--font-body);
+}
+
+.reset-confirm-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reset-confirm-input {
+  flex: 1 1 200px;
+  min-width: 180px;
+  background: var(--surface);
+}
+
+/* Nuvem */
+.cloud-status-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.cloud-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.cloud-status-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cloud-status-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.cloud-status-icon.is-ok {
+  background: var(--success-tint);
+  color: var(--success);
+}
+
+.cloud-status-icon.is-warn {
+  background: var(--warning-tint);
+  color: var(--warning);
+}
+
+.cloud-status-title {
+  display: block;
+  font: 600 0.9375rem/1.25rem var(--font-body);
+  color: var(--ink);
+}
+
+.cloud-advanced {
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+
+.cloud-advanced-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: 500 0.78125rem/1 var(--font-body);
+  cursor: pointer;
+}
+
+.cloud-advanced-toggle:hover {
+  color: var(--ink);
+}
+
+.cloud-advanced-form {
+  margin-top: 12px;
+}
+
+/* Bloqueio para quem não é admin */
+.settings-locked {
+  padding: 32px 0;
+}
+
+.settings-locked-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.settings-locked-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+.settings-locked-card h2 {
+  margin: 0;
+  font: var(--type-heading);
+  color: var(--ink);
+}
+
+.settings-locked-card p {
+  margin: 0;
+  font: 400 0.875rem/1.375rem var(--font-body);
+  color: var(--ink-2);
+}
+
+@media (max-width: 1024px) {
+  .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .settings-card {
+    padding: 18px 16px;
+  }
+
+  .btn-duration-choice {
+    padding: 0 2px;
+    font-size: 0.75rem;
+  }
+
+  .backup-action-item,
+  .settings-submit-row {
+    flex-wrap: wrap;
+  }
+
+  .backup-action-item > button,
+  .settings-submit-row > button {
+    width: 100%;
+  }
+}
+
+/* ---------- Equipe ---------- */
+.team-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.team-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.team-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.team-member-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.team-member-card.is-own {
+  box-shadow: inset 0 0 0 2px var(--accent), var(--shadow-card);
+}
+
+.team-member-card.is-inactive-card {
+  opacity: 0.6;
+}
+
+.member-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.member-avatar {
+  width: 48px;
+  height: 48px;
+  font: 600 1rem/1 var(--font-display);
+}
+
+.member-status-pill {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.status-badge-active,
+.status-badge-inactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-full);
+  font: 600 0.75rem/1 var(--font-body);
+}
+
+.status-badge-active {
+  background: var(--success-tint);
+  color: var(--success);
+}
+
+.status-badge-inactive {
+  background: var(--surface-3);
+  color: var(--ink-2);
+}
+
+.dot-active,
+.dot-inactive {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.member-name {
+  margin: 0;
+  font: 600 1rem/1.375rem var(--font-display);
+  color: var(--ink);
+}
+
+.member-role {
+  margin: 0;
+  font: var(--type-caption);
+  color: var(--ink-3);
+}
+
+.member-email {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 4px;
+  font: 400 0.8125rem/1.125rem var(--font-body);
+  color: var(--ink-2);
+}
+
+.member-email svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.member-email span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font: 400 0.8125rem/1.125rem var(--font-body);
+}
+
+.member-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-2);
+}
+
+.member-detail-row strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.member-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.member-locked {
+  padding: 6px 0;
+}
+
+.btn-member-action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-full);
+  font: 600 0.8125rem/1 var(--font-body);
+  cursor: pointer;
+}
+
+.btn-member-action.edit {
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+}
+
+.btn-member-action.edit:hover {
+  background: var(--surface-3);
+}
+
+.btn-member-action.delete {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+/* Excluir é ação rara e destrutiva: só ícone, neutro até o hover */
+.btn-member-action.delete.is-icon-only {
+  flex: 0 0 auto;
+  width: 38px;
+  padding: 0;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-3);
+}
+
+.btn-member-action.delete.is-icon-only:hover,
+.btn-member-action.delete.is-icon-only:focus-visible {
+  background: var(--danger-tint);
+  box-shadow: none;
+  color: var(--danger);
+}
+
+.color-palette-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.switch-status-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.switch-status-group.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.form-label.is-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.form-hint {
+  margin-left: 6px;
+  font: 500 0.75rem/1rem var(--font-body);
+  color: var(--ink-3);
+}
+
+.form-label.is-split .form-hint {
+  margin-left: 0;
+}
+
+.form-hint.is-ok {
+  color: var(--success);
+}
+
+/* ---------- Semana e Histórico (ajustes de layout que eram inline) ---------- */
+.week-nav-controls,
+.history-actions-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.week-admin-note {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+}
+
+.week-slot-pill.is-readonly {
+  cursor: default;
+  opacity: 0.85;
+}

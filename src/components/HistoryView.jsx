@@ -12,12 +12,11 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
     <div className="history-view-container animate-fade-in">
       {/* Topo da Seção */}
       <div className="history-header-bar">
-        <div className="history-actions-group" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        <div className="history-actions-group">
           {onResetHistory && (
             <button
               type="button"
               className="btn-secondary"
-              style={{ borderRadius: '9999px', fontSize: '0.82rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
               onClick={() => {
                 if (window.confirm('Deseja zerar o histórico acumulado? As escalas atuais permanecerão salvas.')) {
                   onResetHistory();
@@ -104,22 +103,9 @@ export default function HistoryView({ employees, allSchedules, historyData, onOp
                     <td className="td-emp-profile">
                       <div className="history-emp-cell">
                         <div
-                          className="history-avatar"
-                          style={{
-                            backgroundColor: resolveAvatarColor(employee.color, employee.id),
-                            width: '36px',
-                            height: '36px',
-                            minWidth: '36px',
-                            minHeight: '36px',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#ffffff',
-                            fontSize: '0.8rem',
-                            fontWeight: 700,
-                            flexShrink: 0
-                          }}
+                          className="ui-avatar history-avatar"
+                          style={{ background: resolveAvatarColor(employee.color, employee.id) }}
+                          aria-hidden="true"
                         >
                           {getInitials(employee.name)}
                         </div>

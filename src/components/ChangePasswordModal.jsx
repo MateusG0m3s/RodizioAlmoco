@@ -58,131 +58,117 @@ export default function ChangePasswordModal({ isOpen, onClose, initialEmail = ''
   };
 
   return (
-    <div className="modal-backdrop animate-fade-in" style={{ zIndex: 10000 }}>
-      <div className="modal-content animate-scale-up" style={{ maxWidth: '440px', width: '92%' }}>
+    <div className="modal-backdrop animate-fade-in" onClick={onClose} style={{ zIndex: 10001 }}>
+      <div
+        className="modal-card modal-sm animate-scale-up"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="change-password-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{
-              background: 'rgba(56, 18, 103, 0.15)',
-              padding: '8px',
-              borderRadius: '8px',
-              color: 'var(--primary-500)'
-            }}>
-              <KeyRound size={20} />
-            </div>
+          <div className="modal-title-wrap">
+            <span className="modal-icon" aria-hidden="true"><KeyRound size={18} /></span>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Alterar Senha de Acesso</h3>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Defina uma nova senha para a sua conta
-              </p>
+              <h3 id="change-password-title" className="modal-title">Alterar senha</h3>
+              <span className="modal-subtitle">Defina uma nova senha para a sua conta</span>
             </div>
           </div>
-          <button type="button" className="btn-icon" onClick={onClose} title="Fechar">
+          <button type="button" className="btn-modal-close" onClick={onClose} aria-label="Fechar">
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <form onSubmit={handleSubmit} className="modal-form">
           {statusMsg && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 12px',
-              borderRadius: '8px',
-              fontSize: '0.82rem',
-              background: statusMsg.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-              color: statusMsg.type === 'success' ? '#10b981' : '#ef4444',
-              border: `1px solid ${statusMsg.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
-            }}>
+            <div className={`ui-alert ${statusMsg.type === 'success' ? 'success' : 'danger'}`} role={statusMsg.type === 'success' ? 'status' : 'alert'}>
               {statusMsg.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
               <span>{statusMsg.text}</span>
             </div>
           )}
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>
-              E-mail da Conta
-            </label>
-            <div className="login-input-wrapper">
-              <Mail size={16} className="login-field-icon" />
+          <label className="form-group">
+            <span className="form-label">E-mail da conta</span>
+            <span className="input-with-icon">
+              <Mail size={16} />
               <input
                 type="email"
                 required
-                className="login-input"
-                placeholder="seu.email@exemplo.com"
+                autoComplete="username"
+                className="form-input"
+                placeholder="seu.nome@scadahub.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-            </div>
-          </div>
+            </span>
+          </label>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>
-              Senha Atual *
-            </label>
-            <div className="login-input-wrapper">
-              <Lock size={16} className="login-field-icon" />
+          <label className="form-group">
+            <span className="form-label">Senha atual</span>
+            <span className="input-with-icon">
+              <Lock size={16} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                className="login-input"
-                placeholder="Digite a senha atual (padrão inicial: shubadm)"
+                autoComplete="current-password"
+                className="form-input"
+                placeholder="Sua senha atual"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
               />
-            </div>
-          </div>
+            </span>
+          </label>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>
-              Nova Senha (mínimo 6 caracteres)
-            </label>
-            <div className="login-input-wrapper">
-              <Lock size={16} className="login-field-icon" />
+          <label className="form-group">
+            <span className="form-label">Nova senha (mínimo 6 caracteres)</span>
+            <span className="input-with-icon">
+              <Lock size={16} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                className="login-input"
-                placeholder="Nova senha secreta"
+                autoComplete="new-password"
+                className="form-input"
+                placeholder="Nova senha"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
               <button
                 type="button"
-                className="login-password-toggle"
+                className="input-action"
                 onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? 'Ocultar' : 'Exibir'}
+                aria-label={showPassword ? 'Ocultar senhas' : 'Mostrar senhas'}
+                title={showPassword ? 'Ocultar senhas' : 'Mostrar senhas'}
               >
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
-            </div>
-          </div>
+            </span>
+          </label>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>
-              Confirme a Nova Senha
-            </label>
-            <div className="login-input-wrapper">
-              <Lock size={16} className="login-field-icon" />
+          <label className="form-group">
+            <span className="form-label">Confirme a nova senha</span>
+            <span className="input-with-icon">
+              <Lock size={16} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                className="login-input"
+                autoComplete="new-password"
+                className="form-input"
                 placeholder="Repita a nova senha"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
-            </div>
-          </div>
+            </span>
+          </label>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-            <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>
-              Cancelar
-            </button>
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Salvando...' : 'Salvar Nova Senha'}
-            </button>
+          <div className="modal-footer">
+            <div className="modal-footer-actions">
+              <button type="button" className="ui-btn secondary" onClick={onClose} disabled={isSubmitting}>
+                Cancelar
+              </button>
+              <button type="submit" className="ui-btn accent" disabled={isSubmitting}>
+                {isSubmitting ? 'Salvando…' : 'Salvar nova senha'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

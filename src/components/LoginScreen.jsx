@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle, Sparkles, Sun, Moon } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle, ShieldCheck, Sun, Moon } from 'lucide-react';
 import ChangePasswordModal from './ChangePasswordModal';
 import BrandLogo from './BrandLogo';
 
@@ -56,150 +56,132 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
 
   return (
     <div className="login-screen-wrapper">
-      {/* Botão de Tema no Canto Superior */}
       {toggleTheme && (
         <div className="login-theme-container">
           <button
             type="button"
-            className="theme-toggle-btn login-theme-btn"
+            className="ui-btn secondary sm"
             onClick={toggleTheme}
-            title={theme === 'dark' ? 'Alternar para Modo Claro' : 'Alternar para Modo Escuro'}
+            title={theme === 'dark' ? 'Alternar para o tema claro' : 'Alternar para o tema escuro'}
             aria-label="Alternar tema de cores"
           >
-            {theme === 'dark' ? (
-              <Sun size={16} className="theme-icon sun" />
-            ) : (
-              <Moon size={16} className="theme-icon moon" />
-            )}
-            <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-              {theme === 'dark' ? 'Claro' : 'Escuro'}
-            </span>
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            {theme === 'dark' ? 'Claro' : 'Escuro'}
           </button>
         </div>
       )}
 
-      <div className="login-card-container animate-fade-in">
-        {/* Topo do Card com Identidade scadahub */}
-        <div className="login-brand-header">
+      <div className="login-shell animate-fade-in">
+        {/* Herói com o wallpaper da scadahub */}
+        <aside className="login-hero">
           <BrandLogo className="login-logo" />
-          <h1 className="login-title">Rodízio de almoço</h1>
-          <p className="login-subtitle">Entre com seu e-mail da scadahub para ver a escala da equipe.</p>
-        </div>
-
-        {/* Mensagem de Erro Amigável */}
-        {errorMessage && (
-          <div className="login-error-alert animate-scale-up" role="alert">
-            <AlertCircle size={18} className="login-error-icon" />
-            <span className="login-error-text">{errorMessage}</span>
+          <div>
+            <h2 className="login-hero-title">Rodízio de almoço</h2>
+            <p className="login-hero-text">Quem almoça quando, com o atendimento ao cliente sempre coberto.</p>
           </div>
-        )}
+          <span className="login-hero-foot">EF - Mateus Silva</span>
+        </aside>
 
-        {/* Formulário de Login Oficial */}
-        <form onSubmit={handleSubmit} className="login-form" name="loginForm" method="post" action="#">
-          <div className="login-input-group">
-            <label htmlFor="username" className="login-label">
-              E-mail
-            </label>
-            <div className="login-input-wrapper">
-              <Mail size={18} className="login-field-icon" />
-              <input
-                id="username"
-                name="username"
-                type="email"
-                autoComplete="username"
-                required
-                className="login-input"
-                placeholder="seu.nome@scadahub.io"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting}
-              />
+        <div className="login-card-container">
+          <div className="login-brand-header">
+            <h1 className="login-title">Entrar</h1>
+            <p className="login-subtitle">Use seu e-mail da scadahub para ver a escala da equipe.</p>
+          </div>
+
+          {errorMessage && (
+            <div className="ui-alert danger animate-scale-up" role="alert">
+              <AlertCircle size={16} />
+              <span>{errorMessage}</span>
             </div>
-          </div>
+          )}
 
-          <div className="login-input-group">
-            <label htmlFor="password" className="login-label">
-              Senha
-            </label>
-            <div className="login-input-wrapper">
-              <Lock size={18} className="login-field-icon" />
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                required
-                className="login-input"
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isSubmitting}
-              />
-              <button
-                type="button"
-                className="login-password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-                aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          <form onSubmit={handleSubmit} className="login-form" name="loginForm" method="post" action="#">
+            <div className="login-input-group">
+              <label htmlFor="username" className="login-label">
+                E-mail
+              </label>
+              <div className="login-input-wrapper">
+                <Mail size={18} className="login-field-icon" />
+                <input
+                  id="username"
+                  name="username"
+                  type="email"
+                  autoComplete="username"
+                  required
+                  className="login-input"
+                  placeholder="seu.nome@scadahub.io"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="login-input-group">
+              <label htmlFor="password" className="login-label">
+                Senha
+              </label>
+              <div className="login-input-wrapper">
+                <Lock size={18} className="login-field-icon" />
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  className="login-input"
+                  placeholder="Sua senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  className="login-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="ui-btn primary login-submit-btn" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <div className="btn-spinner" />
+                  Autenticando…
+                </>
+              ) : (
+                <>
+                  <LogIn size={17} />
+                  Entrar
+                </>
+              )}
+            </button>
+
+            <div className="login-links">
+              <span>Primeiro acesso? Use a senha inicial informada pelo administrador e troque em seguida.</span>
+              <button type="button" className="login-link-btn" onClick={() => setIsChangePasswordOpen(true)}>
+                Alterar senha
               </button>
             </div>
+          </form>
+
+          {/* Montado só quando aberto, para já vir com o e-mail digitado */}
+          {isChangePasswordOpen && (
+            <ChangePasswordModal
+              isOpen
+              onClose={() => setIsChangePasswordOpen(false)}
+              initialEmail={email}
+            />
+          )}
+
+          <div className="login-card-footer">
+            <ShieldCheck size={14} />
+            <span>Autenticação protegida pelo Firebase Authentication</span>
           </div>
-
-          <button
-            type="submit"
-            className="btn-primary login-submit-btn"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <div className="btn-spinner" />
-                <span>Autenticando...</span>
-              </>
-            ) : (
-              <>
-                <LogIn size={18} />
-                <span>Entrar</span>
-              </>
-            )}
-          </button>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', fontSize: '0.8rem' }}>
-            <span style={{ color: 'var(--text-muted)' }}>
-              Senha inicial: <code style={{ color: 'var(--primary-400)', fontWeight: 600 }}>shubadm</code>
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsChangePasswordOpen(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--primary-400)',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.8rem'
-              }}
-            >
-              Alterar senha
-            </button>
-          </div>
-        </form>
-
-        <ChangePasswordModal
-          isOpen={isChangePasswordOpen}
-          onClose={() => setIsChangePasswordOpen(false)}
-          initialEmail={email || 'mateusaugusto1441@gmail.com'}
-        />
-
-        {/* Rodapé Informativo de Segurança */}
-        <div className="login-card-footer">
-          <div className="login-security-notice">
-            <Sparkles size={14} className="text-scada-cyan" />
-            <span>Autenticação protegida via Firebase Authentication</span>
-          </div>
-          <span className="login-author-tag">EF - Mateus Silva</span>
         </div>
       </div>
     </div>

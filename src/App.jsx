@@ -853,7 +853,6 @@ export default function App() {
         onDelete={handleDeleteSlot}
         isAdmin={isAdmin}
         currentUserEmployeeId={currentUserEmployeeId}
-        theme={theme}
       />
 
       {/* Modal do Gerador scadahub (Exclusivo Administrador) */}
@@ -881,12 +880,15 @@ export default function App() {
       />
 
 
-      <ChangePasswordModal
-        isOpen={isChangePasswordOpen}
-        onClose={() => setIsChangePasswordOpen(false)}
-        initialEmail={currentUser?.email || ''}
-        onSuccess={() => showToast('Sua senha foi alterada.', 'Senha atualizada')}
-      />
+      {/* Montado só quando aberto, para usar o e-mail da conta ativa no momento */}
+      {isChangePasswordOpen && (
+        <ChangePasswordModal
+          isOpen
+          onClose={() => setIsChangePasswordOpen(false)}
+          initialEmail={currentUser?.email || ''}
+          onSuccess={() => showToast('Sua senha foi alterada.', 'Senha atualizada')}
+        />
+      )}
 
       {/* Toast Flutuante de Confirmação Instantânea */}
       {toastNotification && (() => {

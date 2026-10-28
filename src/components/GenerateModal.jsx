@@ -131,11 +131,11 @@ export default function GenerateModal({
 
           {/* Aviso se a geração for impossível com as regras atuais */}
           {previewToday.success === false && (
-            <div className="conflict-alert-box animate-shake" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--conflict-bg)', border: '1px solid var(--conflict-border)', padding: '12px 16px', borderRadius: 'var(--radius-md)', color: 'var(--conflict-text)', marginTop: '10px' }}>
-              <AlertTriangle size={18} className="text-rose-500 shrink-0" />
-              <div style={{ fontSize: '0.84rem' }}>
-                <strong>Impossível Gerar:</strong> {previewToday.error}
-              </div>
+            <div className="ui-alert danger" role="alert">
+              <AlertTriangle size={16} />
+              <span>
+                <b>Não foi possível gerar:</b> {previewToday.error}
+              </span>
             </div>
           )}
 
@@ -162,8 +162,9 @@ export default function GenerateModal({
                 return (
                   <div key={slot.employeeId} className="preview-slot-item">
                     <div
-                      className="preview-emp-avatar"
-                      style={{ backgroundColor: resolveAvatarColor(emp?.color, emp?.id) }}
+                      className="ui-avatar sm preview-emp-avatar"
+                      style={{ background: resolveAvatarColor(emp?.color, emp?.id) }}
+                      aria-hidden="true"
                     >
                       {getInitials(emp?.name)}
                     </div>
@@ -189,7 +190,6 @@ export default function GenerateModal({
             className="btn-primary"
             onClick={handleConfirm}
             disabled={previewToday.success === false}
-            style={{ opacity: previewToday.success === false ? 0.5 : 1, cursor: previewToday.success === false ? 'not-allowed' : 'pointer' }}
           >
             <Sparkles size={16} />
             <span>{mode === 'today' ? 'Aplicar ao Dia de Hoje' : 'Aplicar à Semana Inteira'}</span>

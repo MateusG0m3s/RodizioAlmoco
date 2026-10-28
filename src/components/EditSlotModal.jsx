@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, AlertTriangle, Check, Trash2, Wand2, Lock, Users } from 'lucide-react';
+import { X, Clock, AlertTriangle, Check, Trash2, Lock, Users } from 'lucide-react';
 import { getInitials } from '../utils/nameUtils';
-import { timeToMinutes, minutesToTime, addMinutesToTime, snapToInterval } from '../utils/timeUtils';
-import { findNextAvailableSlot } from '../utils/scheduler';
+import { timeToMinutes, minutesToTime, addMinutesToTime, formatDateBR } from '../utils/timeUtils';
 import { resolveAvatarColor } from '../utils/avatarColors';
 
 export default function EditSlotModal({
@@ -17,8 +16,7 @@ export default function EditSlotModal({
   onSave,
   onDelete,
   isAdmin = true,
-  currentUserEmployeeId = null,
-  theme
+  currentUserEmployeeId = null
 }) {
   // Limites Oficiais de Intervalo de Almoço (Mínimo: 30 minutos | Máximo: 2 horas / 120 minutos)
   const MIN_LUNCH_MINUTES = 30;
@@ -218,167 +216,72 @@ export default function EditSlotModal({
 
   if (!isOpen) return null;
 
-  const currentTheme = theme || (typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : null) || 'light';
-  const isDark = currentTheme === 'dark';
-  const modalBg = isDark ? '#0d071e' : '#ffffff';
-  const modalBorder = isDark ? 'rgba(255, 255, 255, 0.12)' : 'var(--border-color)';
-  const textTitle = isDark ? '#ffffff' : 'var(--scada-purple-deep)';
-  const textSub = isDark ? '#9a93a3' : 'var(--text-muted)';
-  const cardBg = isDark ? 'rgba(255, 255, 255, 0.03)' : 'var(--bg-subtle)';
-  const cardBorder = isDark ? 'rgba(255, 255, 255, 0.08)' : 'var(--border-color)';
-  const inputBg = isDark ? '#0c071a' : '#f8f5fa';
-  const inputBorder = isDark ? '#2e1065' : 'var(--border-color)';
-  const inputColor = isDark ? '#ffffff' : 'var(--text-main)';
-  const pillInactiveBg = isDark ? '#15101c' : '#f2eef5';
-  const pillInactiveBorder = isDark ? '#3a2a4a' : 'var(--border-color)';
-  const pillInactiveColor = isDark ? '#d6cfdd' : 'var(--text-main)';
-  const cancelBg = isDark ? '#1c1136' : '#f2eef5';
-  const cancelBorder = isDark ? 'rgba(255, 255, 255, 0.12)' : 'var(--border-color)';
-  const cancelColor = isDark ? '#ffffff' : 'var(--text-main)';
-  const footerBorder = isDark ? 'rgba(255, 255, 255, 0.08)' : 'var(--border-color)';
-  const deleteBtnBg = isDark ? '#ffffff' : '#fee2e2';
-
   return (
     <div className="modal-backdrop animate-fade-in" onClick={onClose} style={{ zIndex: 10000 }}>
       <div
-        className="animate-scale-up"
+        className="modal-card animate-scale-up"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-slot-title"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: modalBg,
-          border: `1px solid ${modalBorder}`,
-          borderRadius: '24px',
-          boxShadow: isDark ? '0 24px 60px rgba(0, 0, 0, 0.75)' : 'var(--shadow-xl)',
-          maxWidth: '500px',
-          width: '92%',
-          overflow: 'hidden',
-          color: isDark ? '#ffffff' : 'var(--text-main)',
-          transition: 'background 0.2s ease, border-color 0.2s ease'
-        }}
       >
-        {/* Cabeçalho do Modal */}
-        <div style={{ padding: '22px 24px 18px 24px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ marginBottom: '8px' }}>
-              <Clock size={20} style={{ color: isDark ? '#ffffff' : 'var(--primary-600)' }} />
+        <div className="modal-header">
+          <div className="modal-title-wrap">
+            <span className="modal-icon" aria-hidden="true"><Clock size={18} /></span>
+            <div>
+              <h3 id="edit-slot-title" className="modal-title">
+                {isAllowedToEdit ? (slot ? 'Editar almoço' : 'Definir almoço') : 'Almoço (somente leitura)'}
+              </h3>
+              <span className="modal-subtitle">
+                {isAllowedToEdit
+                  ? 'Escolha a duração ou ajuste início e fim livremente.'
+                  : 'Este horário pertence a outro colaborador.'}
+              </span>
             </div>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: textTitle, fontFamily: 'var(--font-display)', letterSpacing: '-0.01em' }}>
-              {isAllowedToEdit ? (slot ? 'Editar Almoço' : 'Definir Almoço') : 'Visualizar Almoço (Somente Leitura)'}
-            </h3>
-            <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: textSub, lineHeight: 1.4 }}>
-              {isAllowedToEdit 
-                ? 'Horário automático por duração ou personalizado livremente (ex: 11:33 às 12:07)' 
-                : 'Escala pertencente a outro colaborador (bloqueada para edição)'}
-            </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              color: textSub,
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
+          <button type="button" className="btn-modal-close" onClick={onClose} aria-label="Fechar">
             <X size={18} />
           </button>
         </div>
 
-        {/* Aviso de Somente Leitura caso não seja o proprietário nem Admin */}
-        {!isAllowedToEdit && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '10px 14px',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.35)',
-              borderRadius: '12px',
-              color: '#f87171',
-              fontSize: '0.84rem',
-              margin: '0 24px 16px 24px'
-            }}
-          >
-            <Lock size={16} style={{ flexShrink: 0 }} />
-            <span>
-              <b>Modo Protegido:</b> Usuários normais só possuem permissão para alterar a própria escala.
-            </span>
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="modal-form">
+          {!isAllowedToEdit && (
+            <div className="ui-alert warning">
+              <Lock size={16} />
+              <span>Cada pessoa só altera a própria escala. Peça a um administrador se precisar mudar este horário.</span>
+            </div>
+          )}
 
-        {/* Corpo do Modal */}
-        <form onSubmit={handleSubmit} style={{ padding: '0 24px 22px 24px' }}>
-          {/* Card do Funcionário */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-            padding: '12px 18px',
-            background: cardBg,
-            border: `1px solid ${cardBorder}`,
-            borderRadius: '16px',
-            marginBottom: '18px'
-          }}>
-            <div
-              style={{
-                backgroundColor: resolveAvatarColor(employee?.color, employee?.id),
-                width: '46px',
-                height: '46px',
-                minWidth: '46px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontSize: '1.05rem',
-                fontWeight: 700,
-                flexShrink: 0
-              }}
+          <div className="modal-person">
+            <span
+              className={`ui-avatar lg ${isOwner ? 'is-you' : ''}`}
+              style={{ background: resolveAvatarColor(employee?.color, employee?.id) }}
+              aria-hidden="true"
             >
               {getInitials(employee?.name)}
-            </div>
-            <div>
-              <span style={{ fontSize: '0.78rem', color: textSub, fontWeight: 700 }}>
-                Funcionário
-              </span>
-              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: isDark ? '#C08BDD' : 'var(--scada-purple-dark)', margin: '2px 0 0 0' }}>
-                {employee?.name} {isOwner ? ' (Você)' : ''}
-              </h4>
+            </span>
+            <div className="modal-person-text">
+              <b>
+                {employee?.name}
+                {isOwner && <span className="ui-chip you">Você</span>}
+              </b>
+              {date && <span className="ui-caption">{formatDateBR(date).fullDisplay}</span>}
             </div>
           </div>
 
-          {/* Duração do Almoço */}
-          <div style={{ marginBottom: '18px' }}>
-            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: isDark ? '#d6cfdd' : 'var(--text-main)', marginBottom: '8px' }}>
-              Duração do Almoço:
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="form-group">
+            <span className="form-label" id="edit-slot-duration">Duração</span>
+            <div className="ui-choices" role="group" aria-labelledby="edit-slot-duration">
               {DURATION_PRESETS.map((mins) => {
                 const isSelected = computedDuration === mins || (duration === mins && !isDurationInvalid);
                 return (
                   <button
                     type="button"
                     key={mins}
+                    className={isSelected ? 'is-on' : ''}
+                    aria-pressed={isSelected}
                     disabled={!isAllowedToEdit}
                     onClick={() => handleSelectDuration(mins)}
-                    style={{
-                      flex: 1,
-                      padding: '8px 0',
-                      borderRadius: '9999px',
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      cursor: isAllowedToEdit ? 'pointer' : 'default',
-                      border: isSelected ? '1.5px solid #71298D' : `1px solid ${pillInactiveBorder}`,
-                      background: isSelected ? '#62257A' : pillInactiveBg,
-                      color: isSelected ? '#ffffff' : pillInactiveColor,
-                      boxShadow: isSelected ? '0 0 14px rgba(110, 43, 144, 0.45)' : 'none',
-                      transition: 'all 0.15s ease'
-                    }}
                   >
                     {mins} min
                   </button>
@@ -387,252 +290,95 @@ export default function EditSlotModal({
             </div>
           </div>
 
-          {/* Início e Pílulas de Ajuste Fino */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: isDark ? '#d6cfdd' : 'var(--text-main)', marginBottom: '6px' }}>
-              Início:
+          <div className="time-pair">
+            <label className="form-group">
+              <span className="form-label">Início</span>
+              <span className="time-field">
+                <input
+                  type="time"
+                  value={startTime}
+                  disabled={!isAllowedToEdit}
+                  onChange={(e) => handleStartTimeChange(e.target.value)}
+                  required
+                />
+              </span>
             </label>
-            <div style={{
-              position: 'relative',
-              background: inputBg,
-              border: `1.5px solid ${inputBorder}`,
-              borderRadius: '14px',
-              padding: '8px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <input
-                type="time"
-                value={startTime}
-                disabled={!isAllowedToEdit}
-                onChange={(e) => handleStartTimeChange(e.target.value)}
-                required
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: inputColor,
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  width: '100%',
-                  fontFamily: 'inherit',
-                  cursor: isAllowedToEdit ? 'pointer' : 'default'
-                }}
-              />
-            </div>
+            <label className="form-group">
+              <span className="form-label">Fim</span>
+              <span className="time-field">
+                <input
+                  type="time"
+                  value={endTime}
+                  disabled={!isAllowedToEdit}
+                  onChange={(e) => handleEndTimeChange(e.target.value)}
+                  required
+                />
+              </span>
+            </label>
+          </div>
 
-            {/* Pílulas de ajuste fino [-2m] [-1m] [+1m] [+2m] */}
-            {isAllowedToEdit && (
-              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+          {isAllowedToEdit && (
+            <div className="form-group">
+              <span className="form-label" id="edit-slot-fine">Ajuste fino do início</span>
+              <div className="ui-choices sm" role="group" aria-labelledby="edit-slot-fine">
                 {[-2, -1, 1, 2].map((delta) => (
-                  <button
-                    type="button"
-                    key={delta}
-                    onClick={() => handleFineAdjust(delta)}
-                    style={{
-                      background: pillInactiveBg,
-                      border: `1px solid ${pillInactiveBorder}`,
-                      color: pillInactiveColor,
-                      borderRadius: '9999px',
-                      padding: '4px 14px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    {delta > 0 ? `+${delta}m` : `${delta}m`}
+                  <button type="button" key={delta} onClick={() => handleFineAdjust(delta)}>
+                    {delta > 0 ? `+${delta} min` : `${delta} min`}
                   </button>
                 ))}
-              </div>
-            )}
-          </div>
-
-          {/* Fim */}
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: isDark ? '#d6cfdd' : 'var(--text-main)', marginBottom: '6px' }}>
-              Fim:
-            </label>
-            <div style={{
-              position: 'relative',
-              background: inputBg,
-              border: `1.5px solid ${inputBorder}`,
-              borderRadius: '14px',
-              padding: '8px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <input
-                type="time"
-                value={endTime}
-                disabled={!isAllowedToEdit}
-                onChange={(e) => handleEndTimeChange(e.target.value)}
-                required
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: inputColor,
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  width: '100%',
-                  fontFamily: 'inherit',
-                  cursor: isAllowedToEdit ? 'pointer' : 'default'
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Linha da Duração com Validação (Mínimo: 30 min | Máximo: 2 horas) */}
-          <div style={{ fontSize: '0.84rem', color: isDurationInvalid ? '#f87171' : textSub, marginBottom: '16px' }}>
-            Duração: <strong style={{ color: isDurationInvalid ? '#f87171' : (isDark ? '#ffffff' : 'var(--text-main)') }}>{computedDuration} min</strong>{' '}
-            {isDurationInvalid ? (
-              <span style={{ color: '#f87171', fontWeight: 600 }}>
-                ({durationErrorMessage})
-              </span>
-            ) : (
-              '(Automático ou editável livremente)'
-            )}
-          </div>
-
-          {/* Mensagens de Alerta ou Sucesso */}
-          {durationErrorMessage ? (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.35)',
-              padding: '12px 16px',
-              borderRadius: '14px',
-              fontSize: '0.82rem',
-              color: '#f87171',
-              marginBottom: '20px'
-            }}>
-              <AlertTriangle size={18} style={{ flexShrink: 0 }} />
-              <span>{durationErrorMessage}</span>
-            </div>
-          ) : conflictWarning ? (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.35)',
-              padding: '12px 16px',
-              borderRadius: '14px',
-              fontSize: '0.82rem',
-              color: '#f87171',
-              marginBottom: '20px'
-            }}>
-              <AlertTriangle size={18} style={{ flexShrink: 0 }} />
-              <span>{conflictWarning}</span>
-            </div>
-          ) : (
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              background: cardBg,
-              border: `1px solid ${cardBorder}`,
-              padding: '12px 16px',
-              borderRadius: '14px',
-              fontSize: '0.82rem',
-              color: isDark ? '#d6cfdd' : 'var(--text-main)',
-              marginBottom: '20px'
-            }}>
-              <Users size={18} style={{ color: '#9b55c2', marginTop: '2px', flexShrink: 0 }} />
-              <div style={{ lineHeight: 1.45 }}>
-                {sharedShiftNames.length > 0 ? (
-                  <>
-                    Almoçando no mesmo turno com: <strong style={{ color: isDark ? '#ffffff' : 'var(--text-main)' }}>{sharedShiftNames.join(', ')}</strong>.
-                    <br />
-                    Atendimento aos clientes garantido pelos colegas de plantão!
-                  </>
-                ) : (
-                  <>
-                    Atendimento aos clientes garantido pelos colegas de plantão!
-                  </>
-                )}
               </div>
             </div>
           )}
 
-          {/* Rodapé do Modal */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: '16px',
-            borderTop: `1px solid ${footerBorder}`
-          }}>
+          <p className={`slot-duration-line ${isDurationInvalid ? 'is-invalid' : ''}`}>
+            Duração: <strong>{computedDuration} min</strong>
+          </p>
+
+          {durationErrorMessage ? (
+            <div className="ui-alert danger" role="alert">
+              <AlertTriangle size={16} />
+              <span>{durationErrorMessage}</span>
+            </div>
+          ) : conflictWarning ? (
+            <div className="ui-alert danger" role="alert">
+              <AlertTriangle size={16} />
+              <span>{conflictWarning}</span>
+            </div>
+          ) : (
+            <div className="ui-alert info">
+              <Users size={16} />
+              <span>
+                {sharedShiftNames.length > 0 && (
+                  <>Almoçando no mesmo horário: <b>{sharedShiftNames.join(', ')}</b>. </>
+                )}
+                O atendimento segue coberto pelos colegas de plantão.
+              </span>
+            </div>
+          )}
+
+          <div className="modal-footer">
             {slot && isAllowedToEdit ? (
               <button
                 type="button"
+                className="ui-btn danger-text sm"
                 onClick={() => {
                   onDelete(slot.id);
                   onClose();
                 }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: deleteBtnBg,
-                  color: '#e11d48',
-                  border: isDark ? 'none' : '1px solid #fecdd3',
-                  borderRadius: '9999px',
-                  padding: '9px 18px',
-                  fontSize: '0.84rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
               >
-                <Trash2 size={15} color="#e11d48" />
-                <span>Remover Horário</span>
+                <Trash2 size={15} />
+                Remover horário
               </button>
-            ) : <div />}
+            ) : null}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={onClose}
-                style={{
-                  background: cancelBg,
-                  color: cancelColor,
-                  border: `1px solid ${cancelBorder}`,
-                  borderRadius: '9999px',
-                  padding: '9px 22px',
-                  fontSize: '0.84rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                Cancelar
+            <div className="modal-footer-actions">
+              <button type="button" className="ui-btn secondary" onClick={onClose}>
+                {isAllowedToEdit ? 'Cancelar' : 'Fechar'}
               </button>
               {isAllowedToEdit && (
-                <button
-                  type="submit"
-                  disabled={isDurationInvalid}
-                  style={{
-                    background: isDurationInvalid
-                      ? (isDark ? 'rgba(110, 43, 144, 0.25)' : '#d6cfdd')
-                      : 'linear-gradient(135deg, #62257A 0%, #005E8E 100%)',
-                    color: isDurationInvalid ? (isDark ? '#6b6475' : '#9a93a3') : '#ffffff',
-                    border: 'none',
-                    borderRadius: '9999px',
-                    padding: '9px 24px',
-                    fontSize: '0.84rem',
-                    fontWeight: 700,
-                    cursor: isDurationInvalid ? 'not-allowed' : 'pointer',
-                    boxShadow: isDurationInvalid ? 'none' : '0 4px 14px rgba(110, 43, 144, 0.35)',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  Salvar Horário
+                <button type="submit" className="ui-btn accent" disabled={isDurationInvalid}>
+                  <Check size={16} />
+                  Salvar horário
                 </button>
               )}
             </div>

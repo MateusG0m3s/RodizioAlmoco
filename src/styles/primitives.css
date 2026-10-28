@@ -19,6 +19,12 @@
   color: var(--ink-3);
 }
 
+.ui-caption.with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* ---------- Cartão ---------- */
 .ui-card {
   background: var(--surface);
@@ -134,6 +140,12 @@
 .ui-btn.light {
   background: #FFFFFF;
   color: #1D1024;
+}
+
+/* Confirmar ação destrutiva */
+.ui-btn.danger {
+  background: var(--danger);
+  color: var(--surface);
 }
 
 .ui-btn.danger-text {
@@ -448,5 +460,22 @@
   .ui-switch,
   .ui-switch::after {
     transition: none;
+  }
+}
+
+/* ---------- Giro (spinners de carregamento) ---------- */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin {
+    animation-duration: 2.4s;
   }
 }

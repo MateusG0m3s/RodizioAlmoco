@@ -52,11 +52,10 @@ export default function WeekView({
     <div className="week-view-container animate-fade-in">
       {/* Barra de Navegação Semanal */}
       <div className="week-header-bar">
-        <div className="week-nav-controls" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="week-nav-controls">
           <button
             type="button"
             className="btn-week-nav"
-            style={{ borderRadius: '9999px' }}
             onClick={handlePrevWeek}
             title="Semana anterior"
             aria-label="Semana anterior"
@@ -67,7 +66,6 @@ export default function WeekView({
           <button
             type="button"
             className="btn-week-today"
-            style={{ borderRadius: '9999px' }}
             onClick={handleToday}
           >
             Hoje
@@ -75,7 +73,6 @@ export default function WeekView({
           <button
             type="button"
             className="btn-week-nav"
-            style={{ borderRadius: '9999px' }}
             onClick={handleNextWeek}
             title="Próxima semana"
             aria-label="Próxima semana"
@@ -90,7 +87,6 @@ export default function WeekView({
               <button
                 type="button"
                 className="btn-primary"
-                style={{ borderRadius: '9999px' }}
                 onClick={onQuickGenerateWeek || onOpenGenerateModal}
                 title="Gera automaticamente a escala da semana inteira alternando turnos (Admin)"
               >
@@ -101,7 +97,6 @@ export default function WeekView({
                 <button
                   type="button"
                   className="btn-secondary"
-                  style={{ borderRadius: '9999px' }}
                   onClick={onOpenGenerateModal}
                   title="Opções do gerador"
                 >
@@ -110,7 +105,7 @@ export default function WeekView({
               )}
             </>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg-subtle)', padding: '6px 14px', borderRadius: '9999px', border: '1px solid var(--border-subtle)' }}>
+            <div className="ui-caption with-icon week-admin-note">
               <Lock size={13} />
               <span>Geração em lote exclusiva para administradores</span>
             </div>
@@ -198,22 +193,9 @@ export default function WeekView({
                     <td className="td-employee">
                       <div className="matrix-emp-info">
                         <div
-                          className="matrix-avatar"
-                          style={{
-                            backgroundColor: resolveAvatarColor(emp.color, emp.id),
-                            width: '32px',
-                            height: '32px',
-                            minWidth: '32px',
-                            minHeight: '32px',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#ffffff',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            flexShrink: 0
-                          }}
+                          className="ui-avatar matrix-avatar"
+                          style={{ background: resolveAvatarColor(emp.color, emp.id) }}
+                          aria-hidden="true"
                         >
                           {getInitials(emp.name)}
                         </div>
@@ -240,11 +222,7 @@ export default function WeekView({
                         >
                           {slot ? (
                             <div
-                              className="week-slot-pill"
-                              style={{
-                                cursor: canManageThisEmp ? 'pointer' : 'default',
-                                opacity: canManageThisEmp ? 1 : 0.85
-                              }}
+                              className={`week-slot-pill ${canManageThisEmp ? '' : 'is-readonly'}`}
                               onClick={() => onOpenEditModal(slot, emp, day.date)}
                               title={canManageThisEmp ? "Clique para editar seu horário" : `Escala de ${emp.name} (Somente leitura)`}
                             >
