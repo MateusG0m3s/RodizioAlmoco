@@ -4,6 +4,7 @@ import { getInitials, getShortName } from '../utils/nameUtils';
 import confetti from 'canvas-confetti';
 import { generateAutoSchedule } from '../utils/scheduler';
 import { getWorkDaysOfWeek } from '../utils/timeUtils';
+import { resolveAvatarColor } from '../utils/avatarColors';
 
 export default function GenerateModal({
   isOpen,
@@ -68,7 +69,7 @@ export default function GenerateModal({
         particleCount: 90,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
+        colors: ['#4A1C5C', '#62257A', '#005E8E', '#5CB3E8']
       });
     } catch (e) {
       // Ignora erro de confetti
@@ -130,11 +131,11 @@ export default function GenerateModal({
 
           {/* Aviso se a geração for impossível com as regras atuais */}
           {previewToday.success === false && (
-            <div className="conflict-alert-box animate-shake" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--conflict-bg)', border: '1px solid var(--conflict-border)', padding: '12px 16px', borderRadius: 'var(--radius-md)', color: 'var(--conflict-text)', marginTop: '10px' }}>
-              <AlertTriangle size={18} className="text-rose-500 shrink-0" />
-              <div style={{ fontSize: '0.84rem' }}>
-                <strong>Impossível Gerar:</strong> {previewToday.error}
-              </div>
+            <div className="ui-alert danger" role="alert">
+              <AlertTriangle size={16} />
+              <span>
+                <b>Não foi possível gerar:</b> {previewToday.error}
+              </span>
             </div>
           )}
 
@@ -161,8 +162,9 @@ export default function GenerateModal({
                 return (
                   <div key={slot.employeeId} className="preview-slot-item">
                     <div
-                      className="preview-emp-avatar"
-                      style={{ backgroundColor: emp?.color || '#4f1f66' }}
+                      className="ui-avatar sm preview-emp-avatar"
+                      style={{ background: resolveAvatarColor(emp?.color, emp?.id) }}
+                      aria-hidden="true"
                     >
                       {getInitials(emp?.name)}
                     </div>
@@ -188,7 +190,6 @@ export default function GenerateModal({
             className="btn-primary"
             onClick={handleConfirm}
             disabled={previewToday.success === false}
-            style={{ opacity: previewToday.success === false ? 0.5 : 1, cursor: previewToday.success === false ? 'not-allowed' : 'pointer' }}
           >
             <Sparkles size={16} />
             <span>{mode === 'today' ? 'Aplicar ao Dia de Hoje' : 'Aplicar à Semana Inteira'}</span>

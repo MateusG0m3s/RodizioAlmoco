@@ -1,17 +1,9 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, Edit2, Trash2, Clock, ShieldAlert, X, Lock, Mail } from 'lucide-react';
 import { getInitials } from '../utils/nameUtils';
+import { AVATAR_PALETTE, resolveAvatarColor } from '../utils/avatarColors';
 
-const COLOR_PALETTE = [
-  '#1a87cc', // Azul
-  '#8a44b0', // Violeta
-  '#ec4899', // Rosa
-  '#f59e0b', // Âmbar
-  '#10b981', // Esmeralda
-  '#4fb3ee', // Ciano
-  '#f97316', // Laranja
-  '#6366f1'  // Índigo
-];
+const COLOR_PALETTE = AVATAR_PALETTE;
 
 export default function TeamView({
   employees,
@@ -64,7 +56,7 @@ export default function TeamView({
     setFormShortName(emp.shortName || '');
     setFormEmail(emp.email || '');
     setFormRole(emp.role || 'Equipe');
-    setFormColor(emp.color || COLOR_PALETTE[0]);
+    setFormColor(resolveAvatarColor(emp.color, emp.id));
     setFormActive(emp.active !== false);
     setFormPreferredTime(emp.preferredTime || '');
     setFormRestrictions(emp.restrictions || '');
@@ -115,15 +107,9 @@ export default function TeamView({
     <div className="team-view-container animate-fade-in">
       {/* Topo da Seção de Equipe */}
       <div className="team-header-bar">
-        <div className="team-title-group">
-          <Users size={22} className="text-primary-500" />
-          <div>
-            <h2 className="team-main-title">Gestão da Equipe</h2>
-            <p className="team-sub-title">
-              {employees.length} membros cadastrados • {employees.filter((e) => e.active).length} ativos no rodízio
-            </p>
-          </div>
-        </div>
+        <p className="ui-label team-count">
+          {employees.length} membros cadastrados • {employees.filter((e) => e.active).length} ativos no rodízio
+        </p>
 
         {/* Botão Novo Funcionário (Exclusivo Administrador) */}
         {isAdmin ? (
@@ -132,7 +118,7 @@ export default function TeamView({
             <span>Novo Funcionário</span>
           </button>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          <div className="ui-caption with-icon">
             <Lock size={14} />
             <span>Cadastro restrito a administradores</span>
           </div>
@@ -148,54 +134,19 @@ export default function TeamView({
           return (
             <div
               key={emp.id}
-              className={`team-member-card ${!emp.active ? 'is-inactive-card' : ''}`}
-              style={{
-                border: isOwn ? '1.5px solid var(--primary-500)' : '1px solid var(--border-color)',
-                position: 'relative'
-              }}
+              className={`team-member-card ${!emp.active ? 'is-inactive-card' : ''} ${isOwn ? 'is-own' : ''}`}
             >
-              {isOwn && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '12px',
-                    background: 'var(--primary-500)',
-                    color: '#ffffff',
-                    fontSize: '0.68rem',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '9999px',
-                    letterSpacing: '0.04em'
-                  }}
-                >
-                  Seu perfil
-                </div>
-              )}
-
               <div className="member-card-top">
                 <div
-                  className="member-avatar"
-                  style={{
-                    backgroundColor: emp.color || '#4f1f66',
-                    width: '48px',
-                    height: '48px',
-                    minWidth: '48px',
-                    minHeight: '48px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#ffffff',
-                    fontSize: '1.15rem',
-                    fontWeight: 700,
-                    flexShrink: 0
-                  }}
+                  className="ui-avatar member-avatar"
+                  style={{ background: resolveAvatarColor(emp.color, emp.id) }}
+                  aria-hidden="true"
                 >
                   {getInitials(emp.name)}
                 </div>
 
                 <div className="member-status-pill">
+                  {isOwn && <span className="ui-chip you">Seu perfil</span>}
                   {emp.active ? (
                     <span className="status-badge-active">
                       <span className="dot-active" /> Ativo
@@ -211,9 +162,9 @@ export default function TeamView({
               <div className="member-info">
                 <h3 className="member-name">{emp.name}</h3>
                 <p className="member-role">{emp.role || 'Colaborador'}</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  <Mail size={13} style={{ color: 'var(--primary-500)', flexShrink: 0 }} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={emp.email || 'E-mail não cadastrado'}>
+                <div className="member-email">
+                  <Mail size={13} aria-hidden="true" />
+                  <span title={emp.email || 'E-mail não cadastrado'}>
                     {emp.email || 'E-mail não cadastrado'}
                   </span>
                 </div>
@@ -240,7 +191,6 @@ export default function TeamView({
                   <button
                     type="button"
                     className="btn-member-action edit"
-                    style={{ borderRadius: '9999px' }}
                     onClick={() => handleOpenEdit(emp)}
                     title={isOwn ? 'Editar seus dados' : 'Editar funcionário (Admin)'}
                   >
@@ -248,7 +198,7 @@ export default function TeamView({
                     <span>{isOwn ? 'Editar meus dados' : 'Editar'}</span>
                   </button>
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-muted)', padding: '6px 0' }}>
+                  <div className="ui-caption with-icon member-locked">
                     <Lock size={13} />
                     <span>Protegido contra alteração</span>
                   </div>
@@ -309,16 +259,16 @@ export default function TeamView({
               </div>
 
               <div className="form-group">
-                <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>E-mail de Acesso (Login):</span>
+                <label className="form-label is-split">
+                  <span>E-mail de acesso (login)</span>
                   {isAdmin ? (
-                    <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>Editável por Administrador</span>
+                    <span className="form-hint is-ok">Editável por administrador</span>
                   ) : (
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>(Restrito a Administrador)</span>
+                    <span className="form-hint">Restrito a administrador</span>
                   )}
                 </label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <Mail size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                <div className="input-with-icon">
+                  <Mail size={16} />
                   <input
                     type="email"
                     className="form-input"
@@ -326,7 +276,6 @@ export default function TeamView({
                     value={formEmail}
                     disabled={!isAdmin}
                     onChange={(e) => setFormEmail(e.target.value)}
-                    style={{ paddingLeft: '38px', opacity: isAdmin ? 1 : 0.65 }}
                     required={isAdmin}
                   />
                 </div>
@@ -346,7 +295,7 @@ export default function TeamView({
                 <div className="form-group flex-1">
                   <label className="form-label">
                     Cargo / Setor:
-                    {!isAdmin && <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '6px' }}>(Restrito a Admin)</span>}
+                    {!isAdmin && <span className="form-hint">Restrito a admin</span>}
                   </label>
                   <input
                     type="text"
@@ -355,7 +304,6 @@ export default function TeamView({
                     value={formRole}
                     disabled={!isAdmin}
                     onChange={(e) => setFormRole(e.target.value)}
-                    style={{ opacity: isAdmin ? 1 : 0.65 }}
                   />
                 </div>
               </div>
@@ -380,9 +328,9 @@ export default function TeamView({
               <div className="form-group">
                 <label className="form-label">
                   Status no Rodízio:
-                  {!canEditStatus && <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '6px' }}>(Definido pela Gestão)</span>}
+                  {!canEditStatus && <span className="form-hint">Definido pela gestão</span>}
                 </label>
-                <div className="switch-status-group" style={{ opacity: canEditStatus ? 1 : 0.65 }}>
+                <div className={`switch-status-group ${canEditStatus ? '' : 'is-disabled'}`}>
                   <label className="radio-label">
                     <input
                       type="radio"

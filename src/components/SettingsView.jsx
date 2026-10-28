@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Wifi, Sun, Moon, ChevronDown, ChevronUp, RefreshCw, Lock, UploadCloud } from 'lucide-react';
+import { FlaskConical, Play, Save, RotateCcw, Download, Upload, FileText, Check, AlertCircle, Headset, ShieldAlert, Cloud, Wifi, ChevronDown, ChevronUp, RefreshCw, Lock, UploadCloud } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { firebaseService } from '../services/firebaseService';
 
@@ -12,7 +12,10 @@ export default function SettingsView({
   onSyncAllToCloud,
   theme,
   onToggleTheme,
-  isAdmin = true
+  isAdmin = true,
+  isSimulatingTime = false,
+  onStartSimulation,
+  onStopSimulation
 }) {
   const [formData, setFormData] = useState({ ...settings });
   const [importText, setImportText] = useState('');
@@ -34,14 +37,12 @@ export default function SettingsView({
   // Bloqueio de acesso no frontend para não-administradores
   if (!isAdmin) {
     return (
-      <div className="settings-view-container animate-fade-in" style={{ padding: '48px 20px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '440px', margin: '0 auto', background: 'var(--bg-card)', padding: '36px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
-          <ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 16px', display: 'block' }} />
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-            Acesso Restrito ao Administrador
-          </h2>
-          <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '20px' }}>
-            A aba Configurações, alteração de regras de atendimento e ferramentas de restauração são exclusivas para administradores autenticados.
+      <div className="settings-view-container settings-locked animate-fade-in">
+        <div className="ui-card settings-locked-card">
+          <span className="settings-locked-icon" aria-hidden="true"><ShieldAlert size={26} /></span>
+          <h2>Acesso restrito ao administrador</h2>
+          <p>
+            As regras de atendimento, a restauração de dados e as ferramentas de teste são exclusivas de administradores.
           </p>
         </div>
       </div>
@@ -146,80 +147,62 @@ export default function SettingsView({
 
   return (
     <div className="settings-view-container animate-fade-in">
-      <div className="settings-header-bar">
-        <div className="settings-title-group">
-          <Settings size={22} className="text-scada-cyan" />
-          <div>
-            <h2 className="settings-main-title">Configurações & Regras scadahub</h2>
-            <p className="settings-sub-title">
-              Defina a janela de atendimento ao cliente, duração dos almoços e parâmetros operacionais
-            </p>
+      <div className="settings-grid">
+        {/* Aparência: o mesmo controle da sidebar, salvo por navegador */}
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <h3 className="card-section-title">Aparência</h3>
+            <span className="card-section-caption">
+              Tema salvo individualmente no seu navegador
+            </span>
+          </div>
+          <div className="ui-segmented" role="radiogroup" aria-label="Tema">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme !== 'dark'}
+              className={theme !== 'dark' ? 'is-on' : ''}
+              onClick={() => theme === 'dark' && onToggleTheme && onToggleTheme()}
+            >
+              Claro
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme === 'dark'}
+              className={theme === 'dark' ? 'is-on' : ''}
+              onClick={() => theme !== 'dark' && onToggleTheme && onToggleTheme()}
+            >
+              Escuro
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="settings-grid">
-        {/* Card 0: Preferência Visual do Usuário (Tema Claro / Escuro) */}
-        <div className="settings-card" style={{ gridColumn: '1 / -1' }}>
-          <div className="settings-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <h3 className="card-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {theme === 'dark' ? <Moon size={18} className="text-purple-400" /> : <Sun size={18} className="text-amber-500" />}
-                <span>Aparência & Modo de Exibição</span>
-              </h3>
-              <span className="card-section-caption">
-                Escolha o tema visual que preferir (salvo individualmente no seu navegador)
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <button
-                type="button"
-                className={`theme-pill-choice ${theme !== 'dark' ? 'active' : ''}`}
-                onClick={() => theme === 'dark' && onToggleTheme && onToggleTheme()}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 18px',
-                  borderRadius: '9999px',
-                  fontSize: '0.84rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: theme !== 'dark' ? '2px solid var(--scada-purple-mid)' : '1px solid var(--border-color)',
-                  background: theme !== 'dark' ? 'var(--scada-purple-tint)' : 'var(--bg-card)',
-                  color: theme !== 'dark' ? 'var(--scada-purple-dark)' : 'var(--text-muted)',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <Sun size={16} color={theme !== 'dark' ? '#d97706' : '#9a93a3'} />
-                <span>Modo Claro</span>
-              </button>
-
-              <button
-                type="button"
-                className={`theme-pill-choice ${theme === 'dark' ? 'active' : ''}`}
-                onClick={() => theme !== 'dark' && onToggleTheme && onToggleTheme()}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 18px',
-                  borderRadius: '9999px',
-                  fontSize: '0.84rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: theme === 'dark' ? '2px solid #6e2b90' : '1px solid var(--border-color)',
-                  background: theme === 'dark' ? 'rgba(110, 43, 144, 0.25)' : 'var(--bg-card)',
-                  color: theme === 'dark' ? '#ebdcf4' : 'var(--text-muted)',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <Moon size={16} color={theme === 'dark' ? '#b47ad6' : '#9a93a3'} />
-                <span>Modo Escuro</span>
-              </button>
-            </div>
+        {/* Ferramentas de teste: o simulador de horário saiu da barra principal */}
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <h3 className="card-section-title with-icon">
+              <FlaskConical size={18} aria-hidden="true" />
+              <span>Ferramentas de teste</span>
+            </h3>
+            <span className="card-section-caption">
+              Simule outro horário para conferir avisos, contagem do almoço e cobertura sem esperar o relógio.
+            </span>
           </div>
+          {isSimulatingTime ? (
+            <div className="settings-inline-actions">
+              <span className="ui-chip warn">Simulador ativo</span>
+              <button type="button" className="ui-btn secondary sm" onClick={onStopSimulation}>
+                <RotateCcw size={15} />
+                Voltar ao horário real
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="ui-btn secondary sm" onClick={onStartSimulation} disabled={!onStartSimulation}>
+              <Play size={15} />
+              Abrir simulador de horário
+            </button>
+          )}
         </div>
 
         {/* Card 1: Janela Crítica de Atendimento & Horários */}
@@ -238,7 +221,7 @@ export default function SettingsView({
                 <Headset size={16} className="text-scada-cyan" />
                 <strong>Período Crítico de Atendimento aos Clientes</strong>
               </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+              <p className="settings-help">
                 Durante este intervalo, a aplicação bloqueia horários vazios e exige sempre funcionários trabalhando.
               </p>
 
@@ -375,7 +358,7 @@ export default function SettingsView({
             <div className="backup-action-item">
               <div>
                 <strong>Exportar Backup Completo</strong>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>Salva funcionários, regras e escalas em formato .JSON</p>
+                <p className="settings-help">Salva funcionários, regras e escalas em formato .JSON</p>
               </div>
               <button className="btn-secondary" onClick={handleExportJSON}>
                 <Download size={14} />
@@ -393,20 +376,9 @@ export default function SettingsView({
                   accept=".json,.txt"
                   id="import-file"
                   onChange={handleFileUpload}
-                  style={{ display: 'none' }}
+                  className="hidden-file-input"
                 />
-                <label
-                  htmlFor="import-file"
-                  className="btn-secondary"
-                  style={{
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    borderRadius: '9999px',
-                    marginBottom: '8px'
-                  }}
-                >
+                <label htmlFor="import-file" className="btn-secondary settings-upload-btn">
                   <Upload size={14} />
                   <span>Carregar arquivo JSON</span>
                 </label>
@@ -425,7 +397,6 @@ export default function SettingsView({
                 className="btn-secondary mt-2"
                 onClick={handleImportJSON}
                 disabled={!importText.trim()}
-                style={{ borderRadius: '9999px' }}
               >
                 <FileText size={14} />
                 <span>Restaurar a partir do texto</span>
@@ -441,11 +412,11 @@ export default function SettingsView({
 
             <div className="backup-separator" />
 
-            <div className="reset-data-area" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div className="reset-data-area is-stacked">
+              <div className="reset-data-row">
                 <div className="reset-text">
-                  <strong className="text-rose-600">Restaurar Dados Iniciais</strong>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  <strong className="text-danger">Restaurar dados iniciais</strong>
+                  <p className="settings-help">
                     Restaura os 4 funcionários da planilha com a escala de atendimento contínuo (11:30 às 13:30).
                   </p>
                 </div>
@@ -453,7 +424,6 @@ export default function SettingsView({
                   <button
                     type="button"
                     className="btn-danger-outline"
-                    style={{ borderRadius: '9999px' }}
                     onClick={handleOpenResetPrompt}
                   >
                     <RotateCcw size={14} />
@@ -463,32 +433,19 @@ export default function SettingsView({
               </div>
 
               {showResetPasswordPrompt && (
-                <form
-                  onSubmit={handleConfirmReset}
-                  className="animate-fade-in"
-                  style={{
-                    padding: '14px 16px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid rgba(239, 68, 68, 0.4)',
-                    borderRadius: 'var(--radius-md)',
-                    marginTop: '4px'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <Lock size={15} className="text-rose-500" />
-                    <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      Confirmação de Segurança Administrativa
-                    </span>
+                <form onSubmit={handleConfirmReset} className="reset-confirm-box animate-fade-in">
+                  <div className="reset-confirm-head">
+                    <Lock size={15} aria-hidden="true" />
+                    <b>Confirmação de segurança</b>
                   </div>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '10px', lineHeight: 1.4 }}>
-                    Esta ação apagará as alterações atuais e restaurará a escala para os dados iniciais de fábrica. Digite <strong style={{ color: '#ef4444' }}>RESTAURAR</strong> para confirmar:
+                  <p className="settings-help">
+                    Esta ação apaga as alterações atuais e volta a escala para os dados iniciais. Digite <strong className="text-danger">RESTAURAR</strong> para confirmar:
                   </p>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div className="reset-confirm-row">
                     <input
                       type="text"
-                      className="form-input"
-                      style={{ flex: '1 1 200px', padding: '6px 12px', fontSize: '0.84rem', minWidth: '180px' }}
-                      placeholder="Digite RESTAURAR..."
+                      className="form-input reset-confirm-input"
+                      placeholder="Digite RESTAURAR"
                       value={resetConfirmInput}
                       onChange={(e) => {
                         setResetConfirmInput(e.target.value);
@@ -496,25 +453,17 @@ export default function SettingsView({
                       }}
                       autoFocus
                     />
-                    <button
-                      type="submit"
-                      className="btn-danger"
-                      style={{ borderRadius: '9999px', fontSize: '0.8rem', padding: '6px 16px', flexShrink: 0 }}
-                    >
-                      Confirmar Restauração
+                    <button type="submit" className="ui-btn danger sm">
+                      Confirmar restauração
                     </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      style={{ borderRadius: '9999px', fontSize: '0.8rem', padding: '6px 14px', flexShrink: 0 }}
-                      onClick={handleCancelResetPrompt}
-                    >
+                    <button type="button" className="ui-btn secondary sm" onClick={handleCancelResetPrompt}>
                       Cancelar
                     </button>
                   </div>
                   {resetConfirmError && (
-                    <div style={{ marginTop: '8px', fontSize: '0.78rem', color: '#ef4444', fontWeight: 600 }}>
-                      ⚠️ {resetConfirmError}
+                    <div className="ui-alert danger" role="alert">
+                      <AlertCircle size={15} />
+                      <span>{resetConfirmError}</span>
                     </div>
                   )}
                 </form>
@@ -524,11 +473,11 @@ export default function SettingsView({
         </div>
 
         {/* Card 3: Sincronização em Nuvem (Firebase Realtime Database) */}
-        <div className="settings-card" style={{ gridColumn: '1 / -1' }}>
-          <div className="settings-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <div className="settings-card is-wide">
+          <div className="settings-card-header is-row">
             <div>
-              <h3 className="card-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Cloud size={18} className="text-scada-cyan" />
+              <h3 className="card-section-title with-icon">
+                <Cloud size={18} aria-hidden="true" />
                 <span>Sincronização em Nuvem (Tempo Real)</span>
               </h3>
               <span className="card-section-caption">
@@ -536,31 +485,16 @@ export default function SettingsView({
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '5px 14px',
-                  borderRadius: '9999px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  background: isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.15)' : '#fefce8'),
-                  color: isFirebaseConnected ? (theme === 'dark' ? '#34d399' : '#059669') : (theme === 'dark' ? '#fbbf24' : '#b45309'),
-                  border: `1.5px solid ${isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.3)' : '#fef08a')}`
-                }}
-              >
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isFirebaseConnected ? '#10b981' : '#f59e0b' }} />
-                <span>{isFirebaseConnected ? 'Conectado (Online)' : 'Desconectado (Offline)'}</span>
-              </div>
+            <div className="settings-inline-actions">
+              <span className={`ui-chip ${isFirebaseConnected ? 'ok' : 'warn'}`}>
+                {isFirebaseConnected ? 'Conectado (online)' : 'Desconectado (offline)'}
+              </span>
 
               {!isFirebaseConnected && (
                 <button
                   type="button"
                   onClick={handleReconnectFirebase}
-                  className="btn-secondary"
-                  style={{ borderRadius: '9999px', padding: '4px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  className="ui-btn secondary sm"
                   title="Tentar reconectar à nuvem"
                 >
                   <RefreshCw size={13} />
@@ -570,43 +504,27 @@ export default function SettingsView({
             </div>
           </div>
 
-          <div style={{ background: 'var(--bg-subtle)', padding: '18px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div
-                  style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '50%',
-                    background: isFirebaseConnected ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5') : (theme === 'dark' ? 'rgba(245, 158, 11, 0.15)' : '#fefce8'),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}
-                >
-                  <Wifi size={20} color={isFirebaseConnected ? '#10b981' : '#f59e0b'} />
-                </div>
+          <div className="cloud-status-box">
+            <div className="cloud-status-row">
+              <div className="cloud-status-main">
+                <span className={`cloud-status-icon ${isFirebaseConnected ? 'is-ok' : 'is-warn'}`} aria-hidden="true">
+                  <Wifi size={20} />
+                </span>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-main)', marginBottom: '2px' }}>
-                    {isFirebaseConnected ? 'Sistema operando 100% online em nuvem' : 'Sistema desconectado da nuvem'}
-                  </div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                  <b className="cloud-status-title">
+                    {isFirebaseConnected ? 'Sistema operando online, em tempo real' : 'Sistema desconectado da nuvem'}
+                  </b>
+                  <p className="settings-help">
                     {isFirebaseConnected
                       ? 'Todas as alterações de horários, regras e equipe são sincronizadas automaticamente em tempo real para todos os colegas.'
-                      : 'O sistema está em modo local. Clique no botão Reconectar para voltar a sincronizar com a equipe.'}
-                  </div>
+                      : 'O sistema está em modo local. Clique em Reconectar para voltar a sincronizar com a equipe.'}
+                  </p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <div className="settings-inline-actions">
                 {!isFirebaseConnected && (
-                  <button
-                    type="button"
-                    onClick={handleReconnectFirebase}
-                    className="btn-primary"
-                    style={{ borderRadius: '9999px', fontSize: '0.82rem', padding: '6px 18px' }}
-                  >
+                  <button type="button" onClick={handleReconnectFirebase} className="ui-btn primary sm">
                     <RefreshCw size={14} />
                     <span>Reconectar Agora</span>
                   </button>
@@ -615,16 +533,7 @@ export default function SettingsView({
                 {isFirebaseConnected && onSyncAllToCloud && (
                   <button
                     type="button"
-                    className="btn-secondary"
-                    style={{
-                      borderRadius: '9999px',
-                      borderColor: '#6e2b90',
-                      color: theme === 'dark' ? '#cdb2e2' : '#5e2580',
-                      background: theme === 'dark' ? 'rgba(110, 43, 144, 0.2)' : '#f7f2fa',
-                      fontWeight: 600,
-                      fontSize: '0.82rem',
-                      padding: '6px 16px'
-                    }}
+                    className="ui-btn secondary sm"
                     onClick={async () => {
                       setIsSyncingCloud(true);
                       await onSyncAllToCloud();
@@ -633,57 +542,36 @@ export default function SettingsView({
                     disabled={isSyncingCloud}
                     title="Envia a lista de funcionários, regras e escalas locais atuais para o Firebase"
                   >
-                    <UploadCloud size={15} color="#6e2b90" />
-                    <span>{isSyncingCloud ? 'Sincronizando...' : 'Subir Dados Locais para Nuvem'}</span>
+                    <UploadCloud size={15} />
+                    <span>{isSyncingCloud ? 'Sincronizando…' : 'Enviar dados locais para a nuvem'}</span>
                   </button>
                 )}
               </div>
             </div>
 
             {firebaseStatusMsg && (
-              <div
-                style={{
-                  fontSize: '0.84rem',
-                  fontWeight: 600,
-                  color: firebaseStatusMsg.success ? '#10b981' : '#ef4444',
-                  padding: '8px 12px',
-                  background: firebaseStatusMsg.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  borderRadius: 'var(--radius-sm)',
-                  border: `1px solid ${firebaseStatusMsg.success ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
-                }}
-              >
-                {firebaseStatusMsg.message}
+              <div className={`ui-alert ${firebaseStatusMsg.success ? 'success' : 'danger'}`} role="status">
+                <span>{firebaseStatusMsg.message}</span>
               </div>
             )}
 
             {/* Manutenção Técnica Avançada (Protegida por senha "useradminshub") */}
-            <div style={{ marginTop: '6px', paddingTop: '10px', borderTop: '1px dashed var(--border-color)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={handleToggleAdvanced}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.78rem',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '4px 0'
-                  }}
-                  title="Configurações avançadas apenas para manutenção técnica"
-                >
-                  <Lock size={13} className="text-amber-400" />
-                  {showAdvancedFirebase ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                  <span>Configurações Técnicas de Manutenção ({showAdvancedFirebase ? 'Ocultar' : 'Apenas para Administrador'})</span>
-                </button>
-              </div>
+            <div className="cloud-advanced">
+              <button
+                type="button"
+                className="cloud-advanced-toggle"
+                onClick={handleToggleAdvanced}
+                aria-expanded={showAdvancedFirebase}
+                title="Configurações avançadas apenas para manutenção técnica"
+              >
+                <Lock size={13} aria-hidden="true" />
+                {showAdvancedFirebase ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                <span>Configurações técnicas de manutenção</span>
+              </button>
 
               {/* Formulário Técnico para Administrador */}
               {showAdvancedFirebase && (
-                <form onSubmit={handleSaveFirebaseConfig} className="settings-form animate-fade-in" style={{ marginTop: '12px' }}>
+                <form onSubmit={handleSaveFirebaseConfig} className="settings-form cloud-advanced-form animate-fade-in">
                   <div className="form-group-row">
                     <div className="form-group flex-1">
                       <label className="form-label">Database URL (URL do Realtime Database):</label>
@@ -718,23 +606,14 @@ export default function SettingsView({
                     />
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
-                    <button
-                      type="submit"
-                      className="btn-primary"
-                      style={{ borderRadius: '9999px' }}
-                    >
+                  <div className="settings-submit-row">
+                    <button type="submit" className="btn-primary">
                       <Cloud size={16} />
                       <span>Salvar & Conectar Firebase</span>
                     </button>
 
                     {firebaseConfigForm.apiKey && (
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        style={{ borderRadius: '9999px' }}
-                        onClick={handleClearFirebaseConfig}
-                      >
+                      <button type="button" className="btn-secondary" onClick={handleClearFirebaseConfig}>
                         <span>Desconectar / Voltar ao Modo Local</span>
                       </button>
                     )}

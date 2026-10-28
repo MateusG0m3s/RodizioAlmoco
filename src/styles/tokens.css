@@ -1,0 +1,127 @@
+/* Wix Madefor é a família do site scadahub.io; Quicksand (só as letras da marca) aproxima o traço arredondado da logo.
+   Este arquivo é o primeiro CSS importado, então os @import ficam no topo do bundle. */
+@import url('https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@500;600;700&family=Wix+Madefor+Text:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap&text=scadhub');
+
+/* Design tokens scadahub.
+   Cores amostradas da logo ("scada" #62257A, "hub" #005E8E) e do wallpaper (brilhos #71298D e #115E96 sobre preto).
+   Componentes novos usam só estes nomes semânticos; os nomes antigos (--bg-card, --scada-*, --text-*) viram
+   aliases no topo do index.css até cada tela migrar. */
+
+:root {
+  /* Marca (fixas, não mudam com o tema) */
+  --logo-purple: #62257A;
+  --logo-blue: #005E8E;
+  --glow-purple: #71298D;
+  --glow-blue: #115E96;
+  --signature: linear-gradient(90deg, #62257A 0%, #3B3F8A 55%, #115E96 100%);
+
+  /* Superfícies: canvas acinzentado + cartões brancos, separados pelo tom e não por borda */
+  --canvas: #EEECF2;
+  --surface: #FFFFFF;
+  --surface-2: #F6F4F8;
+  --surface-3: #E7E3EC;
+  --line: #E4E0EA;
+  --line-soft: #EEEBF2;
+
+  /* Tinta (texto). ink-3 mantém 4,5:1 sobre surface e canvas */
+  --ink: #1D1024;
+  --ink-2: #5B5366;
+  --ink-3: #6A6375;
+  --on-ink: #FFFFFF;
+
+  /* Acento: roxo da logo. Azul do "hub" só para "a seguir" e segunda série */
+  --accent: #62257A;
+  --accent-strong: #4A1C5C;
+  --accent-tint: #F1E9F5;
+  --accent-line: #DCC8E6;
+  --accent-wash: rgba(98, 37, 122, 0.06);
+  --on-accent: #FFFFFF;
+  --logo-scada: #62257A;
+
+  --blue: #005E8E;
+  --blue-strong: #004A70;
+  --blue-tint: #E3F0F7;
+  --blue-line: #B9D9EA;
+
+  /* Status: separados do acento. Vermelho só para brecha e conflito */
+  --success: #1E7A4C;
+  --success-tint: #E5F3EB;
+  --success-line: #B5DCC6;
+  --warning: #8A5300;
+  --warning-tint: #FDF1DC;
+  --warning-line: #F1D39A;
+  --danger: #B3261E;
+  --danger-tint: #FBE9E7;
+  --danger-line: #F2B8B2;
+
+  /* Elevação: duas sombras por função */
+  --shadow-card: 0 1px 2px rgba(29, 16, 36, 0.04), 0 12px 32px -18px rgba(29, 16, 36, 0.22);
+  --shadow-pop: 0 2px 6px rgba(29, 16, 36, 0.06), 0 18px 40px -20px rgba(29, 16, 36, 0.35);
+
+  /* Tipografia: as mesmas famílias do site scadahub.io */
+  --font-display: 'Wix Madefor Display', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Wix Madefor Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-logo: 'Quicksand', var(--font-display);
+
+  --type-num-xl: 500 2.75rem/3rem var(--font-display);
+  --type-num-l: 500 1.75rem/2.125rem var(--font-display);
+  --type-title: 600 1.375rem/1.75rem var(--font-display);
+  --type-heading: 600 1rem/1.375rem var(--font-display);
+  --type-body: 400 0.875rem/1.25rem var(--font-body);
+  --type-label: 500 0.8125rem/1.125rem var(--font-body);
+  --type-caption: 500 0.75rem/1rem var(--font-body);
+  --type-overline: 600 0.6875rem/0.875rem var(--font-body);
+
+  /* Forma */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  color-scheme: light;
+}
+
+/* Escuro: valores tirados do wallpaper; acento e azul clareados para manter 7:1 e 8:1 */
+[data-theme="dark"] {
+  --canvas: #08060B;
+  --surface: #131019;
+  --surface-2: #1B1722;
+  --surface-3: #26212E;
+  --line: #2B2534;
+  --line-soft: #221D2A;
+
+  --ink: #F5F2F8;
+  --ink-2: #B9B1C4;
+  --ink-3: #8E869A;
+  --on-ink: #1D1024;
+
+  --accent: #C08BDD;
+  --accent-strong: #D7B3EA;
+  --accent-tint: #2A1736;
+  --accent-line: #4A2E5C;
+  --accent-wash: rgba(192, 139, 221, 0.07);
+  --on-accent: #1D1024;
+  --logo-scada: #B47AD6;
+
+  --blue: #5CB3E8;
+  --blue-strong: #8CCBF0;
+  --blue-tint: #0F2533;
+  --blue-line: #1B4A66;
+
+  --success: #5CCB94;
+  --success-tint: #0F2A1D;
+  --success-line: #1F5A3C;
+  --warning: #F0B44C;
+  --warning-tint: #2E220C;
+  --warning-line: #5E4515;
+  --danger: #F2867D;
+  --danger-tint: #341414;
+  --danger-line: #6B2A26;
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 16px 36px -20px rgba(0, 0, 0, 0.8);
+  --shadow-pop: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 20px 44px -18px rgba(0, 0, 0, 0.9);
+
+  color-scheme: dark;
+}

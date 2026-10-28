@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ShieldCheck, KeyRound, User, Mail, LogOut, Check, X, Sparkles, RefreshCw, Lock } from 'lucide-react';
+import { ShieldCheck, KeyRound, User, Crown, Mail, LogOut, Check, X, Sparkles, RefreshCw, Lock } from 'lucide-react';
 import { getInitials } from '../utils/nameUtils';
 import { authService, TEST_ACCOUNTS } from '../services/authService';
 import ChangePasswordModal from './ChangePasswordModal';
+import { resolveAvatarColor } from '../utils/avatarColors';
 
 export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged }) {
   const [emailInput, setEmailInput] = useState('');
@@ -56,138 +57,59 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
     <div className="modal-backdrop animate-fade-in" onClick={onClose} style={{ zIndex: 10000 }}>
       <div
         className="modal-card animate-scale-up"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '520px', width: '92%' }}
       >
-        {/* Cabeçalho */}
-        <div className="modal-header" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
+        <div className="modal-header">
           <div className="modal-title-wrap">
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: isAdmin ? 'rgba(56, 18, 103, 0.4)' : 'rgba(26, 135, 204, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: isAdmin ? '#b47ad6' : '#4fb3ee',
-                border: `1px solid ${isAdmin ? '#6e2b90' : '#1a87cc'}`
-              }}
-            >
-              {isAdmin ? <ShieldCheck size={20} /> : <User size={20} />}
-            </div>
+            <span className="modal-icon" aria-hidden="true">
+              {isAdmin ? <ShieldCheck size={18} /> : <User size={18} />}
+            </span>
             <div>
-              <h3 className="modal-title">Autenticação & Identidade</h3>
-              <span className="modal-subtitle">Controle de Acesso Baseado em Papéis (RBAC) & Regras Firebase</span>
+              <h3 id="auth-modal-title" className="modal-title">Conta e acesso</h3>
+              <span className="modal-subtitle">Sessão atual, troca de conta e permissões</span>
             </div>
           </div>
-          <button type="button" className="btn-modal-close" onClick={onClose}>
+          <button type="button" className="btn-modal-close" onClick={onClose} aria-label="Fechar">
             <X size={18} />
           </button>
         </div>
 
-        {/* Status Atual do Usuário Conectado */}
-        <div
-          style={{
-            margin: '16px 0',
-            padding: '14px 18px',
-            background: 'var(--bg-subtle)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-subtle)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div
-              style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '50%',
-                background: currentUser?.color || '#4f1f66',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-              }}
+        <div className="modal-body-pad">
+          {/* Sessão atual */}
+          <div className="modal-person">
+            <span
+              className="ui-avatar lg"
+              style={{ background: resolveAvatarColor(currentUser?.color, currentUser?.email) }}
+              aria-hidden="true"
             >
               {getInitials(currentUser?.name)}
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.95rem' }}>
-                  {currentUser?.name || 'Não Autenticado'}
+            </span>
+            <div className="modal-person-text">
+              <b>
+                {currentUser?.name || 'Não autenticado'}
+                <span className={`ui-chip plain ${isAdmin ? 'now' : 'next'}`}>
+                  {isAdmin ? <Crown size={13} aria-hidden="true" /> : <User size={13} aria-hidden="true" />}
+                  {isAdmin ? 'Administrador' : 'Usuário'}
                 </span>
-                <span
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: '9999px',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    background: isAdmin ? 'rgba(110, 43, 144, 0.2)' : 'rgba(26, 135, 204, 0.2)',
-                    color: isAdmin ? '#b47ad6' : '#4fb3ee',
-                    border: `1px solid ${isAdmin ? 'rgba(110, 43, 144, 0.4)' : 'rgba(26, 135, 204, 0.4)'}`
-                  }}
-                >
-                  {isAdmin ? '👑 Admin' : '👤 Usuário Normal'}
-                </span>
-              </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                {currentUser?.email} • UID: <code style={{ fontSize: '0.75rem', background: 'var(--bg-elevated)', padding: '1px 5px', borderRadius: '4px' }}>{currentUser?.uid}</code>
-              </div>
+              </b>
+              <span className="ui-caption">
+                {currentUser?.email}
+                {currentUser?.uid && <> · UID <code>{currentUser.uid}</code></>}
+              </span>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button
-              type="button"
-              onClick={() => setIsChangePasswordOpen(true)}
-              title="Alterar sua senha de acesso"
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                background: 'rgba(110, 43, 144, 0.1)',
-                border: '1px solid rgba(110, 43, 144, 0.3)',
-                color: 'var(--primary-400)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.82rem',
-                fontWeight: 600
-              }}
-            >
-              <KeyRound size={15} />
-              <span>Alterar Senha</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              title="Encerrar sessão ativa"
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                background: 'transparent',
-                border: '1px solid var(--border-subtle)',
-                color: '#ef4444',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.82rem',
-                fontWeight: 600
-              }}
-            >
-              <LogOut size={15} />
-              <span>Sair</span>
-            </button>
+            <div className="modal-person-actions">
+              <button type="button" className="ui-btn secondary sm" onClick={() => setIsChangePasswordOpen(true)}>
+                <KeyRound size={14} />
+                Alterar senha
+              </button>
+              <button type="button" className="ui-btn danger-text sm" onClick={handleLogout}>
+                <LogOut size={14} />
+                Sair
+              </button>
+            </div>
           </div>
 
           <ChangePasswordModal
@@ -195,247 +117,130 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
             onClose={() => setIsChangePasswordOpen(false)}
             initialEmail={currentUser?.email || ''}
           />
-        </div>
 
-        {/* Abas do Modal: Contas de Teste vs Login por E-mail */}
-        <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', marginBottom: '16px' }}>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('quick')}
-            style={{
-              flex: 1,
-              padding: '9px 14px',
-              borderRadius: '8px',
-              background: activeSubTab === 'quick' ? 'var(--bg-elevated)' : 'transparent',
-              border: `1px solid ${activeSubTab === 'quick' ? 'var(--primary-500)' : 'transparent'}`,
-              color: activeSubTab === 'quick' ? 'var(--text-main)' : 'var(--text-muted)',
-              fontWeight: 600,
-              fontSize: '0.86rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-          >
-            <Sparkles size={15} color="#b47ad6" />
-            <span>Contas de Teste & Auditoria</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('email')}
-            style={{
-              flex: 1,
-              padding: '9px 14px',
-              borderRadius: '8px',
-              background: activeSubTab === 'email' ? 'var(--bg-elevated)' : 'transparent',
-              border: `1px solid ${activeSubTab === 'email' ? 'var(--primary-500)' : 'transparent'}`,
-              color: activeSubTab === 'email' ? 'var(--text-main)' : 'var(--text-muted)',
-              fontWeight: 600,
-              fontSize: '0.86rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-          >
-            <Mail size={15} color="#4fb3ee" />
-            <span>Login com E-mail</span>
-          </button>
-        </div>
-
-        {/* Conteúdo: Seleção de Contas de Teste (Secção 31 do Checklist) */}
-        {activeSubTab === 'quick' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 6px 0' }}>
-              Selecione uma conta para validar instantaneamente as permissões de <b>ADMIN</b>, <b>USER_A</b> e <b>USER_B</b>:
-            </p>
-
-            {Object.keys(TEST_ACCOUNTS).map((key) => {
-              const acc = TEST_ACCOUNTS[key];
-              const isSelected = currentUser?.uid === acc.uid;
-              const isAccAdmin = acc.role === 'admin';
-
-              return (
-                <div
-                  key={key}
-                  onClick={() => handleSelectAccount(key)}
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: '10px',
-                    background: isSelected ? 'rgba(110, 43, 144, 0.12)' : 'var(--bg-subtle)',
-                    border: `1.5px solid ${isSelected ? '#6e2b90' : 'var(--border-subtle)'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    transition: 'all 0.18s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div
-                      style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '50%',
-                        background: acc.color,
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        fontSize: '0.86rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {getInitials(acc.name)}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>
-                          {acc.name}
-                        </span>
-                        <span
-                          style={{
-                            padding: '1px 6px',
-                            borderRadius: '9999px',
-                            fontSize: '0.68rem',
-                            fontWeight: 700,
-                            background: isAccAdmin ? 'rgba(110, 43, 144, 0.25)' : 'rgba(26, 135, 204, 0.2)',
-                            color: isAccAdmin ? '#b47ad6' : '#4fb3ee'
-                          }}
-                        >
-                          {key} ({isAccAdmin ? 'Admin' : 'Usuário'})
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        {acc.email} • ID: {acc.employeeId}
-                      </div>
-                    </div>
-                  </div>
-
-                  {isSelected && (
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#6e2b90', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Check size={14} color="#ffffff" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Conteúdo: Formulário de Login por E-mail */}
-        {activeSubTab === 'email' && (
-          <form onSubmit={handleEmailLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {authError && (
-              <div
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.35)',
-                  color: '#f87171',
-                  fontSize: '0.84rem'
-                }}
-              >
-                {authError}
-              </div>
-            )}
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                E-mail
-              </label>
-              <input
-                type="email"
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="seu.email@scadahub.com"
-                required
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                Senha
-              </label>
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="••••••••"
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
+          {/* Abas: contas de teste ou login por e-mail */}
+          <div className="ui-choices" role="tablist" aria-label="Forma de troca de conta">
             <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary"
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginTop: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
+              type="button"
+              role="tab"
+              aria-selected={activeSubTab === 'quick'}
+              className={activeSubTab === 'quick' ? 'is-on' : ''}
+              onClick={() => setActiveSubTab('quick')}
             >
-              {isLoading ? (
-                <>
-                  <RefreshCw size={16} className="animate-spin" />
-                  <span>Autenticando...</span>
-                </>
-              ) : (
-                <>
-                  <KeyRound size={16} />
-                  <span>Entrar com Firebase Auth</span>
-                </>
-              )}
+              <Sparkles size={14} />
+              Contas de teste
             </button>
-          </form>
-        )}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeSubTab === 'email'}
+              className={activeSubTab === 'email' ? 'is-on' : ''}
+              onClick={() => setActiveSubTab('email')}
+            >
+              <Mail size={14} />
+              Entrar com e-mail
+            </button>
+          </div>
 
-        {/* Rodapé Informativo sobre Segurança */}
-        <div
-          style={{
-            marginTop: '20px',
-            paddingTop: '14px',
-            borderTop: '1px solid var(--border-subtle)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontSize: '0.78rem',
-            color: 'var(--text-muted)'
-          }}
-        >
-          <Lock size={15} style={{ flexShrink: 0 }} />
-          <span>
-            <b>Segurança Ativa:</b> A autorização é controlada diretamente pelas Firebase Security Rules. Tentativas de manipulação de papéis ou escalas de outros colaboradores são bloqueadas pelo servidor.
-          </span>
+          {activeSubTab === 'quick' && (
+            <div className="form-group" role="tabpanel">
+              <span className="ui-caption">
+                Escolha uma conta para conferir as permissões de ADMIN, USER_A e USER_B:
+              </span>
+              {Object.keys(TEST_ACCOUNTS).map((key) => {
+                const acc = TEST_ACCOUNTS[key];
+                const isSelected = currentUser?.uid === acc.uid;
+                const isAccAdmin = acc.role === 'admin';
+                return (
+                  <button
+                    type="button"
+                    key={key}
+                    className={`account-option ${isSelected ? 'is-selected' : ''}`}
+                    onClick={() => handleSelectAccount(key)}
+                    aria-pressed={isSelected}
+                  >
+                    <span className="ui-avatar" style={{ background: resolveAvatarColor(acc.color, acc.email) }} aria-hidden="true">
+                      {getInitials(acc.name)}
+                    </span>
+                    <span>
+                      <b>
+                        {acc.name}
+                        <span className={`ui-chip plain ${isAccAdmin ? 'now' : 'next'}`}>
+                          {key} · {isAccAdmin ? 'Admin' : 'Usuário'}
+                        </span>
+                      </b>
+                      <span className="ui-caption">{acc.email} · ID {acc.employeeId}</span>
+                    </span>
+                    {isSelected ? (
+                      <span className="account-check" aria-hidden="true"><Check size={14} /></span>
+                    ) : <span />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {activeSubTab === 'email' && (
+            <form onSubmit={handleEmailLogin} className="auth-email-form" role="tabpanel">
+              {authError && (
+                <div className="ui-alert danger" role="alert">
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              <label className="form-group">
+                <span className="form-label">E-mail</span>
+                <span className="input-with-icon">
+                  <Mail size={16} />
+                  <input
+                    type="email"
+                    className="form-input"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="seu.nome@scadahub.io"
+                    autoComplete="username"
+                    required
+                  />
+                </span>
+              </label>
+
+              <label className="form-group">
+                <span className="form-label">Senha</span>
+                <span className="input-with-icon">
+                  <Lock size={16} />
+                  <input
+                    type="password"
+                    className="form-input"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    placeholder="Sua senha"
+                    autoComplete="current-password"
+                  />
+                </span>
+              </label>
+
+              <button type="submit" disabled={isLoading} className="ui-btn primary">
+                {isLoading ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin" />
+                    Autenticando…
+                  </>
+                ) : (
+                  <>
+                    <KeyRound size={16} />
+                    Entrar
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          <div className="ui-alert">
+            <Lock size={15} />
+            <span>
+              <b>Permissões no servidor:</b> as regras do Firebase bloqueiam alterações de papéis ou de escalas de outras pessoas, mesmo que alguém tente pela interface.
+            </span>
+          </div>
         </div>
       </div>
     </div>

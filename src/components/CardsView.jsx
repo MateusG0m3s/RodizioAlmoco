@@ -2,6 +2,7 @@ import React from 'react';
 import { Utensils, Clock, CheckCircle2, Briefcase, Edit2, AlertTriangle, Plus, Lock } from 'lucide-react';
 import { getInitials } from '../utils/nameUtils';
 import { getEmployeeLunchStatus } from '../utils/timeUtils';
+import { resolveAvatarColor } from '../utils/avatarColors';
 
 export default function CardsView({
   employees,
@@ -54,7 +55,7 @@ export default function CardsView({
             <div className="card-person-header">
               <div
                 className="person-avatar"
-                style={{ backgroundColor: emp.color || '#1a87cc' }}
+                style={{ backgroundColor: resolveAvatarColor(emp.color, emp.id) }}
               >
                 {getInitials(emp.name)}
               </div>

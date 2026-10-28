@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { CheckCircle2, ShieldAlert, AlertTriangle, Info } from 'lucide-react';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import Topbar from './components/Topbar';
+import MobileTabBar from './components/MobileTabBar';
+import DateStepper from './components/DateStepper';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import TimeSimulatorBar from './components/TimeSimulatorBar';
 import DashboardView from './components/DashboardView';
 import WeekView from './components/WeekView';
@@ -15,7 +19,7 @@ import LoginScreen from './components/LoginScreen';
 import { storageService } from './services/storageService';
 import { firebaseService } from './services/firebaseService';
 import { authService } from './services/authService';
-import { toISODateString, timeToMinutes, getWorkDaysOfWeek } from './utils/timeUtils';
+import { toISODateString, timeToMinutes, getWorkDaysOfWeek, formatDateBR } from './utils/timeUtils';
 import { detectConflicts, checkAttendanceCoverage, generateAutoSchedule, ensureArray } from './utils/scheduler';
 import { getUserSoundPreference, setUserSoundPreference, playLunchNotificationSound, shouldTriggerLunchAlert } from './services/soundService';
 
@@ -26,6 +30,15 @@ const TOAST_VARIANT_BY_TITLE = {
   'Horário Inválido': 'warning',
   'Até logo!': 'info',
   'Identidade Atualizada': 'info'
+};
+
+// Título e subtítulo do topo por aba (o painel usa a data escolhida como subtítulo)
+const PAGE_META = {
+  dashboard: { title: 'Painel' },
+  week: { title: 'Semana', subtitle: 'Planejamento e acompanhamento dos 5 dias úteis' },
+  team: { title: 'Equipe', subtitle: 'Quem participa do rodízio e como acessa' },
+  history: { title: 'Histórico', subtitle: 'Equilíbrio dos horários ao longo do tempo' },
+  settings: { title: 'Configurações', subtitle: 'Regras de atendimento, dados e ferramentas de teste' }
 };
 
 const TOAST_ICONS = {
@@ -59,6 +72,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isAuthLoading, setIsAuthLoading] = useState(() => authService.isLoading());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const isAdmin = Boolean(currentUser && currentUser.role === 'admin');
   const currentUserEmployeeId = useMemo(() => {
     if (currentUser?.employeeId) return currentUser.employeeId;
@@ -202,6 +216,17 @@ export default function App() {
 
   const currentTimeMinutes = isSimulatingTime ? simulatedMinutes : systemTimeMinutes;
 
+  // Simulador de horário: ferramenta de teste aberta em Configurações (admin)
+  const exitSimulation = () => {
+    setIsSimulatingTime(false);
+    setSimulatedMinutes(systemTimeMinutes);
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+    showToast('Sessão encerrada com sucesso.', 'Até logo!');
+  };
+
   // Disparo de notificação sonora pontual nos marcos de 10, 5 e 1 minuto antes do almoço
   const lastActiveAlertKeyRef = useRef(null);
 
@@ -295,7 +320,7 @@ export default function App() {
         particleCount: 85,
         spread: 75,
         origin: { y: 0.6 },
-        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
+        colors: ['#4A1C5C', '#62257A', '#005E8E', '#5CB3E8']
       });
     } catch {
       // Ignora erro de confetti
@@ -349,7 +374,7 @@ export default function App() {
         particleCount: 110,
         spread: 85,
         origin: { y: 0.6 },
-        colors: ['#491e5d', '#6e2b90', '#1a87cc', '#4fb3ee']
+        colors: ['#4A1C5C', '#62257A', '#005E8E', '#5CB3E8']
       });
     } catch {
       // Ignora erro de confetti
@@ -535,7 +560,7 @@ export default function App() {
           employeeId: finalEmpData.id,
           role: isAdminEmp ? 'admin' : 'user',
           avatar: finalEmpData.avatar || finalEmpData.name.substring(0, 2).toUpperCase(),
-          color: finalEmpData.color || '#6e2b90'
+          color: finalEmpData.color || '#62257A'
         };
         localStorage.setItem('scadahub_account_directory', JSON.stringify(directory));
 
@@ -662,137 +687,157 @@ export default function App() {
   }
 
   return (
-    <div className="app-container">
-      {/* Navbar com Logo Oficial, Perfil, RBAC e Logout */}
-      <Navbar
+    <div className="app-shell">
+      <Sidebar
         activeTab={effectiveTab}
         setActiveTab={handleSelectTab}
-        currentTimeMinutes={currentTimeMinutes}
-        isSimulatingTime={isSimulatingTime}
-        setIsSimulatingTime={setIsSimulatingTime}
-        setSimulatedMinutes={setSimulatedMinutes}
-        systemTimeMinutes={systemTimeMinutes}
-        isCloudConnected={isCloudConnected}
+        currentUser={currentUser}
+        isAdmin={isAdmin}
         theme={theme}
         toggleTheme={toggleTheme}
         soundEnabled={soundEnabled}
         toggleSound={toggleSound}
-        currentUser={currentUser}
-        isAdmin={isAdmin}
+        settings={settings}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onLogout={async () => {
-          await authService.logout();
-          showToast('Sessão encerrada com sucesso.', 'Até logo!');
-        }}
+        onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+        onLogout={handleLogout}
       />
 
-      {/* Simulador de Horário Interativo */}
-      <TimeSimulatorBar
-        isSimulating={isSimulatingTime}
-        onClose={() => setIsSimulatingTime(false)}
-        currentTimeMinutes={simulatedMinutes}
-        onChangeTime={setSimulatedMinutes}
-        onReset={() => {
-          setIsSimulatingTime(false);
-          setSimulatedMinutes(systemTimeMinutes);
-        }}
-      />
+      <div className="app-main">
+        <Topbar
+          title={PAGE_META[effectiveTab]?.title || 'Painel'}
+          subtitle={effectiveTab === 'dashboard' ? formatDateBR(currentDate).fullDisplay : PAGE_META[effectiveTab]?.subtitle}
+          currentTimeMinutes={currentTimeMinutes}
+          isSimulating={isSimulatingTime}
+          onExitSimulation={exitSimulation}
+          currentUser={currentUser}
+          isAdmin={isAdmin}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          soundEnabled={soundEnabled}
+          toggleSound={toggleSound}
+          onOpenSettings={() => handleSelectTab('settings')}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+          onLogout={handleLogout}
+          onGoHome={() => handleSelectTab('dashboard')}
+        >
+          {effectiveTab === 'dashboard' && <DateStepper currentDate={currentDate} setCurrentDate={setCurrentDate} />}
+        </Topbar>
 
-      {/* Conteúdo Principal com Autorização RBAC */}
-      <main className="main-content">
-        {effectiveTab === 'dashboard' && (
-          <DashboardView
-            currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            employees={employees}
-            daySlots={currentDaySlots}
-            settings={settings}
-            currentTimeMinutes={currentTimeMinutes}
-            conflictSlotIds={conflictReport.conflictSlotIds}
-            _hasConflicts={conflictReport.hasConflicts}
-            coverage={coverageReport}
-            onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
-            onQuickGenerateToday={handleQuickGenerateToday}
-            onOpenEditModal={(slot, emp) => handleOpenEditModal(slot, emp, currentDate)}
-            onAddSlotForEmployee={(emp) => handleAddSlotForEmployee(emp, currentDate)}
-            onUpdateSlotTimes={handleUpdateSlotTimes}
-            isAdmin={isAdmin}
-            currentUserEmployeeId={currentUserEmployeeId}
-          />
-        )}
+        {/* Simulador de horário (aberto em Configurações › Ferramentas de teste) */}
+        <TimeSimulatorBar
+          isSimulating={isSimulatingTime}
+          onClose={() => setIsSimulatingTime(false)}
+          currentTimeMinutes={simulatedMinutes}
+          onChangeTime={setSimulatedMinutes}
+          onReset={exitSimulation}
+        />
 
-        {effectiveTab === 'week' && (
-          <WeekView
-            currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            employees={employees}
-            allSchedules={allSchedules}
-            onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
-            onQuickGenerateWeek={handleQuickGenerateWeek}
-            onOpenEditModal={(slot, emp, dateStr) => handleOpenEditModal(slot, emp, dateStr)}
-            setActiveTab={handleSelectTab}
-            isAdmin={isAdmin}
-            currentUserEmployeeId={currentUserEmployeeId}
-          />
-        )}
+        {/* Conteúdo Principal com Autorização RBAC */}
+        <main className="main-content">
+          {effectiveTab === 'dashboard' && (
+            <DashboardView
+              currentDate={currentDate}
+              employees={employees}
+              daySlots={currentDaySlots}
+              settings={settings}
+              currentTimeMinutes={currentTimeMinutes}
+              conflictSlotIds={conflictReport.conflictSlotIds}
+              coverage={coverageReport}
+              onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
+              onQuickGenerateToday={handleQuickGenerateToday}
+              onOpenEditModal={(slot, emp) => handleOpenEditModal(slot, emp, currentDate)}
+              onAddSlotForEmployee={(emp) => handleAddSlotForEmployee(emp, currentDate)}
+              onUpdateSlotTimes={handleUpdateSlotTimes}
+              isAdmin={isAdmin}
+              currentUserEmployeeId={currentUserEmployeeId}
+            />
+          )}
 
-        {effectiveTab === 'team' && (
-          <TeamView
-            employees={employees}
-            onSaveEmployee={handleSaveEmployee}
-            onDeleteEmployee={handleDeleteEmployee}
-            isAdmin={isAdmin}
-            currentUserEmployeeId={currentUserEmployeeId}
-          />
-        )}
+          {effectiveTab === 'week' && (
+            <WeekView
+              currentDate={currentDate}
+              setCurrentDate={setCurrentDate}
+              employees={employees}
+              allSchedules={allSchedules}
+              onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
+              onQuickGenerateWeek={handleQuickGenerateWeek}
+              onOpenEditModal={(slot, emp, dateStr) => handleOpenEditModal(slot, emp, dateStr)}
+              setActiveTab={handleSelectTab}
+              isAdmin={isAdmin}
+              currentUserEmployeeId={currentUserEmployeeId}
+            />
+          )}
 
-        {effectiveTab === 'history' && (
-          <HistoryView
-            employees={employees}
-            allSchedules={allSchedules}
-            historyData={historyData}
-            onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
-            onResetHistory={() => {
-              if (!isAdmin) {
-                showToast('Apenas administradores podem zerar o histórico.', 'Acesso Negado');
-                return;
-              }
-              storageService.saveHistory({});
-              setHistoryData({});
-              showToast(
-                'Histórico acumulado zerado com sucesso! Agora exibindo apenas dados das escalas salvas.',
-                'Histórico Zerado'
-              );
-            }}
-          />
-        )}
+          {effectiveTab === 'team' && (
+            <TeamView
+              employees={employees}
+              onSaveEmployee={handleSaveEmployee}
+              onDeleteEmployee={handleDeleteEmployee}
+              isAdmin={isAdmin}
+              currentUserEmployeeId={currentUserEmployeeId}
+            />
+          )}
 
-        {effectiveTab === 'settings' && (
-          <SettingsView
-            settings={settings}
-            onSaveSettings={handleSaveSettings}
-            onResetAllData={storageService.resetAllData}
-            onReloadData={handleReloadAll}
-            isCloudConnected={isCloudConnected}
-            theme={theme}
-            onToggleTheme={toggleTheme}
-            isAdmin={isAdmin}
-            onSyncAllToCloud={async () => {
-              if (!isAdmin) {
-                showToast('Apenas administradores podem sincronizar dados em massa.', 'Acesso Negado');
-                return;
-              }
-              await firebaseService.pushEmployees(employees);
-              await firebaseService.pushAllSchedules(allSchedules);
-              await firebaseService.pushSettings(settings);
-              showToast(
-                'Lista da equipe, regras e escalas foram enviadas com sucesso para a Nuvem!',
-                'Nuvem Sincronizada'
-              );
-            }}
-          />
-        )}
-      </main>
+          {effectiveTab === 'history' && (
+            <HistoryView
+              employees={employees}
+              allSchedules={allSchedules}
+              historyData={historyData}
+              onOpenGenerateModal={() => isAdmin ? setIsGenerateModalOpen(true) : showToast('Apenas administradores podem acessar o gerador.', 'Acesso Negado')}
+              onResetHistory={() => {
+                if (!isAdmin) {
+                  showToast('Apenas administradores podem zerar o histórico.', 'Acesso Negado');
+                  return;
+                }
+                storageService.saveHistory({});
+                setHistoryData({});
+                showToast(
+                  'Histórico acumulado zerado com sucesso! Agora exibindo apenas dados das escalas salvas.',
+                  'Histórico Zerado'
+                );
+              }}
+            />
+          )}
+
+          {effectiveTab === 'settings' && (
+            <SettingsView
+              settings={settings}
+              onSaveSettings={handleSaveSettings}
+              onResetAllData={storageService.resetAllData}
+              onReloadData={handleReloadAll}
+              isCloudConnected={isCloudConnected}
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              isAdmin={isAdmin}
+              isSimulatingTime={isSimulatingTime}
+              onStartSimulation={() => setIsSimulatingTime(true)}
+              onStopSimulation={exitSimulation}
+              onSyncAllToCloud={async () => {
+                if (!isAdmin) {
+                  showToast('Apenas administradores podem sincronizar dados em massa.', 'Acesso Negado');
+                  return;
+                }
+                await firebaseService.pushEmployees(employees);
+                await firebaseService.pushAllSchedules(allSchedules);
+                await firebaseService.pushSettings(settings);
+                showToast(
+                  'Lista da equipe, regras e escalas foram enviadas com sucesso para a Nuvem!',
+                  'Nuvem Sincronizada'
+                );
+              }}
+            />
+          )}
+        </main>
+
+        {/* Rodapé EF - Mateus Silva */}
+        <footer className="scadahub-footer">
+          <span className="footer-author-brand">EF - Mateus Silva</span>
+        </footer>
+      </div>
+
+      <MobileTabBar activeTab={effectiveTab} setActiveTab={handleSelectTab} />
 
       {/* Modal de Edição Manual com Proteção de Propriedade da Escala */}
       <EditSlotModal
@@ -808,7 +853,6 @@ export default function App() {
         onDelete={handleDeleteSlot}
         isAdmin={isAdmin}
         currentUserEmployeeId={currentUserEmployeeId}
-        theme={theme}
       />
 
       {/* Modal do Gerador scadahub (Exclusivo Administrador) */}
@@ -835,14 +879,16 @@ export default function App() {
         }}
       />
 
-      {/* Rodapé EF - Mateus Silva */}
-      <footer className="scadahub-footer">
-        <div className="footer-container" style={{ justifyContent: 'center' }}>
-          <span className="footer-author-brand" style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
-            EF - Mateus Silva
-          </span>
-        </div>
-      </footer>
+
+      {/* Montado só quando aberto, para usar o e-mail da conta ativa no momento */}
+      {isChangePasswordOpen && (
+        <ChangePasswordModal
+          isOpen
+          onClose={() => setIsChangePasswordOpen(false)}
+          initialEmail={currentUser?.email || ''}
+          onSuccess={() => showToast('Sua senha foi alterada.', 'Senha atualizada')}
+        />
+      )}
 
       {/* Toast Flutuante de Confirmação Instantânea */}
       {toastNotification && (() => {

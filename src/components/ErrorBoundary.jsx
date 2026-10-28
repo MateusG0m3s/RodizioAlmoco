@@ -38,14 +38,14 @@ export class ErrorBoundary extends React.Component {
         }}>
           <div style={{
             maxWidth: '500px',
-            background: '#120d18',
-            border: '1.5px solid #6e2b90',
+            background: '#131019',
+            border: '1.5px solid #62257A',
             borderRadius: '16px',
             padding: '30px',
             textAlign: 'center',
             boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
           }}>
-            <h2 style={{ fontSize: '1.4rem', color: '#b47ad6', marginBottom: '10px' }}>
+            <h2 style={{ fontSize: '1.4rem', color: '#C08BDD', marginBottom: '10px' }}>
               scadahub — Escala de Almoço
             </h2>
             <p style={{ color: '#d6cfdd', fontSize: '0.9rem', marginBottom: '20px' }}>
@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component {
                   padding: '10px 20px',
                   borderRadius: '9999px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #6e2b90, #1a87cc)',
+                  background: 'linear-gradient(135deg, #62257A, #005E8E)',
                   color: '#ffffff',
                   fontWeight: 600,
                   cursor: 'pointer'
@@ -72,7 +72,7 @@ export class ErrorBoundary extends React.Component {
                   padding: '10px 20px',
                   borderRadius: '9999px',
                   border: '1px solid #3a2a4a',
-                  background: '#1a1322',
+                  background: '#1B1722',
                   color: '#f87171',
                   fontWeight: 600,
                   cursor: 'pointer'
