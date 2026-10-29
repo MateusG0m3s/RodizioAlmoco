@@ -1,143 +1,104 @@
 import { firebaseService } from './firebaseService.js';
-import { storageService } from './storageService.js';
 
-export const TEST_ACCOUNTS = {
-  ADMIN: {
-    uid: '107527462827272129337',
-    email: 'mateus.gomes@scadahub.io',
-    name: 'Mateus Augusto Santos Gomes',
-    employeeId: 'emp-2',
-    role: 'admin',
-    avatar: 'MA',
-    color: '#7c3aed'
-  },
-  USER_A: {
-    uid: 'user-mateus-oliveira-01',
-    email: 'mateus.silva@scadahub.io',
-    name: 'Mateus de Oliveira Silva',
-    employeeId: 'emp-1',
-    role: 'user',
-    avatar: 'MD',
-    color: '#381267'
-  },
-  USER_B: {
-    uid: 'user-monique-03',
-    email: 'monique@scadahub.io',
-    name: 'Monique Aparecida Hileshein',
-    employeeId: 'emp-3',
-    role: 'user',
-    avatar: 'MH',
-    color: '#0284c7'
-  },
-  USER_C: {
-    uid: 'user-samara-04',
-    email: 'samara.revoredo@scadahub.io',
-    name: 'Samara Revoredo',
-    employeeId: 'emp-4',
-    role: 'user',
-    avatar: 'SR',
-    color: '#6366f1'
-  }
-};
+// Só contas Google da empresa entram. O Google confirma o e-mail; as regras do banco
+// (database.rules.json) recusam qualquer outro domínio, então esta checagem é só a da tela.
+export const COMPANY_DOMAIN = 'scadahub.io';
 
-export const AUDIT_ACCOUNTS = TEST_ACCOUNTS;
+const DOMAIN_MESSAGE = `Use a sua conta Google da scadahub (@${COMPANY_DOMAIN}).`;
 
-// Sessão das contas locais (login pelo fallback, sem conta no Firebase Auth).
-// O Firebase Auth já persiste as próprias sessões; estas ficavam só em memória e caíam ao recarregar.
-const LOCAL_SESSION_KEY = 'scadahub_local_session';
+// Restos do login antigo por e-mail e senha: sessão local, senhas em texto puro e diretório de contas.
+const LEGACY_STORAGE_KEYS = ['scadahub_local_session', 'scadahub_custom_passwords', 'scadahub_account_directory'];
 
-function readLocalSession() {
+function clearLegacyStorage() {
   try {
-    if (typeof localStorage === 'undefined') return null;
-    const user = JSON.parse(localStorage.getItem(LOCAL_SESSION_KEY) || 'null');
-    return user && user.email && user.role ? user : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveLocalSession(user) {
-  try {
-    if (typeof localStorage !== 'undefined') localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(user));
-  } catch {
-    // Sem localStorage a sessão continua valendo só até recarregar
-  }
-}
-
-function clearLocalSession() {
-  try {
-    if (typeof localStorage !== 'undefined') localStorage.removeItem(LOCAL_SESSION_KEY);
+    if (typeof localStorage === 'undefined') return;
+    LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   } catch {
     // Ignora ambientes sem localStorage
   }
 }
 
+export function isCompanyAccount(user) {
+  const email = String(user?.email || '').toLowerCase();
+  return Boolean(user && user.emailVerified && email.endsWith(`@${COMPANY_DOMAIN}`));
+}
+
+// A conta é ligada ao colaborador pelo e-mail cadastrado na aba Equipe; as regras do banco fazem a mesma conta
+export function findEmployeeByEmail(employees, email) {
+  const target = String(email || '').trim().toLowerCase();
+  if (!target || !Array.isArray(employees)) return null;
+  return employees.find((e) => e?.email && e.email.trim().toLowerCase() === target) || null;
+}
+
+// Sessão do app a partir do usuário do Firebase. O colaborador vem de findEmployeeByEmail no App.
+export function buildSessionUser(fbUser, isAdmin) {
+  const email = fbUser.email.toLowerCase();
+  const name = fbUser.displayName || email.split('@')[0];
+  return {
+    uid: fbUser.uid,
+    email,
+    name,
+    role: isAdmin ? 'admin' : 'user',
+    employeeId: null,
+    avatar: name.substring(0, 2).toUpperCase()
+  };
+}
+
+// null = a pessoa fechou a janela do Google; não é erro
+export function friendlyAuthError(code) {
+  switch (code) {
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request':
+    case 'auth/user-cancelled':
+      return null;
+    case 'auth/popup-blocked':
+      return 'O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente de novo.';
+    case 'auth/unauthorized-domain':
+      return 'Este endereço ainda não está autorizado no Firebase. Avise o administrador.';
+    case 'auth/operation-not-allowed':
+      return 'O login com Google ainda não foi ativado no Firebase. Avise o administrador.';
+    case 'auth/user-disabled':
+      return 'Esta conta foi desativada pelo administrador do sistema.';
+    case 'auth/too-many-requests':
+      return 'Muitas tentativas seguidas. Por segurança, aguarde alguns instantes.';
+    case 'auth/network-request-failed':
+      return 'Falha de comunicação com o Google. Verifique sua conexão.';
+    default:
+      return 'Não foi possível entrar com o Google. Tente novamente.';
+  }
+}
+
 class AuthService {
   constructor() {
-    this.currentUser = readLocalSession();
-    this.authLoading = !this.currentUser;
-    this.resolvingFirebaseUser = false;
+    this.currentUser = null;
+    this.authLoading = true;
     this.subscribers = new Set();
+    clearLegacyStorage();
     this.initAuthListener();
   }
 
-  // Inicializa o ouvinte oficial de ciclo de vida do Firebase Authentication
+  // Ouvinte oficial do Firebase Authentication: a sessão vale entre recarregamentos da página
   initAuthListener() {
-    // Escuta mudanças de estado de autenticação emitidas pelo Firebase Auth
     firebaseService.onAuthStateChange(async (fbUser) => {
       if (!fbUser) {
-        // Sem sessão no Firebase: vale a sessão da conta local, se houver
-        this.currentUser = readLocalSession();
+        this.currentUser = null;
         this.authLoading = false;
         this.notifySubscribers();
         return;
       }
 
-      // Enquanto o perfil é lido no banco, o timeout abaixo não pode mandar para o login
-      this.resolvingFirebaseUser = true;
-      try {
-        const uid = fbUser.uid;
-        // Consulta no Firebase se o usuário possui flag de administrador
-        const isAdmin = await firebaseService.checkIfAdmin(uid);
-        // Consulta metadados associados ao usuário em scadahub_users
-        const userRecord = await firebaseService.getUserRecord(uid);
-
-        const role = isAdmin ? 'admin' : (userRecord?.role || 'user');
-        const employeeId = userRecord?.employeeId || (isAdmin ? 'emp-2' : null);
-        const name = userRecord?.name || fbUser.displayName || fbUser.email.split('@')[0];
-
-        this.currentUser = {
-          uid,
-          email: fbUser.email,
-          name,
-          role,
-          employeeId,
-          avatar: name.substring(0, 2).toUpperCase()
-        };
-      } catch (err) {
-        console.warn('Erro ao resolver perfil no Firebase:', err);
-        this.currentUser = {
-          uid: fbUser.uid,
-          email: fbUser.email,
-          name: fbUser.displayName || fbUser.email.split('@')[0],
-          role: 'user',
-          employeeId: null,
-          avatar: 'US'
-        };
-      } finally {
-        this.resolvingFirebaseUser = false;
-        this.authLoading = false;
-        this.notifySubscribers();
+      if (!isCompanyAccount(fbUser)) {
+        // Encerrar a sessão dispara o ouvinte de novo, já sem usuário
+        await firebaseService.signOutAuth();
+        return;
       }
+
+      // Papel de administrador vem só de /scadahub_admins/{uid}, gravado pelo console do Firebase
+      const isAdmin = await firebaseService.checkIfAdmin(fbUser.uid);
+      this.currentUser = buildSessionUser(fbUser, isAdmin);
+      this.authLoading = false;
+      this.notifySubscribers();
     });
-
-    // Timeout de segurança para ambientes offline/testes caso o Firebase demore para responder
-    setTimeout(() => {
-      if (this.authLoading && !this.currentUser && !this.resolvingFirebaseUser) {
-        this.authLoading = false;
-        this.notifySubscribers();
-      }
-    }, 1500);
   }
 
   notifySubscribers() {
@@ -195,262 +156,19 @@ class AuthService {
   }
 
   /**
-   * Login Real via Firebase Authentication
-   * @param {string} email
-   * @param {string} password
+   * Login com a conta Google da empresa (janela do Google). Também serve para trocar de conta:
+   * a janela sempre pergunta qual conta usar.
    */
-  async loginWithEmailAndPassword(email, password) {
-    if (!email || !email.trim()) {
-      return { success: false, message: 'Informe o seu endereço de e-mail.' };
+  async loginWithGoogle() {
+    const res = await firebaseService.signInWithGoogle({ hd: COMPANY_DOMAIN });
+    if (!res.success) {
+      return { success: false, message: friendlyAuthError(res.code) };
     }
-    if (!password || !password.trim()) {
-      return { success: false, message: 'Informe a sua senha de acesso.' };
+    if (!isCompanyAccount(res.user)) {
+      // O ouvinte já encerra essa sessão
+      return { success: false, message: DOMAIN_MESSAGE };
     }
-
-    const cleanEmail = email.trim().toLowerCase();
-
-    // 1. Tenta autenticação direta pelo Firebase Authentication
-    const fbRes = await firebaseService.signInWithEmail(cleanEmail, password);
-
-    if (fbRes.success && fbRes.user) {
-      const uid = fbRes.user.uid;
-      const isAdmin = await firebaseService.checkIfAdmin(uid);
-      const userRecord = await firebaseService.getUserRecord(uid);
-
-      const role = isAdmin ? 'admin' : (userRecord?.role || 'user');
-      const employeeId = userRecord?.employeeId || (isAdmin ? 'emp-2' : null);
-      const name = userRecord?.name || fbRes.user.displayName || fbRes.user.email.split('@')[0];
-
-      const userToSet = {
-        uid,
-        email: fbRes.user.email,
-        name,
-        role,
-        employeeId,
-        avatar: name.substring(0, 2).toUpperCase()
-      };
-      this.currentUser = userToSet;
-      // A sessão passa a ser a do Firebase; descarta uma eventual sessão local anterior
-      clearLocalSession();
-      // Micro-atraso para permitir que o navegador processe a API de credenciais / salvar senha
-      setTimeout(() => {
-        this.authLoading = false;
-        this.notifySubscribers();
-      }, 120);
-      return { success: true, user: userToSet };
-    }
-
-    // 2. Fallback de Autenticação Segura (para contas provisionadas e atualizadas na equipe)
-    let knownAccount = Object.values(TEST_ACCOUNTS).find(
-      (acc) => acc.email.toLowerCase() === cleanEmail ||
-               (cleanEmail === 'mateusaugusto1441@gmail.com' && acc.employeeId === 'emp-2') ||
-               (cleanEmail === 'mateus.gomes@scadahub.io' && acc.employeeId === 'emp-2') ||
-               (cleanEmail === 'mateus.silva@scadahub.io' && acc.employeeId === 'emp-1') ||
-               (cleanEmail === 'mateus.oliveira@scadahub.io' && acc.employeeId === 'emp-1') ||
-               (cleanEmail === 'mateus.oliveira@scadahub.com' && acc.employeeId === 'emp-1') ||
-               (cleanEmail === 'monique.hilleshein@scadahub.io' && acc.employeeId === 'emp-3') ||
-               (cleanEmail === 'monique@scadahub.io' && acc.employeeId === 'emp-3') ||
-               (cleanEmail === 'samara.revoredo@scadahub.io' && acc.employeeId === 'emp-4')
-    );
-
-    let matchedEmp = null;
-
-    if (!knownAccount) {
-      try {
-        const directory = JSON.parse(localStorage.getItem('scadahub_account_directory') || '{}');
-        if (directory[cleanEmail]) {
-          knownAccount = directory[cleanEmail];
-        }
-      } catch {
-        // Ignora erro de JSON
-      }
-    }
-
-    // Busca no cache local de colaboradores
-    try {
-      const localEmployees = storageService.getEmployees();
-      matchedEmp = localEmployees.find(
-        (e) => e.email && (
-          e.email.toLowerCase() === cleanEmail ||
-          (cleanEmail === 'mateus.silva@scadahub.io' && e.id === 'emp-1') ||
-          (cleanEmail.startsWith('mateus.oliveira@') && e.id === 'emp-1') ||
-          (cleanEmail === 'mateus.gomes@scadahub.io' && e.id === 'emp-2') ||
-          (cleanEmail === 'mateusaugusto1441@gmail.com' && e.id === 'emp-2')
-        )
-      );
-    } catch {
-      // Ignora falha de busca no storage local
-    }
-
-    // Consulta ao vivo ao Firebase Realtime Database para eliminar qualquer GAP de sincronização
-    if (!knownAccount || !matchedEmp) {
-      try {
-        const cloudEmployees = await firebaseService.getEmployees();
-        if (Array.isArray(cloudEmployees) && cloudEmployees.length > 0) {
-          storageService.saveEmployees(cloudEmployees);
-          const foundInCloud = cloudEmployees.find(
-            (e) => e.email && (
-              e.email.toLowerCase() === cleanEmail ||
-              (cleanEmail === 'mateus.silva@scadahub.io' && e.id === 'emp-1') ||
-              (cleanEmail.startsWith('mateus.oliveira@') && e.id === 'emp-1') ||
-              (cleanEmail === 'mateus.gomes@scadahub.io' && e.id === 'emp-2') ||
-              (cleanEmail === 'mateusaugusto1441@gmail.com' && e.id === 'emp-2')
-            )
-          );
-          if (foundInCloud) {
-            matchedEmp = foundInCloud;
-            const isAdminEmp = matchedEmp.role?.toLowerCase().includes('admin') || matchedEmp.id === 'emp-2';
-            knownAccount = {
-              uid: `user-${matchedEmp.id}`,
-              email: matchedEmp.email ? matchedEmp.email.toLowerCase() : cleanEmail,
-              name: matchedEmp.name,
-              employeeId: matchedEmp.id,
-              role: isAdminEmp ? 'admin' : 'user',
-              avatar: matchedEmp.avatar || matchedEmp.name.substring(0, 2).toUpperCase(),
-              color: matchedEmp.color || '#7c3aed'
-            };
-          }
-        }
-      } catch (err) {
-        console.warn('Erro ao consultar colaboradores no Firebase RTDB:', err);
-      }
-    }
-
-    if (!knownAccount && matchedEmp) {
-      const isAdminEmp = matchedEmp.role?.toLowerCase().includes('admin') || matchedEmp.id === 'emp-2';
-      knownAccount = {
-        uid: `user-${matchedEmp.id}`,
-        email: matchedEmp.email ? matchedEmp.email.toLowerCase() : cleanEmail,
-        name: matchedEmp.name,
-        employeeId: matchedEmp.id,
-        role: isAdminEmp ? 'admin' : 'user',
-        avatar: matchedEmp.avatar || matchedEmp.name.substring(0, 2).toUpperCase(),
-        color: matchedEmp.color || '#7c3aed'
-      };
-    }
-
-    if (knownAccount) {
-      const initialPass = matchedEmp?.initialPassword || 'shubadm';
-      const storedPassword = this.getPasswordForEmail(cleanEmail, initialPass);
-      const isPasswordValid =
-        password === storedPassword ||
-        password === initialPass ||
-        password === 'shubadm' ||
-        (cleanEmail === 'mateusaugusto1441@gmail.com' && password === 'Admin@123456');
-
-      if (isPasswordValid) {
-        const userToSet = { ...knownAccount };
-        this.currentUser = userToSet;
-        saveLocalSession(userToSet);
-        // Ao trocar de uma conta do Firebase para uma local, a sessão do Firebase ainda prevaleceria ao recarregar.
-        // A sessão local já está salva, então o listener a restaura quando o Firebase avisar o signOut.
-        if (firebaseService.auth?.currentUser) {
-          await firebaseService.signOutAuth();
-        }
-        setTimeout(() => {
-          this.authLoading = false;
-          this.notifySubscribers();
-        }, 120);
-        return { success: true, user: userToSet };
-      }
-      return { success: false, message: 'Senha incorreta. Verifique a senha digitada ou clique em "Alterar Senha".' };
-    }
-
-    // 3. Mapeamento de erros amigáveis em Português do Brasil (sem expor stack traces)
-    const code = fbRes.code || '';
-    let friendlyMessage = 'E-mail ou senha incorretos. Verifique suas credenciais.';
-
-    if (code === 'auth/invalid-email') {
-      friendlyMessage = 'O formato do endereço de e-mail é inválido.';
-    } else if (code === 'auth/user-disabled') {
-      friendlyMessage = 'Este usuário foi desativado pelo administrador do sistema.';
-    } else if (code === 'auth/too-many-requests') {
-      friendlyMessage = 'Muitas tentativas sem sucesso. Por segurança, aguarde alguns instantes.';
-    } else if (code === 'auth/network-request-failed') {
-      friendlyMessage = 'Falha de comunicação com os servidores do Firebase. Verifique sua conexão.';
-    } else if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
-      friendlyMessage = 'E-mail ou senha incorretos.';
-    }
-
-    return { success: false, message: friendlyMessage };
-  }
-
-  /**
-   * Alias de compatibilidade para login por email
-   */
-  async loginWithEmail(email, password) {
-    return this.loginWithEmailAndPassword(email, password);
-  }
-
-  /**
-   * Obtém a senha cadastrada para o e-mail (ou a padrão oficial 'shubadm')
-   */
-  getPasswordForEmail(email, fallbackInitial = null) {
-    try {
-      const customPasswords = JSON.parse(localStorage.getItem('scadahub_custom_passwords') || '{}');
-      if (customPasswords[email.toLowerCase()]) {
-        return customPasswords[email.toLowerCase()];
-      }
-    } catch {
-      // Ignora erro de JSON
-    }
-    if (fallbackInitial) {
-      return fallbackInitial;
-    }
-    // Senha padrão oficial inicial do sistema: "shubadm"
-    return 'shubadm';
-  }
-
-  /**
-   * Altera a senha do usuário
-   */
-  async changePassword(email, currentPassword, newPassword) {
-    if (!email || !email.trim()) return { success: false, message: 'E-mail não informado.' };
-    if (!newPassword || newPassword.length < 6) {
-      return { success: false, message: 'A nova senha deve possuir pelo menos 6 caracteres.' };
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
-    const actualCurrent = this.getPasswordForEmail(cleanEmail);
-
-    // Se o usuário possui senha (padrão ou personalizada), a senha atual é estritamente obrigatória
-    if (actualCurrent) {
-      if (!currentPassword || !currentPassword.trim()) {
-        return { success: false, message: 'Informe a sua senha atual para autorizar a alteração.' };
-      }
-      if (currentPassword !== actualCurrent) {
-        return { success: false, message: 'A senha atual informada está incorreta.' };
-      }
-    }
-
-    try {
-      const customPasswords = JSON.parse(localStorage.getItem('scadahub_custom_passwords') || '{}');
-      customPasswords[cleanEmail] = newPassword;
-      localStorage.setItem('scadahub_custom_passwords', JSON.stringify(customPasswords));
-      return { success: true, message: 'Senha atualizada com sucesso!' };
-    } catch (e) {
-      return { success: false, message: 'Erro ao salvar nova senha no navegador: ' + e.message };
-    }
-  }
-
-  /**
-   * Redefine a senha do usuário diretamente (útil para recuperação)
-   */
-  async resetPassword(email, newPassword) {
-    if (!email || !email.trim()) return { success: false, message: 'E-mail não informado.' };
-    if (!newPassword || newPassword.length < 6) {
-      return { success: false, message: 'A nova senha deve possuir pelo menos 6 caracteres.' };
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
-    try {
-      const customPasswords = JSON.parse(localStorage.getItem('scadahub_custom_passwords') || '{}');
-      customPasswords[cleanEmail] = newPassword;
-      localStorage.setItem('scadahub_custom_passwords', JSON.stringify(customPasswords));
-      return { success: true, message: 'Senha redefinida com sucesso! Você já pode entrar com a nova senha.' };
-    } catch (e) {
-      return { success: false, message: 'Erro ao redefinir senha: ' + e.message };
-    }
+    return { success: true, name: res.user.displayName || res.user.email };
   }
 
   /**
@@ -458,24 +176,9 @@ class AuthService {
    */
   async logout() {
     this.currentUser = null;
-    clearLocalSession();
     await firebaseService.signOutAuth();
     this.notifySubscribers();
     return { success: true };
-  }
-
-  /**
-   * Método de suporte para alternância controlada de conta em testes de auditoria
-   */
-  setTestUser(accountOrKey) {
-    if (typeof accountOrKey === 'string' && TEST_ACCOUNTS[accountOrKey]) {
-      this.currentUser = { ...TEST_ACCOUNTS[accountOrKey] };
-    } else if (typeof accountOrKey === 'object') {
-      this.currentUser = accountOrKey;
-    }
-    this.authLoading = false;
-    this.notifySubscribers();
-    return this.currentUser;
   }
 }
 

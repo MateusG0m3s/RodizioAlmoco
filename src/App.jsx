@@ -5,7 +5,6 @@ import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import MobileTabBar from './components/MobileTabBar';
 import DateStepper from './components/DateStepper';
-import ChangePasswordModal from './components/ChangePasswordModal';
 import TimeSimulatorBar from './components/TimeSimulatorBar';
 import DashboardView from './components/DashboardView';
 import WeekView from './components/WeekView';
@@ -14,11 +13,10 @@ import HistoryView from './components/HistoryView';
 import SettingsView from './components/SettingsView';
 import EditSlotModal from './components/EditSlotModal';
 import GenerateModal from './components/GenerateModal';
-import AuthModal from './components/AuthModal';
 import LoginScreen from './components/LoginScreen';
 import { storageService } from './services/storageService';
 import { firebaseService } from './services/firebaseService';
-import { authService } from './services/authService';
+import { authService, findEmployeeByEmail } from './services/authService';
 import { toISODateString, timeToMinutes, getWorkDaysOfWeek, formatDateBR } from './utils/timeUtils';
 import { detectConflicts, checkAttendanceCoverage, generateAutoSchedule, ensureArray } from './utils/scheduler';
 import { getUserSoundPreference, setUserSoundPreference, playLunchNotificationSound, shouldTriggerLunchAlert } from './services/soundService';
@@ -71,18 +69,10 @@ export default function App() {
   // Estados de Autenticação e RBAC
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isAuthLoading, setIsAuthLoading] = useState(() => authService.isLoading());
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const isAdmin = Boolean(currentUser && currentUser.role === 'admin');
   const currentUserEmployeeId = useMemo(() => {
     if (currentUser?.employeeId) return currentUser.employeeId;
-    if (currentUser?.email && employees?.length > 0) {
-      const match = employees.find(
-        (e) => e.email && e.email.trim().toLowerCase() === currentUser.email.trim().toLowerCase()
-      );
-      if (match) return match.id;
-    }
-    return null;
+    return findEmployeeByEmail(employees, currentUser?.email)?.id || null;
   }, [currentUser, employees]);
 
   const [toastNotification, setToastNotification] = useState(null);
@@ -177,8 +167,11 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Assinatura em tempo real do Firebase (sempre ativa para sincronizar equipe, configurações e escalas mesmo na tela de login)
+  // Assinatura em tempo real do Firebase. As regras do banco só respondem a quem está logado,
+  // então ela começa depois do login e é refeita quando a conta muda.
+  const sessionUid = currentUser?.uid;
   useEffect(() => {
+    if (!sessionUid) return undefined;
     const unsubscribe = firebaseService.subscribe({
       onSchedules: (cloudSchedules) => {
         if (cloudSchedules && typeof cloudSchedules === 'object') {
@@ -212,7 +205,7 @@ export default function App() {
       if (unsubscribe) unsubscribe();
       setIsCloudConnected(false);
     };
-  }, []);
+  }, [sessionUid]);
 
   const currentTimeMinutes = isSimulatingTime ? simulatedMinutes : systemTimeMinutes;
 
@@ -225,6 +218,12 @@ export default function App() {
   const handleLogout = async () => {
     await authService.logout();
     showToast('Sessão encerrada com sucesso.', 'Até logo!');
+  };
+
+  // A janela do Google sempre pergunta a conta; fechá-la mantém a sessão atual
+  const handleSwitchAccount = async () => {
+    const res = await authService.loginWithGoogle();
+    if (!res.success && res.message) showToast(res.message, 'Troca de conta', 'warning');
   };
 
   // Disparo de notificação sonora pontual nos marcos de 10, 5 e 1 minuto antes do almoço
@@ -544,36 +543,10 @@ export default function App() {
       ...empData,
       email: isAdmin ? cleanEmail : (existingEmp?.email || cleanEmail || ''),
       role: isAdmin ? empData.role : (existingEmp?.role || empData.role),
-      active: (isAdmin || isOwnEmployee) ? (empData.active !== false) : (existingEmp?.active !== false),
-      initialPassword: 'shubadm'
+      active: (isAdmin || isOwnEmployee) ? (empData.active !== false) : (existingEmp?.active !== false)
     };
-
-    if (cleanEmail) {
-      try {
-        // 1. Diretório persistente de contas autenticáveis
-        const directory = JSON.parse(localStorage.getItem('scadahub_account_directory') || '{}');
-        const isAdminEmp = finalEmpData.role?.toLowerCase().includes('admin') || finalEmpData.id === 'emp-2';
-        directory[cleanEmail] = {
-          uid: `user-${finalEmpData.id}`,
-          email: cleanEmail,
-          name: finalEmpData.name,
-          employeeId: finalEmpData.id,
-          role: isAdminEmp ? 'admin' : 'user',
-          avatar: finalEmpData.avatar || finalEmpData.name.substring(0, 2).toUpperCase(),
-          color: finalEmpData.color || '#62257A'
-        };
-        localStorage.setItem('scadahub_account_directory', JSON.stringify(directory));
-
-        // 2. Senha inicial se ainda não alterada
-        const customPasswords = JSON.parse(localStorage.getItem('scadahub_custom_passwords') || '{}');
-        if (!customPasswords[cleanEmail]) {
-          customPasswords[cleanEmail] = 'shubadm';
-          localStorage.setItem('scadahub_custom_passwords', JSON.stringify(customPasswords));
-        }
-      } catch {
-        // Ignora erro de storage local
-      }
-    }
+    // Campo do login antigo por senha
+    delete finalEmpData.initialPassword;
 
     const index = employees.findIndex((e) => e.id === empData.id);
     let updated;
@@ -673,10 +646,10 @@ export default function App() {
   if (!currentUser) {
     return (
       <LoginScreen
-        onLogin={async (email, password) => {
-          const res = await authService.loginWithEmailAndPassword(email, password);
-          if (res.success && res.user) {
-            showToast(`Bem-vindo, ${res.user.name}!`, 'Login realizado');
+        onLogin={async () => {
+          const res = await authService.loginWithGoogle();
+          if (res.success) {
+            showToast(`Bem-vindo, ${res.name}!`, 'Login realizado');
           }
           return res;
         }}
@@ -698,8 +671,7 @@ export default function App() {
         soundEnabled={soundEnabled}
         toggleSound={toggleSound}
         settings={settings}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+        onSwitchAccount={handleSwitchAccount}
         onLogout={handleLogout}
       />
 
@@ -717,8 +689,7 @@ export default function App() {
           soundEnabled={soundEnabled}
           toggleSound={toggleSound}
           onOpenSettings={() => handleSelectTab('settings')}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+          onSwitchAccount={handleSwitchAccount}
           onLogout={handleLogout}
           onGoHome={() => handleSelectTab('dashboard')}
         >
@@ -736,6 +707,16 @@ export default function App() {
 
         {/* Conteúdo Principal com Autorização RBAC */}
         <main className="main-content">
+          {/* As regras do banco ligam a conta ao colaborador pelo e-mail cadastrado na aba Equipe */}
+          {!isAdmin && employees.length > 0 && !currentUserEmployeeId && (
+            <div className="ui-alert warning" role="status">
+              <AlertTriangle size={16} />
+              <span>
+                O e-mail <b>{currentUser.email}</b> não está ligado a ninguém da equipe. Você vê a escala, mas não consegue
+                lançar o seu almoço até o administrador cadastrar este e-mail na aba Equipe.
+              </span>
+            </div>
+          )}
           {effectiveTab === 'dashboard' && (
             <DashboardView
               currentDate={currentDate}
@@ -865,28 +846,6 @@ export default function App() {
           currentDate={currentDate}
           onApplySchedule={handleApplyGeneratedSchedule}
           onApplyWeekSchedule={handleApplyWeekSchedule}
-        />
-      )}
-
-      {/* Modal de Autenticação e Chaveamento de Contas para Testes */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        currentUser={currentUser}
-        onUserChanged={(user) => {
-          setCurrentUser(user);
-          showToast(`Sessão ativa alterada para: ${user?.name || 'Visitante'} (${user?.role === 'admin' ? 'Administrador' : 'Usuário Normal'})`, 'Identidade Atualizada');
-        }}
-      />
-
-
-      {/* Montado só quando aberto, para usar o e-mail da conta ativa no momento */}
-      {isChangePasswordOpen && (
-        <ChangePasswordModal
-          isOpen
-          onClose={() => setIsChangePasswordOpen(false)}
-          initialEmail={currentUser?.email || ''}
-          onSuccess={() => showToast('Sua senha foi alterada.', 'Senha atualizada')}
         />
       )}
 

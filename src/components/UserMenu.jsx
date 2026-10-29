@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { KeyRound, Repeat, LogOut, Moon, Volume2, Settings } from 'lucide-react';
+import { Repeat, LogOut, Moon, Volume2, Settings } from 'lucide-react';
 
 // Menu da conta: aberto pelo cartão do usuário (sidebar) ou pelo avatar (celular).
 // No celular também carrega as preferências, que no desktop ficam na sidebar.
@@ -7,8 +7,7 @@ export default function UserMenu({
   currentUser,
   isAdmin,
   onClose,
-  onOpenAuthModal,
-  onOpenChangePassword,
+  onSwitchAccount,
   onLogout,
   withPreferences = false,
   theme,
@@ -76,16 +75,12 @@ export default function UserMenu({
         </>
       )}
 
-      {onOpenChangePassword && (
-        <button type="button" role="menuitem" className="ui-menu-item" onClick={run(onOpenChangePassword)}>
-          <KeyRound />
-          Alterar senha
+      {onSwitchAccount && (
+        <button type="button" role="menuitem" className="ui-menu-item" onClick={run(onSwitchAccount)}>
+          <Repeat />
+          Trocar conta
         </button>
       )}
-      <button type="button" role="menuitem" className="ui-menu-item" onClick={run(onOpenAuthModal)}>
-        <Repeat />
-        Trocar conta
-      </button>
       {onLogout && (
         <>
           <div className="ui-menu-sep" />

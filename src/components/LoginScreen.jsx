@@ -1,56 +1,26 @@
 import React, { useState } from 'react';
-import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle, ShieldCheck, Sun, Moon } from 'lucide-react';
-import ChangePasswordModal from './ChangePasswordModal';
+import { LogIn, AlertCircle, ShieldCheck, Sun, Moon } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     if (isSubmitting) return;
-
-    if (!email.trim()) {
-      setErrorMessage('Por favor, informe seu e-mail de acesso.');
-      return;
-    }
-
-    if (!password.trim()) {
-      setErrorMessage('Por favor, digite sua senha.');
-      return;
-    }
-
     setErrorMessage('');
     setIsSubmitting(true);
 
     try {
-      const res = await onLogin(email.trim(), password);
+      const res = await onLogin();
+      // Com sucesso a tela é desmontada; sem mensagem, a pessoa só fechou a janela do Google
       if (!res.success) {
-        setErrorMessage(res.message || 'Falha ao autenticar. Verifique suas credenciais.');
-      } else {
-        // Dispara a API nativa do W3C / Chrome Credential Management para salvar senha
-        if (typeof window !== 'undefined' && window.PasswordCredential && navigator.credentials?.store) {
-          try {
-            const cred = new window.PasswordCredential({
-              id: email.trim(),
-              password: password,
-              name: email.trim()
-            });
-            await navigator.credentials.store(cred);
-          } catch {
-            // Silencia erros de permissão ou sandbox de navegador
-          }
-        }
+        setIsSubmitting(false);
+        if (res.message) setErrorMessage(res.message);
       }
     } catch {
-      setErrorMessage('Ocorreu um erro ao processar a autenticação. Tente novamente.');
-    } finally {
       setIsSubmitting(false);
+      setErrorMessage('Ocorreu um erro ao entrar. Tente novamente.');
     }
   };
 
@@ -85,7 +55,7 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
         <div className="login-card-container">
           <div className="login-brand-header">
             <h1 className="login-title">Entrar</h1>
-            <p className="login-subtitle">Use seu e-mail da scadahub para ver a escala da equipe.</p>
+            <p className="login-subtitle">Use a sua conta Google da scadahub para ver a escala da equipe.</p>
           </div>
 
           {errorMessage && (
@@ -95,92 +65,23 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="login-form" name="loginForm" method="post" action="#">
-            <div className="login-input-group">
-              <label htmlFor="username" className="login-label">
-                E-mail
-              </label>
-              <div className="login-input-wrapper">
-                <Mail size={18} className="login-field-icon" />
-                <input
-                  id="username"
-                  name="username"
-                  type="email"
-                  autoComplete="username"
-                  required
-                  className="login-input"
-                  placeholder="seu.nome@scadahub.io"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
-            <div className="login-input-group">
-              <label htmlFor="password" className="login-label">
-                Senha
-              </label>
-              <div className="login-input-wrapper">
-                <Lock size={18} className="login-field-icon" />
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  className="login-input"
-                  placeholder="Sua senha"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  className="login-password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
-            <button type="submit" className="ui-btn primary login-submit-btn" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <div className="btn-spinner" />
-                  Autenticando…
-                </>
-              ) : (
-                <>
-                  <LogIn size={17} />
-                  Entrar
-                </>
-              )}
-            </button>
-
-            <div className="login-links">
-              <span>Primeiro acesso? Use a senha inicial informada pelo administrador e troque em seguida.</span>
-              <button type="button" className="login-link-btn" onClick={() => setIsChangePasswordOpen(true)}>
-                Alterar senha
-              </button>
-            </div>
-          </form>
-
-          {/* Montado só quando aberto, para já vir com o e-mail digitado */}
-          {isChangePasswordOpen && (
-            <ChangePasswordModal
-              isOpen
-              onClose={() => setIsChangePasswordOpen(false)}
-              initialEmail={email}
-            />
-          )}
+          <button type="button" className="ui-btn primary login-submit-btn" onClick={handleLogin} disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <div className="btn-spinner" />
+                Aguardando o Google…
+              </>
+            ) : (
+              <>
+                <LogIn size={17} />
+                Entrar com Google
+              </>
+            )}
+          </button>
 
           <div className="login-card-footer">
             <ShieldCheck size={14} />
-            <span>Autenticação protegida pelo Firebase Authentication</span>
+            <span>Só contas @scadahub.io. Não há senha para criar nem para lembrar.</span>
           </div>
         </div>
       </div>

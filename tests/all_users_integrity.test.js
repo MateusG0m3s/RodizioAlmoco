@@ -1,39 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { authService, TEST_ACCOUNTS } from '../src/services/authService.js';
+import { isCompanyAccount, buildSessionUser, findEmployeeByEmail } from '../src/services/authService.js';
+import { TEST_ACCOUNTS, TEST_EMPLOYEES, googleUser } from './fixtures/accounts.js';
 import { checkAttendanceCoverage, detectConflicts, ensureArray } from '../src/utils/scheduler.js';
 import { shouldTriggerLunchAlert } from '../src/services/soundService.js';
 
-test('SUÍTE MULTI-USUÁRIO 1: Autenticação Real e Resolução de Perfil para Todos os Usuários', async () => {
-  // 1. ADMIN (Mateus Gomes)
-  const resAdmin = await authService.loginWithEmailAndPassword('mateus.gomes@scadahub.io', 'shubadm');
-  assert.equal(resAdmin.success, true, 'Admin deve logar com sucesso');
-  assert.equal(resAdmin.user.role, 'admin', 'Role deve ser admin');
-  assert.equal(resAdmin.user.employeeId, 'emp-2', 'EmployeeId deve ser emp-2');
-  assert.equal(authService.isAdmin(), true, 'isAdmin deve retornar true');
+test('SUÍTE MULTI-USUÁRIO 1: Login Google e Resolução de Perfil para Todos os Usuários', () => {
+  // Cada conta Google da empresa vira sessão e é ligada ao colaborador pelo e-mail cadastrado na equipe
+  for (const acc of Object.values(TEST_ACCOUNTS)) {
+    const fbUser = googleUser(acc);
+    assert.equal(isCompanyAccount(fbUser), true, `${acc.name} entra com a conta Google da scadahub`);
+    const session = buildSessionUser(fbUser, acc.role === 'admin');
+    assert.equal(session.role, acc.role, `Papel de ${acc.name}`);
+    assert.equal(findEmployeeByEmail(TEST_EMPLOYEES, session.email)?.id, acc.employeeId, `${acc.name} é ligado a ${acc.employeeId}`);
+  }
 
-  // 2. USER_A (Mateus Silva)
-  const resUserA = await authService.loginWithEmailAndPassword('mateus.silva@scadahub.io', 'shubadm');
-  assert.equal(resUserA.success, true, 'Mateus Silva deve logar com sucesso');
-  assert.equal(resUserA.user.role, 'user', 'Role deve ser user');
-  assert.equal(resUserA.user.employeeId, 'emp-1', 'EmployeeId deve ser emp-1');
-  assert.equal(authService.isAdmin(), false, 'isAdmin deve retornar false');
+  // Cadastro com maiúsculas ou espaços continua batendo
+  const legacy = TEST_EMPLOYEES.map((e) => (e.id === 'emp-3' ? { ...e, email: ' Monique@ScadaHub.io ' } : e));
+  assert.equal(findEmployeeByEmail(legacy, 'monique@scadahub.io')?.id, 'emp-3');
 
-  // 3. USER_B (Monique Hilleshein) - Teste com email corporativo completo e curto
-  const resMonique1 = await authService.loginWithEmailAndPassword('monique.hilleshein@scadahub.io', 'shubadm');
-  assert.equal(resMonique1.success, true, 'Monique deve logar com monique.hilleshein@scadahub.io');
-  assert.equal(resMonique1.user.employeeId, 'emp-3', 'EmployeeId deve ser emp-3');
-  assert.equal(resMonique1.user.role, 'user', 'Role deve ser user');
-
-  const resMonique2 = await authService.loginWithEmailAndPassword('monique@scadahub.io', 'shubadm');
-  assert.equal(resMonique2.success, true, 'Monique deve logar com monique@scadahub.io');
-  assert.equal(resMonique2.user.employeeId, 'emp-3', 'EmployeeId deve ser emp-3');
-
-  // 4. USER_C (Samara Revoredo)
-  const resSamara = await authService.loginWithEmailAndPassword('samara.revoredo@scadahub.io', 'shubadm');
-  assert.equal(resSamara.success, true, 'Samara deve logar com sucesso');
-  assert.equal(resSamara.user.employeeId, 'emp-4', 'EmployeeId deve ser emp-4');
-  assert.equal(resSamara.user.role, 'user', 'Role deve ser user');
+  // Só o e-mail cadastrado vale: apelidos de e-mail não ligam a conta a ninguém
+  assert.equal(findEmployeeByEmail(TEST_EMPLOYEES, 'monique.hilleshein@scadahub.io'), null);
+  assert.equal(findEmployeeByEmail(TEST_EMPLOYEES, ''), null);
+  assert.equal(findEmployeeByEmail(null, 'monique@scadahub.io'), null);
 });
 
 test('SUÍTE MULTI-USUÁRIO 2: Visibilidade Cruzada Mútua dos Almoços (Timeline / Cards)', () => {
