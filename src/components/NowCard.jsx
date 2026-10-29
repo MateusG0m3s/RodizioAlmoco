@@ -1,8 +1,9 @@
 import React from 'react';
 import { Headset, Users, Utensils, Clock, TriangleAlert, Sparkles } from 'lucide-react';
 import { timeToMinutes } from '../utils/timeUtils';
-import { getShortName } from '../utils/nameUtils';
+import { getInitials, getShortName } from '../utils/nameUtils';
 import { formatDuration, getSlotPhase } from '../utils/lunchState';
+import { resolveAvatarColor } from '../utils/avatarColors';
 
 // "Agora no atendimento": três números do momento + a régua da equipe.
 // A cobertura fica num chip discreto e só vira alerta quando há brecha na janela crítica.
@@ -116,13 +117,19 @@ export default function NowCard({
               role="img"
               aria-label={`${summary.finished.length} concluíram, ${summary.lunching.length} almoçando, ${summary.upcoming.length} a seguir`}
             >
-              {summary.sortedSlots.map((slot) => (
-                <i
-                  key={slot.id}
-                  className={`is-${getSlotPhase(slot, currentTimeMinutes)} ${slot.employeeId === currentUserEmployeeId ? 'is-you' : ''}`}
-                  title={`${nameOf(slot)}: ${slot.startTime}–${slot.endTime}`}
-                />
-              ))}
+              {summary.sortedSlots.map((slot) => {
+                const emp = empMap[slot.employeeId];
+                return (
+                  <span
+                    key={slot.id}
+                    className={`ui-avatar sm is-${getSlotPhase(slot, currentTimeMinutes)} ${slot.employeeId === currentUserEmployeeId ? 'is-you' : ''}`}
+                    style={{ '--avatar-color': resolveAvatarColor(emp?.color, slot.employeeId) }}
+                    title={`${nameOf(slot)}: ${slot.startTime}–${slot.endTime}`}
+                  >
+                    {getInitials(emp?.name)}
+                  </span>
+                );
+              })}
             </div>
           </div>
           <div className="now-team-legend">
