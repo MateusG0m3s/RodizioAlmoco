@@ -21,9 +21,9 @@ const slot = (employeeId, startTime, endTime) => ({
 const SEED = {
   scadahub_admins: { 'uid-admin': true },
   scadahub_employees: {
-    'emp-1': { id: 'emp-1', name: 'Mateus de Oliveira Silva', email: 'mateus.silva@scadahub.io', role: 'Coordenador', active: true },
-    'emp-2': { id: 'emp-2', name: 'Mateus Augusto Santos Gomes', email: 'mateus.gomes@scadahub.io', role: 'Analista', active: true },
-    'emp-3': { id: 'emp-3', name: 'Monique Aparecida Hileshein', email: 'Monique@scadahub.io', role: 'Analista', active: true }
+    'emp-1': { id: 'emp-1', name: 'Mateus de Oliveira Silva', email: 'mateus.silva@daqhmi.com', role: 'Coordenador', active: true },
+    'emp-2': { id: 'emp-2', name: 'Mateus Augusto Santos Gomes', email: 'mateus.gomes@daqhmi.com', role: 'Analista', active: true },
+    'emp-3': { id: 'emp-3', name: 'Monique Aparecida Hileshein', email: 'Monique@daqhmi.com', role: 'Analista', active: true }
   },
   scadahub_schedules: {
     [DATE]: {
@@ -50,12 +50,14 @@ before(async () => {
   const user = (uid, email, verified = true) => env.authenticatedContext(uid, { email, email_verified: verified }).database();
   as.anon = env.unauthenticatedContext().database();
   as.gmail = user('uid-gmail', 'mateus.silva@gmail.com');
-  as.unverified = user('uid-unverified', 'mateus.silva@scadahub.io', false);
-  as.fakeDomain = user('uid-fake', 'mateus.silva@scadahub.io.evil.com');
-  as.silva = user('uid-silva', 'mateus.silva@scadahub.io');
-  as.monique = user('uid-monique', 'monique@scadahub.io');
-  as.outsider = user('uid-novo', 'novo.colaborador@scadahub.io');
-  as.admin = user('uid-admin', 'mateus.gomes@scadahub.io');
+  as.unverified = user('uid-unverified', 'mateus.silva@daqhmi.com', false);
+  as.fakeDomain = user('uid-fake', 'mateus.silva@daqhmi.com.evil.com');
+  as.silva = user('uid-silva', 'mateus.silva@daqhmi.com');
+  as.monique = user('uid-monique', 'monique@daqhmi.com');
+  as.outsider = user('uid-novo', 'novo.colaborador@daqhmi.com');
+  // Domínio secundário do mesmo Workspace
+  as.secondary = user('uid-secundario', 'contato@scadahub.io');
+  as.admin = user('uid-admin', 'mateus.gomes@daqhmi.com');
 });
 
 beforeEach(async () => {
@@ -79,7 +81,7 @@ test('REGRAS 1: sem login, conta fora do domínio, domínio falso ou e-mail não
   }
 });
 
-test('REGRAS 2: colaborador @scadahub.io lê equipe, escala, configurações e histórico, mas não a raiz nem a lista de admins', async () => {
+test('REGRAS 2: colaborador da empresa lê equipe, escala, configurações e histórico, mas não a raiz nem a lista de admins', async () => {
   for (const node of NODES) await assertSucceeds(get(ref(as.silva, node)));
   await assertFails(get(ref(as.silva)));
   await assertFails(get(ref(as.silva, 'scadahub_admins')));
@@ -93,7 +95,7 @@ test('REGRAS 3: colaborador cria, move e apaga o próprio almoço; e-mail com ma
   await assertSucceeds(update(ref(as.silva, slotPath('emp-1')), { startTime: '12:20', endTime: '13:20' }));
   await assertSucceeds(remove(ref(as.silva, slotPath('emp-1'))));
   await assertSucceeds(set(ref(as.silva, `scadahub_schedules/2026-11-04/slot-2026-11-04-emp-1`), slot('emp-1', '12:00', '12:30')));
-  // Cadastro "Monique@scadahub.io" x token "monique@scadahub.io"
+  // Cadastro "Monique@daqhmi.com" x token "monique@daqhmi.com"
   await assertSucceeds(update(ref(as.monique, slotPath('emp-3')), { startTime: '12:45', endTime: '13:30' }));
 });
 
@@ -109,18 +111,20 @@ test('REGRAS 4: colaborador não mexe no almoço dos outros nem forja o dono', a
   await assertFails(set(ref(as.silva, slotPath('emp-1')), { employeeId: 'emp-1', startTime: '12:00' }));
 });
 
-test('REGRAS 5: e-mail da empresa sem cadastro na equipe só lê', async () => {
+test('REGRAS 5: e-mail da empresa (daqhmi.com ou scadahub.io) sem cadastro na equipe só lê', async () => {
   await assertSucceeds(get(ref(as.outsider, 'scadahub_schedules')));
+  await assertSucceeds(get(ref(as.secondary, 'scadahub_schedules')));
+  await assertFails(set(ref(as.secondary, slotPath('emp-1')), slot('emp-1', '12:00', '13:00')));
   await assertFails(set(ref(as.outsider, `scadahub_schedules/${DATE}/slot-x`), slot('emp-1', '12:00', '13:00')));
   await assertFails(update(ref(as.outsider, 'scadahub_employees/emp-1'), { name: 'Outro' }));
 });
 
 test('REGRAS 6: colaborador edita o próprio perfil, mas não e-mail, cargo, colegas, cadastro nem exclusão', async () => {
   await assertSucceeds(update(ref(as.silva, 'scadahub_employees/emp-1'), { name: 'Mateus Silva', active: false, preferredTime: '12:30' }));
-  await assertFails(update(ref(as.silva, 'scadahub_employees/emp-1'), { email: 'mateus.gomes@scadahub.io' }));
+  await assertFails(update(ref(as.silva, 'scadahub_employees/emp-1'), { email: 'mateus.gomes@daqhmi.com' }));
   await assertFails(update(ref(as.silva, 'scadahub_employees/emp-1'), { role: 'Administrador' }));
   await assertFails(update(ref(as.silva, 'scadahub_employees/emp-3'), { active: false }));
-  await assertFails(set(ref(as.silva, 'scadahub_employees/emp-9'), { id: 'emp-9', name: 'Novo', email: 'mateus.silva@scadahub.io' }));
+  await assertFails(set(ref(as.silva, 'scadahub_employees/emp-9'), { id: 'emp-9', name: 'Novo', email: 'mateus.silva@daqhmi.com' }));
   await assertFails(remove(ref(as.silva, 'scadahub_employees/emp-1')));
   await assertFails(set(ref(as.silva, 'scadahub_employees'), {}));
 });
@@ -137,8 +141,8 @@ test('REGRAS 8: admin gera escala, cuida da equipe e das configurações', async
   await assertSucceeds(set(ref(as.admin, `scadahub_schedules/${DATE}`), { [`slot-${DATE}-emp-2`]: slot('emp-2', '11:45', '12:15') }));
   await assertSucceeds(remove(ref(as.admin, `scadahub_schedules/${DATE}`)));
   await assertSucceeds(set(ref(as.admin, slotPath('emp-3')), slot('emp-3', '13:00', '13:30')));
-  await assertSucceeds(set(ref(as.admin, 'scadahub_employees/emp-9'), { id: 'emp-9', name: 'Novo Colaborador', email: 'novo.colaborador@scadahub.io' }));
-  await assertSucceeds(update(ref(as.admin, 'scadahub_employees/emp-1'), { role: 'Gerente', email: 'mateus.oliveira@scadahub.io' }));
+  await assertSucceeds(set(ref(as.admin, 'scadahub_employees/emp-9'), { id: 'emp-9', name: 'Novo Colaborador', email: 'novo.colaborador@daqhmi.com' }));
+  await assertSucceeds(update(ref(as.admin, 'scadahub_employees/emp-1'), { role: 'Gerente', email: 'mateus.oliveira@daqhmi.com' }));
   await assertSucceeds(remove(ref(as.admin, 'scadahub_employees/emp-9')));
   await assertSucceeds(set(ref(as.admin, 'scadahub_settings'), { criticalStart: '11:00', criticalEnd: '13:00' }));
   // Mesmo o admin não grava lixo na escala

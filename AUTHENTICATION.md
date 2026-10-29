@@ -2,16 +2,16 @@
 
 ## 1. Como funciona
 
-* **Login:** só com a conta Google da empresa (`@scadahub.io`), pela janela do Google (`signInWithPopup`). Não existe senha do app para criar, trocar ou esquecer.
-* **Quem barra:** as regras do Realtime Database (`database.rules.json`). A tela também recusa outro domínio, mas isso é só conveniência: sem login verificado `@scadahub.io`, o banco não responde.
+* **Login:** só com a conta Google da empresa, pela janela do Google (`signInWithPopup`). Não existe senha do app para criar, trocar ou esquecer. O Workspace é `daqhmi.com`, então o login sai com o e-mail `@daqhmi.com`; `@scadahub.io` é domínio secundário do mesmo Workspace e também é aceito.
+* **Quem barra:** as regras do Realtime Database (`database.rules.json`). A tela também recusa outro domínio, mas isso é só conveniência: sem login verificado `@daqhmi.com` ou `@scadahub.io`, o banco não responde.
 * **Sessão:** a do Firebase Authentication, que continua ao recarregar a página. O app só assina o banco depois do login.
 
 ```text
-[Entrar com Google] → popup do Google (hd=scadahub.io)
+[Entrar com Google] → popup do Google (hd=daqhmi.com)
         │
         ▼
 onAuthStateChanged
-        ├── e-mail não verificado ou fora de @scadahub.io → signOut
+        ├── e-mail não verificado ou fora de @daqhmi.com / @scadahub.io → signOut
         ├── /scadahub_admins/{uid} === true → papel admin
         └── colaborador = item de /scadahub_employees com o mesmo e-mail
 ```
@@ -20,9 +20,9 @@ onAuthStateChanged
 
 | Caminho | Leitura | Escrita |
 |---|---|---|
-| `scadahub_employees` | conta `@scadahub.io` verificada | admin; o colaborador edita o próprio cadastro, sem mudar e-mail nem cargo |
-| `scadahub_schedules/{data}/{slot}` | conta `@scadahub.io` verificada | admin; o colaborador grava, move e apaga só o horário cujo `employeeId` tem o e-mail dele |
-| `scadahub_settings`, `scadahub_history` | conta `@scadahub.io` verificada | admin |
+| `scadahub_employees` | conta da empresa verificada | admin; o colaborador edita o próprio cadastro, sem mudar e-mail nem cargo |
+| `scadahub_schedules/{data}/{slot}` | conta da empresa verificada | admin; o colaborador grava, move e apaga só o horário cujo `employeeId` tem o e-mail dele |
+| `scadahub_settings`, `scadahub_history` | conta da empresa verificada | admin |
 | `scadahub_admins/{uid}` | só o próprio uid | ninguém pelo app (console do Firebase) |
 | qualquer outro caminho | ninguém | ninguém |
 
@@ -37,7 +37,7 @@ A ligação conta ↔ colaborador é o **e-mail cadastrado na aba Equipe**. Quem
 
 ## 4. Novo colaborador
 
-O admin cadastra na aba Equipe com o e-mail `@scadahub.io` da pessoa. No primeiro login com Google, a conta já cai no colaborador certo. Para tirar o acesso de gravação, apague ou troque o e-mail no cadastro; para bloquear a conta inteira, desative o usuário no console do Firebase.
+O admin cadastra na aba Equipe com o e-mail de login Google da pessoa (o `@daqhmi.com`, não o alias `@scadahub.io`). No primeiro login com Google, a conta já cai no colaborador certo. Para tirar o acesso de gravação, apague ou troque o e-mail no cadastro; para bloquear a conta inteira, desative o usuário no console do Firebase.
 
 ## 5. Configuração no console do Firebase
 
