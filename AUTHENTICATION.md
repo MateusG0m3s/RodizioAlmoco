@@ -1,5 +1,7 @@
 # Autenticação e autorização — Rodízio de Almoço (scadahub)
 
+Segurança em geral (regras, testes, limitações): [SECURITY.md](SECURITY.md).
+
 ## 1. Como funciona
 
 * **Login:** só com a conta Google da empresa, pela janela do Google (`signInWithPopup`). Não existe senha do app para criar, trocar ou esquecer. O Workspace é `daqhmi.com`, então o login sai com o e-mail `@daqhmi.com`; `@scadahub.io` é domínio secundário do mesmo Workspace e também é aceito.
@@ -43,7 +45,7 @@ O admin cadastra na aba Equipe com o e-mail de login Google da pessoa (o `@daqhm
 
 * Authentication → Método de login: **Google** ativado.
 * Authentication → Configurações → Domínios autorizados: `mateusg0m3s.github.io` (e `localhost` para desenvolvimento).
-* Depois que todos migrarem, desative o provedor **E-mail/senha**: nenhuma tela usa mais.
+* O provedor **E-mail/senha** não está ativo e não deve ser ativado: nenhuma tela usa, e uma conta com senha sem e-mail verificado não passaria nas regras.
 
 ## 6. Testes e desenvolvimento local
 
