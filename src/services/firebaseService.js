@@ -1,9 +1,20 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, get, remove } from 'firebase/database';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, connectAuthEmulator } from 'firebase/auth';
 import { defaultFirebaseConfig } from '../firebaseConfig.js';
 
 const STORAGE_KEY_CONFIG = 'scadahub_firebase_custom_config';
+
+// `npm run dev:emulators` (vite --mode emulators): Auth e Realtime Database locais, projeto demo, nada toca a produção
+const USE_EMULATORS = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'emulators';
+const EMULATOR_CONFIG = {
+  apiKey: 'demo-api-key',
+  authDomain: 'demo-rodizio.firebaseapp.com',
+  databaseURL: 'http://127.0.0.1:9000/?ns=demo-rodizio-default-rtdb',
+  projectId: 'demo-rodizio',
+  appId: 'demo-app'
+};
+const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
 
 // Parâmetros da contingência HTTPS (REST) para redes que bloqueiam o WebSocket do Firebase
 const REST_FALLBACK_GRACE_MS = 5000;
@@ -40,6 +51,7 @@ class FirebaseService {
 
   // Obtém a configuração ativa (prioriza configuração salva na UI, senão pega a do arquivo)
   getActiveConfig() {
+    if (USE_EMULATORS) return EMULATOR_CONFIG;
     try {
       if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
         const saved = localStorage.getItem(STORAGE_KEY_CONFIG);
@@ -96,6 +108,9 @@ class FirebaseService {
       this.db = getDatabase(this.app);
       try {
         this.auth = getAuth(this.app);
+        if (USE_EMULATORS && !this.auth.emulatorConfig) {
+          connectAuthEmulator(this.auth, AUTH_EMULATOR_URL, { disableWarnings: true });
+        }
       } catch (authErr) {
         console.warn('Firebase Auth não inicializado no ambiente local:', authErr);
       }
@@ -123,14 +138,23 @@ class FirebaseService {
     return null;
   }
 
-  async getRestAuthQuery() {
+  async getRestAuthToken() {
     try {
       const user = this.auth && this.auth.currentUser;
-      if (user) return `?auth=${encodeURIComponent(await user.getIdToken())}`;
+      if (user) return await user.getIdToken();
     } catch {
-      // Sem sessão do Firebase Authentication: segue como requisição pública
+      // Sem sessão do Firebase Authentication: as regras recusam a requisição
     }
-    return '';
+    return null;
+  }
+
+  // Mantém a query da URL do banco (o emulador usa ?ns=) e acrescenta o token da sessão
+  async buildRestUrl(base, path) {
+    const url = new URL(base);
+    url.pathname = `${url.pathname.replace(/\/+$/, '')}/${path}.json`;
+    const token = await this.getRestAuthToken();
+    if (token) url.searchParams.set('auth', token);
+    return url.toString();
   }
 
   async restRequest(method, path, body) {
@@ -141,7 +165,7 @@ class FirebaseService {
     const timer = controller ? setTimeout(() => controller.abort(), REST_REQUEST_TIMEOUT_MS) : null;
     try {
       const hasBody = body !== undefined;
-      const res = await fetch(`${base}/${path}.json${await this.getRestAuthQuery()}`, {
+      const res = await fetch(await this.buildRestUrl(base, path), {
         method,
         headers: hasBody ? { 'Content-Type': 'application/json' } : undefined,
         body: hasBody ? JSON.stringify(body) : undefined,
@@ -497,15 +521,6 @@ class FirebaseService {
     }
   }
 
-  async getUserRecord(uid) {
-    if (!this.isInitialized || !this.db || !uid) return null;
-    try {
-      return (await this.readRemote(`scadahub_users/${uid}`)) || null;
-    } catch (e) {
-      return null;
-    }
-  }
-
   // --- Métodos do Firebase Authentication ---
 
   onAuthStateChange(callback) {
@@ -519,13 +534,18 @@ class FirebaseService {
     return onAuthStateChanged(this.auth, callback);
   }
 
-  async signInWithEmail(email, password) {
+  // Popup em vez de redirect: o site (github.io) e o authDomain (firebaseapp.com) são domínios diferentes,
+  // e o redirect quebra nos navegadores que bloqueiam armazenamento de terceiros (Safari, Firefox).
+  async signInWithGoogle({ hd } = {}) {
     if (!this.auth) {
       this.init();
     }
     if (!this.auth) return { success: false, code: 'auth/not-initialized', message: 'Serviço de autenticação não inicializado.' };
+    const provider = new GoogleAuthProvider();
+    // hd só filtra as contas mostradas pelo Google; quem barra outro domínio são as regras do banco
+    provider.setCustomParameters({ prompt: 'select_account', ...(hd ? { hd } : {}) });
     try {
-      const res = await signInWithEmailAndPassword(this.auth, email, password);
+      const res = await signInWithPopup(this.auth, provider);
       return { success: true, user: res.user };
     } catch (err) {
       return { success: false, code: err.code || 'auth/unknown', message: err.message };

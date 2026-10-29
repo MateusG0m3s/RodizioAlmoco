@@ -46,8 +46,7 @@ export default function Topbar({
   soundEnabled,
   toggleSound,
   onOpenSettings,
-  onOpenAuthModal,
-  onOpenChangePassword,
+  onSwitchAccount,
   onLogout,
   onGoHome
 }) {
@@ -92,8 +91,7 @@ export default function Topbar({
                 soundEnabled={soundEnabled}
                 toggleSound={toggleSound}
                 onOpenSettings={onOpenSettings}
-                onOpenAuthModal={onOpenAuthModal}
-                onOpenChangePassword={onOpenChangePassword}
+                onSwitchAccount={onSwitchAccount}
                 onLogout={onLogout}
               />
             )}

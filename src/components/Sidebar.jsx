@@ -16,8 +16,7 @@ export default function Sidebar({
   soundEnabled = true,
   toggleSound,
   settings,
-  onOpenAuthModal,
-  onOpenChangePassword,
+  onSwitchAccount,
   onLogout
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -64,8 +63,7 @@ export default function Sidebar({
             currentUser={currentUser}
             isAdmin={isAdmin}
             onClose={() => setIsMenuOpen(false)}
-            onOpenAuthModal={onOpenAuthModal}
-            onOpenChangePassword={onOpenChangePassword}
+            onSwitchAccount={onSwitchAccount}
             onLogout={onLogout}
           />
         )}

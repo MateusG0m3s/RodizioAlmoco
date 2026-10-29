@@ -397,17 +397,6 @@ select.form-input option {
   color: var(--accent-strong);
 }
 
-/* ---------- Troca de conta ---------- */
-.auth-email-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.auth-email-form > .ui-btn {
-  width: 100%;
-}
-
 /* ---------- Toast ---------- */
 /* Superfície escura da marca nos dois temas; a variante aparece no ícone */
 .scadahub-floating-toast {

@@ -555,7 +555,7 @@ export default function SettingsView({
               </div>
             )}
 
-            {/* Manutenção Técnica Avançada (Protegida por senha "useradminshub") */}
+            {/* Manutenção técnica avançada (só aparece para o administrador) */}
             <div className="cloud-advanced">
               <button
                 type="button"
