@@ -342,6 +342,11 @@ class AuthService {
         const userToSet = { ...knownAccount };
         this.currentUser = userToSet;
         saveLocalSession(userToSet);
+        // Ao trocar de uma conta do Firebase para uma local, a sessão do Firebase ainda prevaleceria ao recarregar.
+        // A sessão local já está salva, então o listener a restaura quando o Firebase avisar o signOut.
+        if (firebaseService.auth?.currentUser) {
+          await firebaseService.signOutAuth();
+        }
         setTimeout(() => {
           this.authLoading = false;
           this.notifySubscribers();

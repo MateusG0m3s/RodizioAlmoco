@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ShieldCheck, KeyRound, User, Crown, Mail, LogOut, Check, X, Sparkles, RefreshCw, Lock } from 'lucide-react';
+import { ShieldCheck, KeyRound, User, Crown, Mail, LogOut, X, RefreshCw, Lock } from 'lucide-react';
 import { getInitials } from '../utils/nameUtils';
-import { authService, TEST_ACCOUNTS } from '../services/authService';
+import { authService } from '../services/authService';
 import ChangePasswordModal from './ChangePasswordModal';
 import { resolveAvatarColor } from '../utils/avatarColors';
 
@@ -10,18 +10,9 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
   const [passwordInput, setPasswordInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState('');
-  const [activeSubTab, setActiveSubTab] = useState('quick'); // 'quick' | 'email'
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   if (!isOpen) return null;
-
-  const handleSelectAccount = (key) => {
-    const res = authService.switchAccount(key);
-    if (res.success) {
-      if (onUserChanged) onUserChanged(res.user);
-      onClose();
-    }
-  };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -69,7 +60,7 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
             </span>
             <div>
               <h3 id="auth-modal-title" className="modal-title">Conta e acesso</h3>
-              <span className="modal-subtitle">Sessão atual, troca de conta e permissões</span>
+              <span className="modal-subtitle">Sessão atual e troca de conta</span>
             </div>
           </div>
           <button type="button" className="btn-modal-close" onClick={onClose} aria-label="Fechar">
@@ -118,122 +109,60 @@ export default function AuthModal({ isOpen, onClose, currentUser, onUserChanged 
             initialEmail={currentUser?.email || ''}
           />
 
-          {/* Abas: contas de teste ou login por e-mail */}
-          <div className="ui-choices" role="tablist" aria-label="Forma de troca de conta">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeSubTab === 'quick'}
-              className={activeSubTab === 'quick' ? 'is-on' : ''}
-              onClick={() => setActiveSubTab('quick')}
-            >
-              <Sparkles size={14} />
-              Contas de teste
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeSubTab === 'email'}
-              className={activeSubTab === 'email' ? 'is-on' : ''}
-              onClick={() => setActiveSubTab('email')}
-            >
-              <Mail size={14} />
-              Entrar com e-mail
-            </button>
-          </div>
+          {/* Troca de conta sempre com senha: sem atalho que permita assumir outra conta */}
+          <form onSubmit={handleEmailLogin} className="auth-email-form" aria-labelledby="auth-switch-title">
+            <span id="auth-switch-title" className="card-section-title">Entrar com outra conta</span>
+            {authError && (
+              <div className="ui-alert danger" role="alert">
+                <span>{authError}</span>
+              </div>
+            )}
 
-          {activeSubTab === 'quick' && (
-            <div className="form-group" role="tabpanel">
-              <span className="ui-caption">
-                Escolha uma conta para conferir as permissões de ADMIN, USER_A e USER_B:
+            <label className="form-group">
+              <span className="form-label">E-mail</span>
+              <span className="input-with-icon">
+                <Mail size={16} />
+                <input
+                  type="email"
+                  className="form-input"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="seu.nome@scadahub.io"
+                  autoComplete="username"
+                  required
+                />
               </span>
-              {Object.keys(TEST_ACCOUNTS).map((key) => {
-                const acc = TEST_ACCOUNTS[key];
-                const isSelected = currentUser?.uid === acc.uid;
-                const isAccAdmin = acc.role === 'admin';
-                return (
-                  <button
-                    type="button"
-                    key={key}
-                    className={`account-option ${isSelected ? 'is-selected' : ''}`}
-                    onClick={() => handleSelectAccount(key)}
-                    aria-pressed={isSelected}
-                  >
-                    <span className="ui-avatar" style={{ background: resolveAvatarColor(acc.color, acc.email) }} aria-hidden="true">
-                      {getInitials(acc.name)}
-                    </span>
-                    <span>
-                      <b>
-                        {acc.name}
-                        <span className={`ui-chip plain ${isAccAdmin ? 'now' : 'next'}`}>
-                          {key} · {isAccAdmin ? 'Admin' : 'Usuário'}
-                        </span>
-                      </b>
-                      <span className="ui-caption">{acc.email} · ID {acc.employeeId}</span>
-                    </span>
-                    {isSelected ? (
-                      <span className="account-check" aria-hidden="true"><Check size={14} /></span>
-                    ) : <span />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+            </label>
 
-          {activeSubTab === 'email' && (
-            <form onSubmit={handleEmailLogin} className="auth-email-form" role="tabpanel">
-              {authError && (
-                <div className="ui-alert danger" role="alert">
-                  <span>{authError}</span>
-                </div>
+            <label className="form-group">
+              <span className="form-label">Senha</span>
+              <span className="input-with-icon">
+                <Lock size={16} />
+                <input
+                  type="password"
+                  className="form-input"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Sua senha"
+                  autoComplete="current-password"
+                />
+              </span>
+            </label>
+
+            <button type="submit" disabled={isLoading} className="ui-btn primary">
+              {isLoading ? (
+                <>
+                  <RefreshCw size={16} className="animate-spin" />
+                  Autenticando…
+                </>
+              ) : (
+                <>
+                  <KeyRound size={16} />
+                  Entrar
+                </>
               )}
-
-              <label className="form-group">
-                <span className="form-label">E-mail</span>
-                <span className="input-with-icon">
-                  <Mail size={16} />
-                  <input
-                    type="email"
-                    className="form-input"
-                    value={emailInput}
-                    onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder="seu.nome@scadahub.io"
-                    autoComplete="username"
-                    required
-                  />
-                </span>
-              </label>
-
-              <label className="form-group">
-                <span className="form-label">Senha</span>
-                <span className="input-with-icon">
-                  <Lock size={16} />
-                  <input
-                    type="password"
-                    className="form-input"
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    placeholder="Sua senha"
-                    autoComplete="current-password"
-                  />
-                </span>
-              </label>
-
-              <button type="submit" disabled={isLoading} className="ui-btn primary">
-                {isLoading ? (
-                  <>
-                    <RefreshCw size={16} className="animate-spin" />
-                    Autenticando…
-                  </>
-                ) : (
-                  <>
-                    <KeyRound size={16} />
-                    Entrar
-                  </>
-                )}
-              </button>
-            </form>
-          )}
+            </button>
+          </form>
 
           <div className="ui-alert">
             <Lock size={15} />
