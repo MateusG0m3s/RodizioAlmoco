@@ -77,7 +77,7 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
           <BrandLogo className="login-logo" />
           <div>
             <h2 className="login-hero-title">Rodízio de almoço</h2>
-            <p className="login-hero-text">Quem almoça quando, com o atendimento ao cliente sempre coberto.</p>
+            <p className="login-hero-text">Escala de almoço e atendimento da equipe.</p>
           </div>
           <span className="login-hero-foot">EF - Mateus Silva</span>
         </aside>
