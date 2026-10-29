@@ -239,34 +239,30 @@
 .now-team-dots {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
-.now-team-dots i {
-  display: block;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+/* Um avatar por almoço do dia, em ordem de horário; o estado vem pela forma */
+.now-team-dots .ui-avatar {
+  background: var(--avatar-color);
+  cursor: default;
 }
 
-.now-team-dots i.is-done {
+/* Concluído: sai a cor da pessoa, ficam as iniciais em cinza */
+.now-team-dots .ui-avatar.is-done {
   background: var(--surface-3);
-  box-shadow: inset 0 0 0 5px var(--surface-3), inset 0 0 0 11px var(--ink-3);
+  color: var(--ink-3);
 }
 
-.now-team-dots i.is-now {
-  background: var(--signature);
-  box-shadow: 0 0 0 3px var(--accent-tint);
+/* Almoçando: anel com o gradiente da marca, separado do avatar por um fio da superfície */
+.now-team-dots .ui-avatar.is-now {
+  border: 2px solid transparent;
+  background: linear-gradient(var(--avatar-color), var(--avatar-color)) padding-box, var(--signature) border-box;
+  box-shadow: inset 0 0 0 2px var(--surface);
 }
 
-.now-team-dots i.is-next {
-  background: var(--blue-tint);
-  box-shadow: inset 0 0 0 2px var(--blue-line);
-}
-
-.now-team-dots i.is-you {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+.now-team-dots .ui-avatar.is-now.is-you {
+  box-shadow: inset 0 0 0 2px var(--surface), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
 }
 
 .now-team-legend {
