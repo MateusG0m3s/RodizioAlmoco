@@ -2,7 +2,7 @@
 export const TEST_ACCOUNTS = {
   ADMIN: {
     uid: 'uid-admin',
-    email: 'mateus.gomes@scadahub.io',
+    email: 'mateus.gomes@daqhmi.com',
     name: 'Mateus Augusto Santos Gomes',
     employeeId: 'emp-2',
     role: 'admin',
@@ -10,7 +10,7 @@ export const TEST_ACCOUNTS = {
   },
   USER_A: {
     uid: 'uid-mateus-silva',
-    email: 'mateus.silva@scadahub.io',
+    email: 'mateus.silva@daqhmi.com',
     name: 'Mateus de Oliveira Silva',
     employeeId: 'emp-1',
     role: 'user',
@@ -18,7 +18,7 @@ export const TEST_ACCOUNTS = {
   },
   USER_B: {
     uid: 'uid-monique',
-    email: 'monique@scadahub.io',
+    email: 'monique@daqhmi.com',
     name: 'Monique Aparecida Hileshein',
     employeeId: 'emp-3',
     role: 'user',
@@ -26,7 +26,7 @@ export const TEST_ACCOUNTS = {
   },
   USER_C: {
     uid: 'uid-samara',
-    email: 'samara.revoredo@scadahub.io',
+    email: 'samara.revoredo@daqhmi.com',
     name: 'Samara Revoredo',
     employeeId: 'emp-4',
     role: 'user',

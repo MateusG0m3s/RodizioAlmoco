@@ -1,10 +1,12 @@
 import { firebaseService } from './firebaseService.js';
 
-// Só contas Google da empresa entram. O Google confirma o e-mail; as regras do banco
-// (database.rules.json) recusam qualquer outro domínio, então esta checagem é só a da tela.
-export const COMPANY_DOMAIN = 'scadahub.io';
+// Só contas Google da empresa entram. O Workspace é daqhmi.com (o login do Google sai com esse e-mail);
+// scadahub.io é domínio secundário do mesmo Workspace. As regras do banco (database.rules.json) recusam
+// qualquer outro domínio, então esta checagem é só a da tela.
+export const GOOGLE_WORKSPACE_DOMAIN = 'daqhmi.com';
+export const COMPANY_DOMAINS = [GOOGLE_WORKSPACE_DOMAIN, 'scadahub.io'];
 
-const DOMAIN_MESSAGE = `Use a sua conta Google da scadahub (@${COMPANY_DOMAIN}).`;
+const DOMAIN_MESSAGE = `Use a sua conta Google da empresa (@${GOOGLE_WORKSPACE_DOMAIN}).`;
 
 // Restos do login antigo por e-mail e senha: sessão local, senhas em texto puro e diretório de contas.
 const LEGACY_STORAGE_KEYS = ['scadahub_local_session', 'scadahub_custom_passwords', 'scadahub_account_directory'];
@@ -20,7 +22,7 @@ function clearLegacyStorage() {
 
 export function isCompanyAccount(user) {
   const email = String(user?.email || '').toLowerCase();
-  return Boolean(user && user.emailVerified && email.endsWith(`@${COMPANY_DOMAIN}`));
+  return Boolean(user && user.emailVerified && COMPANY_DOMAINS.some((domain) => email.endsWith(`@${domain}`)));
 }
 
 // A conta é ligada ao colaborador pelo e-mail cadastrado na aba Equipe; as regras do banco fazem a mesma conta
@@ -160,7 +162,7 @@ class AuthService {
    * a janela sempre pergunta qual conta usar.
    */
   async loginWithGoogle() {
-    const res = await firebaseService.signInWithGoogle({ hd: COMPANY_DOMAIN });
+    const res = await firebaseService.signInWithGoogle({ hd: GOOGLE_WORKSPACE_DOMAIN });
     if (!res.success) {
       return { success: false, message: friendlyAuthError(res.code) };
     }

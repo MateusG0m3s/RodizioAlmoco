@@ -56,7 +56,7 @@ test('SUÍTE DE SEGURANÇA 1: Matriz de Integridade dos Arquivos de Regras do Fi
     assert.ok(expr.includes('auth != null'), `${rulePath} deve exigir login`);
   }
   for (const { path: rulePath, expr } of rules.filter((r) => r.path.endsWith('.read') && !r.path.startsWith('scadahub_admins'))) {
-    assert.ok(expr.includes("email_verified === true") && expr.includes("endsWith('@scadahub.io')"), `${rulePath}: leitura só para e-mail verificado da scadahub`);
+    assert.ok(expr.includes("email_verified === true") && expr.includes("endsWith('@daqhmi.com')") && expr.includes("endsWith('@scadahub.io')"), `${rulePath}: leitura só para e-mail verificado da empresa`);
   }
   assert.ok(!rules.some((r) => r.path.startsWith('scadahub_admins') && r.path.endsWith('.write')), 'scadahub_admins só se grava pelo console');
 
@@ -140,20 +140,21 @@ test('SUÍTE DE SEGURANÇA 5: Teste de Usuário Anônimo / Não Autenticado', ()
 });
 
 test('SUÍTE DE SEGURANÇA 6: Login Google só aceita conta verificada da scadahub', () => {
-  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.ADMIN)), true, 'Conta Google @scadahub.io verificada entra');
-  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'Mateus.Silva@ScadaHub.io' })), true, 'Domínio não diferencia maiúsculas');
+  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.ADMIN)), true, 'Conta Google @daqhmi.com (Workspace) verificada entra');
+  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'Mateus.Silva@Daqhmi.com' })), true, 'Domínio não diferencia maiúsculas');
+  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'contato@scadahub.io' })), true, 'Domínio secundário do Workspace entra');
   assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'mateus.silva@gmail.com' })), false, 'Gmail pessoal é recusado');
-  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'x@scadahub.io.evil.com' })), false, 'Domínio parecido é recusado');
-  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'x@evilscadahub.io' })), false, 'Sufixo sem @ é recusado');
+  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'x@daqhmi.com.evil.com' })), false, 'Domínio parecido é recusado');
+  assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'x@evildaqhmi.com' })), false, 'Sufixo sem @ é recusado');
   assert.equal(isCompanyAccount(googleUser(AUDIT_ACCOUNTS.USER_A, { emailVerified: false })), false, 'E-mail não verificado é recusado');
   assert.equal(isCompanyAccount(null), false);
 
   const admin = buildSessionUser(googleUser(AUDIT_ACCOUNTS.ADMIN), true);
   assert.equal(admin.role, 'admin', 'Papel de admin vem de scadahub_admins');
   assert.equal(admin.employeeId, null, 'O colaborador é resolvido pelo e-mail, não fica gravado na sessão');
-  const user = buildSessionUser(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'Mateus.Silva@scadahub.io' }), false);
+  const user = buildSessionUser(googleUser(AUDIT_ACCOUNTS.USER_A, { email: 'Mateus.Silva@daqhmi.com' }), false);
   assert.equal(user.role, 'user');
-  assert.equal(user.email, 'mateus.silva@scadahub.io', 'E-mail da sessão em minúsculas');
+  assert.equal(user.email, 'mateus.silva@daqhmi.com', 'E-mail da sessão em minúsculas');
 
   assert.equal(friendlyAuthError('auth/popup-closed-by-user'), null, 'Fechar a janela do Google não é erro');
   assert.ok(friendlyAuthError('auth/popup-blocked').includes('pop-ups'));

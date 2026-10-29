@@ -16,13 +16,13 @@ test('SUÍTE MULTI-USUÁRIO 1: Login Google e Resolução de Perfil para Todos o
   }
 
   // Cadastro com maiúsculas ou espaços continua batendo
-  const legacy = TEST_EMPLOYEES.map((e) => (e.id === 'emp-3' ? { ...e, email: ' Monique@ScadaHub.io ' } : e));
-  assert.equal(findEmployeeByEmail(legacy, 'monique@scadahub.io')?.id, 'emp-3');
+  const legacy = TEST_EMPLOYEES.map((e) => (e.id === 'emp-3' ? { ...e, email: ' Monique@Daqhmi.com ' } : e));
+  assert.equal(findEmployeeByEmail(legacy, 'monique@daqhmi.com')?.id, 'emp-3');
 
   // Só o e-mail cadastrado vale: apelidos de e-mail não ligam a conta a ninguém
-  assert.equal(findEmployeeByEmail(TEST_EMPLOYEES, 'monique.hilleshein@scadahub.io'), null);
+  assert.equal(findEmployeeByEmail(TEST_EMPLOYEES, 'monique.hilleshein@daqhmi.com'), null);
   assert.equal(findEmployeeByEmail(TEST_EMPLOYEES, ''), null);
-  assert.equal(findEmployeeByEmail(null, 'monique@scadahub.io'), null);
+  assert.equal(findEmployeeByEmail(null, 'monique@daqhmi.com'), null);
 });
 
 test('SUÍTE MULTI-USUÁRIO 2: Visibilidade Cruzada Mútua dos Almoços (Timeline / Cards)', () => {

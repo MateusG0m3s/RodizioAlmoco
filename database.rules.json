@@ -10,32 +10,32 @@
     },
 
     "scadahub_employees": {
-      ".read": "auth != null && auth.token.email_verified === true && auth.token.email.endsWith('@scadahub.io')",
+      ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.endsWith('@daqhmi.com') || auth.token.email.endsWith('@scadahub.io'))",
       ".write": "auth != null && root.child('scadahub_admins').child(auth.uid).val() === true",
       "$empId": {
-        ".write": "auth != null && auth.token.email_verified === true && auth.token.email.endsWith('@scadahub.io') && data.exists() && newData.exists() && data.child('email').val().toLowerCase() === auth.token.email && newData.child('email').val() === data.child('email').val() && newData.child('role').val() === data.child('role').val()",
+        ".write": "auth != null && auth.token.email_verified === true && (auth.token.email.endsWith('@daqhmi.com') || auth.token.email.endsWith('@scadahub.io')) && data.exists() && newData.exists() && data.child('email').val().toLowerCase() === auth.token.email && newData.child('email').val() === data.child('email').val() && newData.child('role').val() === data.child('role').val()",
         ".validate": "newData.hasChildren(['id', 'name'])"
       }
     },
 
     "scadahub_schedules": {
-      ".read": "auth != null && auth.token.email_verified === true && auth.token.email.endsWith('@scadahub.io')",
+      ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.endsWith('@daqhmi.com') || auth.token.email.endsWith('@scadahub.io'))",
       ".write": "auth != null && root.child('scadahub_admins').child(auth.uid).val() === true",
       "$date": {
         "$slot": {
-          ".write": "auth != null && auth.token.email_verified === true && auth.token.email.endsWith('@scadahub.io') && (!data.exists() || root.child('scadahub_employees').child(data.child('employeeId').val()).child('email').val().toLowerCase() === auth.token.email) && (!newData.exists() || root.child('scadahub_employees').child(newData.child('employeeId').val()).child('email').val().toLowerCase() === auth.token.email)",
+          ".write": "auth != null && auth.token.email_verified === true && (auth.token.email.endsWith('@daqhmi.com') || auth.token.email.endsWith('@scadahub.io')) && (!data.exists() || root.child('scadahub_employees').child(data.child('employeeId').val()).child('email').val().toLowerCase() === auth.token.email) && (!newData.exists() || root.child('scadahub_employees').child(newData.child('employeeId').val()).child('email').val().toLowerCase() === auth.token.email)",
           ".validate": "newData.hasChildren(['employeeId', 'startTime', 'endTime'])"
         }
       }
     },
 
     "scadahub_settings": {
-      ".read": "auth != null && auth.token.email_verified === true && auth.token.email.endsWith('@scadahub.io')",
+      ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.endsWith('@daqhmi.com') || auth.token.email.endsWith('@scadahub.io'))",
       ".write": "auth != null && root.child('scadahub_admins').child(auth.uid).val() === true"
     },
 
     "scadahub_history": {
-      ".read": "auth != null && auth.token.email_verified === true && auth.token.email.endsWith('@scadahub.io')",
+      ".read": "auth != null && auth.token.email_verified === true && (auth.token.email.endsWith('@daqhmi.com') || auth.token.email.endsWith('@scadahub.io'))",
       ".write": "auth != null && root.child('scadahub_admins').child(auth.uid).val() === true"
     }
   }

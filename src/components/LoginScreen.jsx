@@ -55,7 +55,7 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
         <div className="login-card-container">
           <div className="login-brand-header">
             <h1 className="login-title">Entrar</h1>
-            <p className="login-subtitle">Use a sua conta Google da scadahub para ver a escala da equipe.</p>
+            <p className="login-subtitle">Use a sua conta Google da empresa (@daqhmi.com) para ver a escala da equipe.</p>
           </div>
 
           {errorMessage && (
@@ -81,7 +81,7 @@ export default function LoginScreen({ onLogin, theme = 'dark', toggleTheme }) {
 
           <div className="login-card-footer">
             <ShieldCheck size={14} />
-            <span>Só contas @scadahub.io. Não há senha para criar nem para lembrar.</span>
+            <span>Só contas Google da empresa. Não há senha para criar nem para lembrar.</span>
           </div>
         </div>
       </div>
