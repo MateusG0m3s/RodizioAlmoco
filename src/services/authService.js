@@ -42,10 +42,41 @@ export const TEST_ACCOUNTS = {
 
 export const AUDIT_ACCOUNTS = TEST_ACCOUNTS;
 
+// Sessão das contas locais (login pelo fallback, sem conta no Firebase Auth).
+// O Firebase Auth já persiste as próprias sessões; estas ficavam só em memória e caíam ao recarregar.
+const LOCAL_SESSION_KEY = 'scadahub_local_session';
+
+function readLocalSession() {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const user = JSON.parse(localStorage.getItem(LOCAL_SESSION_KEY) || 'null');
+    return user && user.email && user.role ? user : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLocalSession(user) {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(user));
+  } catch {
+    // Sem localStorage a sessão continua valendo só até recarregar
+  }
+}
+
+function clearLocalSession() {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.removeItem(LOCAL_SESSION_KEY);
+  } catch {
+    // Ignora ambientes sem localStorage
+  }
+}
+
 class AuthService {
   constructor() {
-    this.currentUser = null;
-    this.authLoading = true;
+    this.currentUser = readLocalSession();
+    this.authLoading = !this.currentUser;
+    this.resolvingFirebaseUser = false;
     this.subscribers = new Set();
     this.initAuthListener();
   }
@@ -55,12 +86,15 @@ class AuthService {
     // Escuta mudanças de estado de autenticação emitidas pelo Firebase Auth
     firebaseService.onAuthStateChange(async (fbUser) => {
       if (!fbUser) {
-        this.currentUser = null;
+        // Sem sessão no Firebase: vale a sessão da conta local, se houver
+        this.currentUser = readLocalSession();
         this.authLoading = false;
         this.notifySubscribers();
         return;
       }
 
+      // Enquanto o perfil é lido no banco, o timeout abaixo não pode mandar para o login
+      this.resolvingFirebaseUser = true;
       try {
         const uid = fbUser.uid;
         // Consulta no Firebase se o usuário possui flag de administrador
@@ -91,6 +125,7 @@ class AuthService {
           avatar: 'US'
         };
       } finally {
+        this.resolvingFirebaseUser = false;
         this.authLoading = false;
         this.notifySubscribers();
       }
@@ -98,7 +133,7 @@ class AuthService {
 
     // Timeout de segurança para ambientes offline/testes caso o Firebase demore para responder
     setTimeout(() => {
-      if (this.authLoading && !this.currentUser) {
+      if (this.authLoading && !this.currentUser && !this.resolvingFirebaseUser) {
         this.authLoading = false;
         this.notifySubscribers();
       }
@@ -195,6 +230,8 @@ class AuthService {
         avatar: name.substring(0, 2).toUpperCase()
       };
       this.currentUser = userToSet;
+      // A sessão passa a ser a do Firebase; descarta uma eventual sessão local anterior
+      clearLocalSession();
       // Micro-atraso para permitir que o navegador processe a API de credenciais / salvar senha
       setTimeout(() => {
         this.authLoading = false;
@@ -304,6 +341,7 @@ class AuthService {
       if (isPasswordValid) {
         const userToSet = { ...knownAccount };
         this.currentUser = userToSet;
+        saveLocalSession(userToSet);
         setTimeout(() => {
           this.authLoading = false;
           this.notifySubscribers();
@@ -415,6 +453,7 @@ class AuthService {
    */
   async logout() {
     this.currentUser = null;
+    clearLocalSession();
     await firebaseService.signOutAuth();
     this.notifySubscribers();
     return { success: true };
