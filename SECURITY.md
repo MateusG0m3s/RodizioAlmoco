@@ -51,7 +51,8 @@ A Web API Key do Firebase está no código e isso é esperado: ela identifica o 
 ## 5. Projeto Firebase
 
 * Projeto `rodizio-almoco-equipe`, plano Blaze. Sem login, o banco não aceita leitura nem gravação, o que fecha o caminho de gravações em volume gerando cobrança. Alerta de orçamento: pendente.
-* Provedores de login: só Google. Domínios autorizados: `localhost`, os domínios do próprio projeto e `mateusg0m3s.github.io`.
+* Provedores de login: só Google. Domínios autorizados: `localhost`, os domínios do próprio projeto `mateusg0m3s.github.io` e `escala-sobreaviso.web.app`.
+* O projeto também hospeda a Escala de Sobreaviso (repositório `EscalaSobreaviso`), com site próprio no Hosting (`escala-sobreaviso`) e instância própria do Realtime Database (`escala-sobreaviso`). As contas Google são as mesmas; os dados e as regras não. Este repositório publica regras só no banco padrão (`rodizio-almoco-equipe-default-rtdb`), e o do sobreaviso só nos seus recursos (por targets).
 * Proprietários do projeto: hoje uma conta pessoal; recomendado adicionar uma conta `@daqhmi.com`.
 * Backups: o plano não faz backup automático do Realtime Database. Exportar com `npx firebase database:get / --project rodizio-almoco-equipe` e guardar fora do repositório (que é público).
 
